@@ -1,1 +1,2 @@
 scope = "test/federalist"
+output = "out.stork"
