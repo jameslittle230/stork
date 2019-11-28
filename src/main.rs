@@ -69,8 +69,8 @@ fn build_index(config_filename: std::path::PathBuf) {
         let file = File::open(&pathname).unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut contents = String::new();
-
         let _bytes_read = buf_reader.read_to_string(&mut contents);
+
         let words_in_file: Vec<String> =
             contents.split_whitespace().map(|w| w.to_string()).collect();
         for word in words_in_file {
@@ -95,6 +95,16 @@ fn build_index(config_filename: std::path::PathBuf) {
     )
 }
 
-fn search(index: std::path::PathBuf, query: &String) {}
+fn search(index: std::path::PathBuf, query: &String) {
+    let start_time = Instant::now();
+
+    let file = File::open(&index).unwrap();
+    let mut search_structure: HashMap<String, HashMap<std::path::PathBuf, usize>> =
+        serde_cbor::from_reader(file).unwrap();
+    let normalized_word = query.to_lowercase();
+    println!("{:?}", &search_structure.entry(normalized_word));
+    let elapsed = start_time.elapsed();
+    println!("Found results in {} µs", elapsed.as_micros())
+}
 
 fn print_help() {}
