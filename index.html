@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <title>Rust -> WASM Test</title>
+  </head>
+  <body>
+    <div class="stork-wrapper">
+      <input data-stork="federalist" class="stork-input" />
+      <ul data-stork="federalist-results" class="stork-results">
+        <!-- Nothing yet -->
+      </ul>
+    </div>
+    <script src="./pkg/stork.js"></script>
+    <script type="module">
+      // Like with the `--target web` output the exports are immediately
+      // available but they won't work until we initialize the module. Unlike
+      // `--target web`, however, the globals are all stored on a
+      // `wasm_bindgen` global. The global itself is the initialization
+      // function and then the properties of the global are all the exported
+      // functions.
+      //
+      // Note that the name `wasm_bindgen` can be configured with the
+      // `--no-modules-global` CLI flag
+      const { search } = wasm_bindgen;
+      var index = null;
+      var resultsUL = document.querySelector("ul[data-stork]");
+
+      async function run() {
+        await wasm_bindgen("./pkg/stork_bg.wasm");
+        var oReq = new XMLHttpRequest();
+        oReq.addEventListener("load", transferComplete);
+        oReq.responseType = "arraybuffer";
+        oReq.open("GET", "http://localhost:8000/out.stork");
+        oReq.send();
+
+        function transferComplete() {
+          console.log(`${this.response.byteLength} bytes loaded`);
+          index = new Uint8Array(this.response);
+        }
+
+        document
+          .querySelector("input[data-stork]")
+          .addEventListener("input", performSearch);
+
+        function performSearch(event) {
+          if (!index) {
+            return;
+          }
+
+          let query = event.target.value;
+          if (query && query !== "") {
+            while (resultsUL.firstChild) {
+              resultsUL.removeChild(resultsUL.firstChild);
+            }
+
+            let results = Array.from(
+              JSON.parse(search(index, event.target.value))
+            );
+            console.log(results);
+            for (let i = 0; i < results.length; i++) {
+              //   console.log(entry);
+              let li = document.createElement("li");
+              li.appendChild(
+                document.createTextNode(JSON.stringify(results[i]))
+              );
+              resultsUL.appendChild(li);
+            }
+          }
+        }
+      }
+
+      run();
+    </script>
+  </body>
+</html>

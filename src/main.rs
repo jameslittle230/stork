@@ -1,12 +1,20 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::env;
-use std::fmt;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Read;
 use std::time::Instant;
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+    fn alert(s: &str);
+}
 
 #[derive(Deserialize)]
 struct Config {
@@ -14,10 +22,11 @@ struct Config {
     output: String,
 }
 
-// struct Entry {
-//     path: std::path::PathBuf,
-//     count: usize,
-// }
+#[derive(Serialize)]
+pub struct StorkResult {
+    path: String,
+    count: usize,
+}
 
 // impl fmt::Display for Entry {
 //     // This trait requires `fmt` with this exact signature.
@@ -28,23 +37,27 @@ struct Config {
 
 // struct Field {}
 
+// #[cfg(not(target_arch = "wasm32"))]
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        print_help();
+        // print_help();
     }
 
     let command = &args[1];
-    // let argument = &args[2];
-    // let debug = &args[3];
 
     if command == "--build" {
         build_index(std::path::PathBuf::from(&args[2]));
     }
 
     if command == "--search" {
-        search(std::path::PathBuf::from(&args[2]), &args[3]);
+        let file = File::open(&args[2]).unwrap();
+        let mut buf_reader = BufReader::new(file);
+        let mut index: Vec<u8> = Vec::new();
+        let _bytes_read = buf_reader.read_to_end(&mut index);
+        println!("{} bytes", index.len());
+        search(&index, &args[3]);
     }
 }
 
@@ -95,16 +108,32 @@ fn build_index(config_filename: std::path::PathBuf) {
     )
 }
 
-fn search(index: std::path::PathBuf, query: &String) {
-    let start_time = Instant::now();
+pub fn search(index: &[u8], query: &String) -> Vec<StorkResult> {
+    // let start_time = Instant::now();
+    let search_structure_result: std::result::Result<
+        HashMap<String, HashMap<std::path::PathBuf, usize>>,
+        serde_cbor::error::Error,
+    > = serde_cbor::from_slice(index);
 
-    let file = File::open(&index).unwrap();
-    let mut search_structure: HashMap<String, HashMap<std::path::PathBuf, usize>> =
-        serde_cbor::from_reader(file).unwrap();
+    if (&search_structure_result).is_err() {
+        println!("Failure to parse");
+        let logged = format!("Failure to parse {} bytes", &index.len());
+        log(&logged.as_str());
+        panic!();
+    }
+
+    let search_structure = &mut search_structure_result.unwrap();
     let normalized_word = query.to_lowercase();
-    println!("{:?}", &search_structure.entry(normalized_word));
-    let elapsed = start_time.elapsed();
-    println!("Found results in {} µs", elapsed.as_micros())
+    let map = search_structure.get(&normalized_word).unwrap();
+    let mut vec = Vec::new();
+    map.iter().for_each(|e| {
+        vec.push(StorkResult {
+            count: *e.1,
+            path: e.0.to_str().unwrap().to_string(),
+        })
+    });
+    vec.sort_by(|a, b| b.count.cmp(&a.count));
+    return vec;
 }
 
-fn print_help() {}
+// fn print_help() {}
