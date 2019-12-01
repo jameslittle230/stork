@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
+use std::cmp;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Read;
+use std::path::Path;
 use std::time::Instant;
 
 use wasm_bindgen::prelude::*;
@@ -18,26 +20,35 @@ extern "C" {
 
 #[derive(Deserialize)]
 struct Config {
-    scope: String,
-    output: String,
+    input: ConfigInput,
+    output: ConfigOutput,
 }
 
-#[derive(Serialize)]
-pub struct StorkResult {
+#[derive(Deserialize)]
+struct ConfigInput {
+    base_directory: String,
+    files: Vec<StorkEntry>,
+}
+
+#[derive(Deserialize)]
+struct ConfigOutput {
+    filename: String,
+}
+
+#[derive(Clone, Deserialize)]
+struct StorkEntry {
     path: String,
-    count: usize,
+    url: String,
+    title: String,
 }
 
-// impl fmt::Display for Entry {
-//     // This trait requires `fmt` with this exact signature.
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         write!(f, "{}: {}", self.path.display(), self.count)
-//     }
-// }
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct StorkResult {
+    url: String,
+    excerpt: String,
+    title: String,
+}
 
-// struct Field {}
-
-// #[cfg(not(target_arch = "wasm32"))]
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -61,6 +72,20 @@ fn main() {
     }
 }
 
+fn remove_surrounding_punctuation(input: &String) -> String {
+    let mut chars: Vec<char> = input.chars().collect();
+
+    while chars.first().unwrap().is_ascii_punctuation() {
+        chars.remove(0);
+    }
+
+    while chars.last().unwrap().is_ascii_punctuation() {
+        chars.pop();
+    }
+
+    return chars.into_iter().collect();
+}
+
 fn build_index(config_filename: std::path::PathBuf) {
     let start_time = Instant::now();
     let contents = fs::read_to_string(&config_filename).expect(&std::format!(
@@ -71,37 +96,55 @@ fn build_index(config_filename: std::path::PathBuf) {
     let config: Config =
         toml::from_str(&contents).expect("Config file does not contain proper TOML syntax.");
 
-    let mut output: HashMap<String, HashMap<std::path::PathBuf, usize>> = HashMap::new();
-    let filepaths = fs::read_dir(config.scope).unwrap();
-    let mut filepath_count = 0;
-    for path in filepaths {
-        filepath_count += 1;
-        let pathname = &path.unwrap().path();
+    let mut output: HashMap<String, Vec<StorkResult>> = HashMap::new();
 
-        // For each word
-        let file = File::open(&pathname).unwrap();
+    let base_directory = Path::new(&config.input.base_directory);
+    for entry_value in &config.input.files {
+        let full_pathname = &base_directory.join(&entry_value.path);
+
+        let file = File::open(&full_pathname).unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut contents = String::new();
         let _bytes_read = buf_reader.read_to_string(&mut contents);
 
         let words_in_file: Vec<String> =
             contents.split_whitespace().map(|w| w.to_string()).collect();
-        for word in words_in_file {
-            let normalized_word = word.to_lowercase();
-            let word_map = output.entry(normalized_word).or_insert(HashMap::new());
-            let count = word_map.entry(pathname.to_path_buf()).or_insert(0);
-            *count += 1;
+
+        for (index, word) in words_in_file.iter().enumerate() {
+            let normalized_word = remove_surrounding_punctuation(&word.to_lowercase());
+            if normalized_word.len() < 3 {
+                continue;
+            }
+
+            for n in 3..=normalized_word.len() {
+                let stem = &normalized_word.as_str()[0..n].to_string();
+
+                let range_width = 8;
+                let min_range = index.checked_sub(range_width).unwrap_or(0);
+                let max_range = cmp::min(index + range_width, words_in_file.len() - 1);
+                let excerpt = words_in_file[min_range..max_range].join(" ");
+
+                let title_clone = entry_value.title.as_str();
+                let url_clone = entry_value.url.as_str();
+
+                let stem_vector = output.entry(stem.to_string()).or_insert(Vec::new());
+                stem_vector.push(StorkResult {
+                    title: title_clone.to_string(),
+                    url: url_clone.to_string(),
+                    excerpt: excerpt,
+                })
+            }
         }
     }
 
-    let output_file = File::create(&config.output).unwrap();
+    let output_file = File::create(&config.output.filename).unwrap();
     serde_cbor::to_writer(&output_file, &output).unwrap();
 
     let elapsed = start_time.elapsed();
     println!(
         "Read {} files and wrote index at `{}` ({} bytes) in {} µs ({} s).",
-        filepath_count,
-        &config.output,
+        &config.input.files.len(),
+        &config.output.filename,
         &output_file.metadata().unwrap().len(),
         elapsed.as_micros(),
         elapsed.as_secs()
@@ -111,29 +154,32 @@ fn build_index(config_filename: std::path::PathBuf) {
 pub fn search(index: &[u8], query: &String) -> Vec<StorkResult> {
     // let start_time = Instant::now();
     let search_structure_result: std::result::Result<
-        HashMap<String, HashMap<std::path::PathBuf, usize>>,
+        HashMap<String, Vec<StorkResult>>,
         serde_cbor::error::Error,
     > = serde_cbor::from_slice(index);
 
     if (&search_structure_result).is_err() {
         println!("Failure to parse");
-        let logged = format!("Failure to parse {} bytes", &index.len());
-        log(&logged.as_str());
         panic!();
     }
 
     let search_structure = &mut search_structure_result.unwrap();
     let normalized_word = query.to_lowercase();
-    let map = search_structure.get(&normalized_word).unwrap();
-    let mut vec = Vec::new();
-    map.iter().for_each(|e| {
-        vec.push(StorkResult {
-            count: *e.1,
-            path: e.0.to_str().unwrap().to_string(),
-        })
-    });
-    vec.sort_by(|a, b| b.count.cmp(&a.count));
-    return vec;
+
+    let output: Vec<StorkResult> = search_structure
+        .get(&normalized_word)
+        .unwrap_or(&Vec::new())
+        .to_owned()
+        .to_vec();
+
+    // println!(
+    //     "Found {} results in {} µs",
+    //     output.len(),
+    //     start_time.elapsed().as_micros()
+    // );
+
+    println!("{:?}", output);
+    return output;
 }
 
 // fn print_help() {}

@@ -48,17 +48,15 @@
           }
 
           let query = event.target.value;
-          if (query && query !== "") {
-            while (resultsUL.firstChild) {
-              resultsUL.removeChild(resultsUL.firstChild);
-            }
+          while (resultsUL.firstChild) {
+            resultsUL.removeChild(resultsUL.firstChild);
+          }
 
+          if (query && query.length >= 3) {
             let results = Array.from(
               JSON.parse(search(index, event.target.value))
             );
-            console.log(results);
             for (let i = 0; i < results.length; i++) {
-              //   console.log(entry);
               let li = document.createElement("li");
               li.appendChild(
                 document.createTextNode(JSON.stringify(results[i]))

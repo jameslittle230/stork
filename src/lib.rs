@@ -1,6 +1,6 @@
 mod main;
-mod utils;
 
+use console_error_panic_hook;
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -18,5 +18,6 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn search(index: &[u8], query: String) -> String {
+    console_error_panic_hook::set_once();
     return serde_json::to_string(&main::search(&index, &query)).unwrap();
 }
