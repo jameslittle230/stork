@@ -23,10 +23,12 @@ Let's put a search box online that searches within the text of the [Federalist P
         <!-- Nothing yet -->
       </ul>
     </div>
-    <script src="./pkg/stork.js"></script>
-    <script src="./stork.js"></script>
+    <script src="https://files.stork-search.net/stork.js"></script>
     <script>
-      stork.register("federalist", "http://localhost:8000/out.stork");
+      stork.register(
+        "federalist",
+        "http://files.stork-search.net/federalist.st"
+      );
     </script>
   </body>
 </html>
@@ -49,12 +51,12 @@ You need to include `stork.js`, which you can either load from the Stork CDN (op
 Then, you should register at least one index:
 
 ```javascript
-stork.register("federalist", "http://files.stork.net/federalist.st");
+stork.register("federalist", "http://files.stork-search.net/federalist.st");
 ```
 
 The search index you build needs to be stored somewhere with a public URL. To register
 
-This registers the index stored at `http://files.stork.net/federalist.st` under the name `federalist`: the `data-stork` attributes in the HTML will hook into this name.
+This registers the index stored at `http://files.stork-search.net/federalist.st` under the name `federalist`; the `data-stork` attributes in the HTML will hook into this name.
 
 Finally, you can set some configuration options for how your search bar will interact with the index and with the page. I'll explain more about the different configuration options later.
 
@@ -92,25 +94,41 @@ This TOML file describes the base directory of all your documents, then lists ou
 
 # Developing
 
-Building the WebAssembly project:
+Dependencies include:
+
+- Rust, installed from rustup
+- wasm-pack
+- npm
+- npx
+
+**Build the project:**
 
 ```
-$ wasm-pack build --target no-modules
+$ cargo make build
 ```
 
-Serving the WebAssembly bits on a local server:
+This runs some sub-build steps:
+
+- format
+- build-wasm (which compiles rust into webassembly)
+- build-js (which runs webpack on the various JS/WASM files created by the prior step)
+- build-indexer (which builds the command line indexing interface)
+
+Once you've built the project, you can **serve the web parts from the `dist/` directory**:
 
 ```
-$ python3 -m http.server
+$ python3 -m http.server --directory dist/
 ```
 
-Building an index from `federalist.toml`
+Or you can use the HTTP server of your choice.
+
+**Building an index from `federalist.toml`**
 
 ```
 $ cargo run -- --build test/federalist.toml
 ```
 
-Searching from the command line:
+**Searching from the command line**:
 
 ```
 $ cargo run -- --search federalist.st liberty
