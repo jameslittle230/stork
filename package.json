@@ -1,0 +1,29 @@
+{
+  "name": "stork",
+  "version": "1.0.0",
+  "description": "An impossibly fast web search solution.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jameslittle230/stork.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jameslittle230/stork/issues"
+  },
+  "homepage": "https://github.com/jameslittle230/stork#readme",
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^0.4.2",
+    "webpack": "^4.41.3",
+    "webpack-cli": "^3.3.10",
+    "copy-webpack-plugin": "^5.0.3"
+  }
+}

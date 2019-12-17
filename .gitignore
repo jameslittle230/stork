@@ -1,2 +1,8 @@
 /target
 **/*.rs.bk
+out.stork
+node_modules
+/dist
+/target
+/pkg
+/wasm-pack.log

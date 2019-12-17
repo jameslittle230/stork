@@ -1,0 +1,33 @@
+[tasks.format]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit", "files"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.rm-pkg]
+command = "rm"
+args = ["-r", "pkg"]
+
+[tasks.build-wasm]
+command = "wasm-pack"
+args = ["build", "--target", "web"]
+
+[tasks.build-js]
+command = "npx"
+args = ["webpack"]
+dependencies = ["build-wasm"]
+
+[tasks.build-indexer]
+command = "cargo"
+args = ["build"]
+
+[tasks.build]
+dependencies = [
+    "format",
+    "build-wasm",
+    "build-js",
+    "build-indexer"
+]
