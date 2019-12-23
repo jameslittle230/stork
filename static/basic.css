@@ -1,0 +1,69 @@
+.stork-wrapper {
+  position: relative;
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+.stork-wrapper *,
+.stork-wrapper *:before,
+.stork-wrapper *:after {
+  box-sizing: border-box;
+}
+
+.stork-input {
+  width: 100%;
+  font-size: 1em;
+  padding: 0.2em 0.4em;
+  margin-bottom: 0.5em;
+}
+
+.stork-message {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.5em 1em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+}
+
+.stork-results {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  list-style-type: none;
+  max-height: 33vh;
+  overflow-y: scroll;
+}
+
+.stork-result {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 1em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.7);
+}
+
+.stork-result:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.stork-result a {
+  color: currentcolor;
+  text-decoration: none;
+}
+
+.stork-result p {
+  margin: 0;
+}
+
+.stork-title {
+  font-weight: bold;
+  font-size: 1.3em;
+  margin-bottom: 0.5em;
+}
+
+.stork-excerpt:before,
+.stork-excerpt:after {
+  content: "...";
+}
+
+.stork-excerpt span {
+  background-color: yellow;
+}
