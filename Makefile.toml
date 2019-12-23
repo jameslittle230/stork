@@ -3,11 +3,15 @@ install_crate = "rustfmt"
 command = "cargo"
 args = ["fmt", "--", "--emit", "files"]
 
-[tasks.clean]
+[tasks.cargo-clean]
 command = "cargo"
 args = ["clean"]
 
 [tasks.rm-pkg]
+command = "rm"
+args = ["-r", "pkg"]
+
+[tasks.rm-dist]
 command = "rm"
 args = ["-r", "pkg"]
 
@@ -23,6 +27,13 @@ dependencies = ["build-wasm"]
 [tasks.build-indexer]
 command = "cargo"
 args = ["build"]
+
+[tasks.clean]
+dependencies = [
+    "cargo-clean",
+    "rm-pkg",
+    "rm-dist"
+]
 
 [tasks.build]
 dependencies = [
