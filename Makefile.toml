@@ -24,6 +24,11 @@ command = "npx"
 args = ["webpack"]
 dependencies = ["build-wasm"]
 
+[tasks.develop-js]
+command = "npx"
+args = ["webpack", "--watch"]
+dependencies = ["build-wasm"]
+
 [tasks.build-indexer]
 command = "cargo"
 args = ["build"]
