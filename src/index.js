@@ -37,6 +37,9 @@ export function register(name, url) {
     `input[data-stork=${name}]`
   );
   entities[name]["inputElement"].addEventListener("input", handleInputEvent);
+  entities[name]["inputElement"].addEventListener("blur", e => {
+    handleBlurEvent(e);
+  });
 }
 
 function handleLoadedIndex(name, event) {
@@ -66,6 +69,11 @@ function handleInputEvent(event) {
   performSearch(name, query);
 }
 
+function handleBlurEvent(event) {
+  let name = event.target.getAttribute("data-stork");
+  updateDom(name, "", "");
+}
+
 function performSearch(name, query) {
   var message = "...";
   var resultString = "";
@@ -84,8 +92,7 @@ function performSearch(name, query) {
             let listItem = htmlResultTemplate
               .replace("{{link}}", link)
               .replace("{{title}}", title)
-              .replace("{{excerpt}}", excerpt)
-              .replace(query, `<span>${query}</span>`);
+              .replace("{{excerpt}}", excerpt);
             resultString += listItem;
           }
         }
