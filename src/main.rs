@@ -26,6 +26,7 @@ struct Config {
 
 #[derive(Deserialize)]
 struct ConfigInput {
+    surrounding_word_count: Option<u8>,
     base_directory: String,
     files: Vec<StorkEntry>,
 }
@@ -35,18 +36,31 @@ struct ConfigOutput {
     filename: String,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Debug)]
 struct StorkEntry {
     path: String,
     url: String,
     title: String,
+    fields: Option<Vec<StorkField>>,
+}
+
+#[derive(Clone, Deserialize, Debug)]
+struct StorkField {
+    key: String,
+    value: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct StorkResult {
-    url: String,
-    excerpt: String,
-    title: String,
+    file_index: u32,
+    excerpts: Vec<StorkExcerpt>,
+    score: u8,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct StorkExcerpt {
+    value: String,
+    query_offset: u16,
 }
 
 fn main() {
@@ -96,10 +110,12 @@ fn build_index(config_filename: std::path::PathBuf) {
     let config: Config =
         toml::from_str(&contents).expect("Config file does not contain proper TOML syntax.");
 
+    let mut entries: Vec<StorkEntry> = Vec::new();
     let mut output: HashMap<String, Vec<StorkResult>> = HashMap::new();
 
     let base_directory = Path::new(&config.input.base_directory);
-    for entry_value in &config.input.files {
+    for (index, entry_value) in config.input.files.iter().enumerate() {
+        entries.push(entry_value.clone());
         let full_pathname = &base_directory.join(&entry_value.path);
 
         let file = File::open(&full_pathname).unwrap();
@@ -110,33 +126,55 @@ fn build_index(config_filename: std::path::PathBuf) {
         let words_in_file: Vec<String> =
             contents.split_whitespace().map(|w| w.to_string()).collect();
 
-        for (index, word) in words_in_file.iter().enumerate() {
+        for (word_index, word) in words_in_file.iter().enumerate() {
             let normalized_word = remove_surrounding_punctuation(&word.to_lowercase());
             if normalized_word.len() < 3 {
                 continue;
             }
 
             for n in 3..=normalized_word.len() {
-                let stem = &normalized_word.as_str()[0..n].to_string();
+                let substring = &normalized_word.as_str()[0..n].to_string();
 
-                let range_width = 8;
-                let min_range = index.checked_sub(range_width).unwrap_or(0);
-                let max_range = cmp::min(index + range_width, words_in_file.len() - 1);
+                let range_width = config.input.surrounding_word_count.unwrap_or(8) as usize;
+                let min_range = word_index.checked_sub(range_width).unwrap_or(0);
+                let max_range = cmp::min(word_index + range_width, words_in_file.len() - 1);
+
                 let excerpt = words_in_file[min_range..max_range].join(" ");
+                let excerpt_iter = excerpt.chars();
+                let mut offset = 0;
 
-                let title_clone = entry_value.title.as_str();
-                let url_clone = entry_value.url.as_str();
+                while offset < excerpt.len() - normalized_word.len()
+                    && excerpt_iter.as_str()[..normalized_word.len()] != normalized_word
+                {
+                    offset += 1;
+                }
 
-                let stem_vector = output.entry(stem.to_string()).or_insert(Vec::new());
-                stem_vector.push(StorkResult {
-                    title: title_clone.to_string(),
-                    url: url_clone.to_string(),
-                    excerpt: excerpt,
-                })
+                let excerpt = StorkExcerpt {
+                    value: excerpt,
+                    query_offset: offset as u16,
+                };
+
+                let stork_result_vector = output.entry(substring.to_string()).or_insert(Vec::new());
+                let mut should_create_new_result = true;
+                for result in stork_result_vector.iter_mut() {
+                    if result.file_index == (index as u32) {
+                        result.excerpts.push(excerpt.clone());
+                        should_create_new_result = false
+                    }
+                }
+
+                if should_create_new_result == true {
+                    stork_result_vector.push(StorkResult {
+                        excerpts: vec![excerpt],
+                        file_index: index as u32,
+                        score: 10,
+                    })
+                }
             }
         }
     }
 
+    println!("{:?}", output.entry("liberty".to_string()));
     let output_file = File::create(&config.output.filename).unwrap();
     serde_cbor::to_writer(&output_file, &output).unwrap();
 
