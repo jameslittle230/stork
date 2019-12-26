@@ -9,12 +9,13 @@ import("../pkg/index.js")
     }
   });
 
-var entities = {};
 export var search;
 
-const messageTemplate = `<div class="stork-message">{{message}}</div>`;
+var entities = {};
 
-const htmlResultTemplate = `<li class="stork-result">
+var messageTemplate = `<div class="stork-message">{{message}}</div>`;
+
+var htmlResultTemplate = `<li class="stork-result">
     <a href="{{link}}">
         <p class="stork-title">{{title}}</p>
         <p class="stork-excerpt">{{excerpt}}</p>
@@ -28,8 +29,9 @@ export function register(name, url) {
     handleLoadedIndex(name, e);
   });
   r.responseType = "arraybuffer";
-  r.open("GET", "http://localhost:8000/out.stork");
+  r.open("GET", url);
   r.send();
+
   entities[name]["listElement"] = document.querySelector(
     `ul[data-stork=${name}-results]`
   );
@@ -71,7 +73,9 @@ function handleInputEvent(event) {
 
 function handleBlurEvent(event) {
   let name = event.target.getAttribute("data-stork");
-  updateDom(name, "", "");
+  if (event.target.value == "") {
+    updateDom(name, "", "");
+  }
 }
 
 function performSearch(name, query) {
@@ -86,9 +90,11 @@ function performSearch(name, query) {
         } else if (results && results.length > 0) {
           message = `${results.length} results found.`;
           for (let i = 0; i < results.length; i++) {
-            let link = results[i]["url"];
-            let title = results[i]["title"];
-            let excerpt = results[i]["excerpt"];
+            let link = results[i]["entry"]["url"];
+            let title = results[i]["entry"]["title"];
+            let excerpt = results[i]["result"]["excerpts"].map(
+              e => `${e.value}<br><br>`
+            );
             let listItem = htmlResultTemplate
               .replace("{{link}}", link)
               .replace("{{title}}", title)

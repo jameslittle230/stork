@@ -4,25 +4,25 @@ use std::env;
 use std::fs;
 
 use std::fs::File;
-use std::io::BufReader;
-use std::io::Read;
+use std::io::{BufReader, Read};
 
-use stork::build_index;
-use stork::search;
-use stork::Config;
+use stork::models::config::Config;
+use stork::{build_index, perform_search, write_index};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        // print_help();
+        print_help();
+        return;
     }
 
     let command = &args[1];
 
     if command == "--build" {
         let config = parse_config(std::path::PathBuf::from(&args[2]));
-        build_index(config);
+        let index = build_index(&config.input);
+        write_index(&config.output, index);
     }
 
     if command == "--search" {
@@ -31,11 +31,11 @@ fn main() {
         let mut index: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index);
         println!("{} bytes", index.len());
-        search(&index, &args[3]);
+        println!("{:?}", perform_search(&index, &args[3]));
     }
 }
 
-fn parse_config(config_filename: std::path::PathBuf) -> Config {
+pub fn parse_config(config_filename: std::path::PathBuf) -> Config {
     let contents = fs::read_to_string(&config_filename).expect(&std::format!(
         "Something went wrong reading the file {}",
         &config_filename.to_str().unwrap()
@@ -44,4 +44,13 @@ fn parse_config(config_filename: std::path::PathBuf) -> Config {
     return toml::from_str(&contents).expect("Config file does not contain proper TOML syntax.");
 }
 
-// fn print_help() {}
+fn print_help() {
+    println!("");
+    println!(
+        "Stork 1.0.0  --  by James Little\nhttps://stork-search.net\n
+Acceptable command line params:
+--build [config.toml]
+--search [config.toml] [query]"
+    );
+    println!("");
+}
