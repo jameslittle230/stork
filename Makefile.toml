@@ -13,7 +13,7 @@ args = ["-r", "pkg"]
 
 [tasks.rm-dist]
 command = "rm"
-args = ["-r", "pkg"]
+args = ["-r", "dist"]
 
 [tasks.build-wasm]
 command = "wasm-pack"
