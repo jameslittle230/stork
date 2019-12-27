@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="utf-8" />
     <title>Federalist Search</title>
-    <link rel="stylesheet" href="basic.css" />
+    <link rel="stylesheet" href="http://localhost:8000/basic.css" />
+    <style>
+      .page-wrap {
+        max-width: 400px;
+      }
+    </style>
   </head>
   <body>
-    <div class="stork-wrapper">
-      <input data-stork="federalist" class="stork-input" />
-      <div class="stork-output">
-        <ul data-stork="federalist-results" class="stork-results">
-          <!-- Nothing yet -->
-        </ul>
+    <div class="page-wrap">
+      <div class="stork-wrapper">
+        <input data-stork="federalist" class="stork-input" />
+        <div class="stork-output">
+          <ul data-stork="federalist-results" class="stork-results">
+            <!-- Nothing yet -->
+          </ul>
+        </div>
       </div>
     </div>
-    <script src="stork.js"></script>
+    <script src="http://localhost:8000/stork.js"></script>
     <script>
       stork.register("federalist", "http://localhost:8000/federalist.st");
     </script>

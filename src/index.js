@@ -1,15 +1,7 @@
-import("../pkg/index.js")
-  .catch(console.error)
-  .then(module => {
-    search = module.search;
-    for (name in entities) {
-      if (entities[name]["inputElement"].value) {
-        performSearch(name, entities[name]["inputElement"].value);
-      }
-    }
-  });
+import init, { search } from "../pkg/stork.js";
 
-export var search;
+// @TODO: Change this URL based on webpack production vs. development
+init("https://d1req3pu7uy8ci.cloudfront.net/stork.wasm");
 
 var entities = {};
 
