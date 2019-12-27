@@ -8,3 +8,4 @@ node_modules
 /wasm-pack.log
 federalist.st
 .DS_Store
+scripts/execute_upload_federalist.sh
