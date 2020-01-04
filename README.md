@@ -6,7 +6,7 @@ Stork is two things. First, it's an indexer: it turns your loosely-structured co
 
 Currently in development by [James Little](https://jameslittle.me)
 
-# Getting Started
+## Getting Started
 
 Let's put a search box online that searches within the text of the [Federalist Papers](https://www.youtube.com/watch?v=DPgE7PNzXag).
 
@@ -58,7 +58,7 @@ This registers the index stored at `http://files.stork-search.net/federalist.st`
 
 Finally, you can set some configuration options for how your search bar will interact with the index and with the page.
 
-# Building your own index
+## Building your own index
 
 You probably don't want to add an interface to your own website that lets you search through the Federalist papers. Here's how to make your search bar yours.
 
@@ -88,11 +88,11 @@ filename = "federalist.st"
 
 This TOML file describes the base directory of all your documents, then lists out each document along with the web URL at which that document will be found, along with that document's title.
 
-# Going Further
+## Going Further
 
 You can read more documentation and learn more about customization at the project's website: <https://stork-search.net>.
 
-# Developing
+# Development
 
 Dependencies include:
 
