@@ -35,7 +35,7 @@
 .stork-output {
   position: absolute;
   width: 100%;
-  /* border: 1px solid rgba(0, 0, 0, 0.1); */
+  margin-top: 0.5em;
   border-radius: 4px;
   box-shadow: 0 0.9px 2.2px rgba(0, 0, 0, 0.02),
     0 2.1px 5.3px rgba(0, 0, 0, 0.028), 0 3.9px 10px rgba(0, 0, 0, 0.035),
@@ -43,14 +43,17 @@
     0 31px 80px rgba(0, 0, 0, 0.07);
   display: flex;
   flex-direction: column;
-  /* background: white; */
+}
+
+.stork-output-visible {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .stork-message {
   width: 100%;
-  padding: 0.5em 1em;
+  padding: 0.5rem 1rem;
   color: rgba(0, 0, 0, 0.8);
-  border-bottom: 1px solid hsla(0, 0%, 80%, 1);
 }
 
 .stork-results {
@@ -58,12 +61,14 @@
   padding: 0;
   width: 100%;
   list-style-type: none;
-  max-height: 33vh;
+  max-height: 25rem;
   overflow-y: scroll;
+  border-top: 1px solid hsla(0, 0%, 80%, 1);
 }
 
 .stork-result {
-  padding: 1em;
+  font-size: 0.8em;
+  /* padding: 1rem; */
   border-bottom: 1px solid hsla(0, 0%, 90%, 1);
 }
 
@@ -72,6 +77,8 @@
 }
 
 .stork-result a {
+  padding: 1rem;
+  display: block;
   color: currentcolor;
   text-decoration: none;
 }
@@ -80,15 +87,15 @@
   margin: 0;
 }
 
-.stork-title {
+.stork-result .stork-title {
   font-weight: bold;
-  font-size: 1.3em;
+  font-size: 1.1em;
   margin-bottom: 0.5em;
 }
 
-.stork-excerpt:before,
-.stork-excerpt:after {
-  content: "...";
+.stork-result .stork-excerpt {
+  margin-bottom: 0.5em;
+  line-height: 1;
 }
 
 .stork-excerpt span {
