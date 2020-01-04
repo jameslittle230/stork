@@ -1,11 +1,17 @@
 import init, { search } from "../pkg/stork.js";
 
 // @TODO: Change this URL based on webpack production vs. development
-init("https://d1req3pu7uy8ci.cloudfront.net/stork.wasm");
+// init("https://d1req3pu7uy8ci.cloudfront.net/stork.wasm");
+init("http://localhost:8888/stork.wasm");
 
 var entities = {};
 
-var messageTemplate = `<div class="stork-message">{{message}}</div>`;
+const defaultConfig = {
+  showProgress: true
+};
+
+var outputTemplate = `<div class="stork-message">{{message}}</div>
+<ul class="stork-results">{{results}}</ul>`;
 
 var htmlResultTemplate = `<li class="stork-result">
     <a href="{{link}}">
@@ -14,35 +20,86 @@ var htmlResultTemplate = `<li class="stork-result">
     </a>
 </div>`;
 
-export function register(name, url) {
-  entities[name] = {};
+function handleDownloadProgress(event, name) {
+  let loadedPercentage = event.loaded / event.total;
+  console.log(loadedPercentage);
+  entities[name].progress = loadedPercentage;
+  if (entities[name].config.showProgress) {
+    updateDom(name);
+  }
+}
+
+function handleLoadedIndex(event) {
+  let response = event.target.response;
+  let name = "federalist"; // @TODO Get actual name
+  console.log(`${name}: ${response.byteLength} bytes loaded`);
+  entities[name]["index"] = new Uint8Array(response);
+  if (entities[name].elements.input.value) {
+    performSearch(name, entities[name].elements.input.value);
+  }
+}
+
+function loadIndexFromUrl(name, url, callbacks) {
   var r = new XMLHttpRequest();
   r.addEventListener("load", e => {
-    handleLoadedIndex(name, e);
+    if (callbacks.load) {
+      callbacks.load(e);
+    }
+  });
+  r.addEventListener("progress", e => {
+    if (callbacks.progress) {
+      callbacks.progress(e, name);
+    }
   });
   r.responseType = "arraybuffer";
   r.open("GET", url);
   r.send();
-
-  entities[name]["listElement"] = document.querySelector(
-    `ul[data-stork=${name}-results]`
-  );
-  entities[name]["inputElement"] = document.querySelector(
-    `input[data-stork=${name}]`
-  );
-  entities[name]["inputElement"].addEventListener("input", handleInputEvent);
-  entities[name]["inputElement"].addEventListener("blur", e => {
-    handleBlurEvent(e);
-  });
 }
 
-function handleLoadedIndex(name, event) {
-  let response = event.target.response;
-  console.log(`${name}: ${response.byteLength} bytes loaded`);
-  entities[name]["index"] = new Uint8Array(response);
-  if (entities[name]["inputElement"].value) {
-    performSearch(name, entities[name]["inputElement"].value);
+function calculateOverriddenConfig(original, overrides) {
+  var output = Object.create({});
+  for (let key in original) {
+    if (key in overrides) {
+      output[key] = overrides[key];
+    } else {
+      output[key] = original[key];
+    }
   }
+  return output;
+}
+
+export function register(name, url, config = {}) {
+  let configOverride = calculateOverriddenConfig(defaultConfig, config);
+  entities[name] = { config: configOverride, elements: {} };
+  console.log(entities[name]);
+
+  loadIndexFromUrl(name, url, {
+    load: handleLoadedIndex,
+    progress: handleDownloadProgress
+  });
+
+  entities[name].elements.input = document.querySelector(
+    `input[data-stork=${name}]`
+  );
+  entities[name].elements.output = document.querySelector(
+    `[data-stork=${name}-output]`
+  );
+
+  [
+    { value: entities[name].elements.input, name: "input element" },
+    { value: entities[name].elements.output, name: "output element" }
+  ].forEach(element => {
+    if (!element.value) {
+      throw new Error(
+        `Could not register search box "${name}": ${element.name} not found.`
+      );
+    }
+  });
+
+  entities[name].elements.input.addEventListener("input", handleInputEvent);
+  entities[name].elements.input.addEventListener("blur", e => {
+    handleBlurEvent(e);
+  });
 }
 
 async function resolveSearch(index, query) {
@@ -102,22 +159,59 @@ function performSearch(name, query) {
   }
 }
 
-function updateDom(name, message, resultString) {
-  while (entities[name]["listElement"].firstChild) {
-    entities[name]["listElement"].removeChild(
-      entities[name]["listElement"].firstChild
-    );
+class Dom {
+  create(name, attributes) {
+    let elem = document.createElement(name);
+    if (attributes.classNames) {
+      elem.setAttribute("class", attributes.classNames.join(" "));
+    }
+    return elem;
   }
 
-  let messageElements = document.getElementsByClassName("stork-message");
-  for (let elem of messageElements) {
-    elem.remove();
+  add(elem, location, reference) {
+    reference.insertAdjacentElement(location, elem);
+  }
+}
+
+function updateDom(name) {
+  if (!name) {
+    throw new Error("No name in updateDom call");
   }
 
-  let messageString = messageTemplate.replace("{{message}}", message);
-  entities[name]["listElement"].insertAdjacentHTML(
-    "beforebegin",
-    messageString
-  );
-  entities[name]["listElement"].innerHTML = resultString;
+  let dom = new Dom();
+  let entity = entities[name];
+
+  if (entity.config.showProgress && entity.progress < 1) {
+    if (!entity.elements.progress) {
+      entity.elements.progress = dom.create("div", {
+        classNames: ["stork-loader"]
+      });
+
+      dom.add(entity.elements.progress, "afterend", entity.elements.input);
+    }
+
+    entity.elements.progress.style.width = `${entity.progress * 100}%`;
+  } else {
+    debugger;
+    if (entity.elements.progress) {
+      entity.elements.progress.style.width = `${entity.progress * 100}%`;
+      entity.elements.progress.style.opacity = 0;
+    }
+  }
+
+  // while (entities[name]["listElement"].firstChild) {
+  //   entities[name]["listElement"].removeChild(
+  //     entities[name]["listElement"].firstChild
+  //   );
+  // }
+  // let messageElements = document.getElementsByClassName("stork-message");
+  // for (let elem of messageElements) {
+  //   elem.remove();
+  // }
+  // let messageString = messageTemplate.replace("{{message}}", message);
+  // entities[name]["listElement"].insertAdjacentHTML(
+  //   "beforebegin",
+  //   messageString
+  // );
+  // entities[name]["listElement"].innerHTML = resultString;
 }
