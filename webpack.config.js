@@ -19,17 +19,17 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
-    new CopyPlugin([
-      path.resolve(__dirname, "static"),
-      {
-        from: path.resolve(__dirname, "pkg", "stork_bg.wasm"),
-        to: "stork.wasm"
-      }
-    ])
+    new CopyPlugin(
+      [
+        path.resolve(__dirname, "static"),
+        {
+          from: path.resolve(__dirname, "pkg", "stork_bg.wasm"),
+          to: "stork.wasm"
+        }
+      ],
+      { copyUnmodified: true }
+    )
   ],
-  optimization: {
-    noEmitOnErrors: true
-  },
   module: {
     rules: [
       {
