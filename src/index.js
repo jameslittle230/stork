@@ -17,7 +17,6 @@ Handlebars.registerHelper("highlight", function(text, offset) {
 
 // @TODO: Change this URL based on webpack production vs. development
 init("https://d1req3pu7uy8ci.cloudfront.net/stork.wasm").then(() => {
-  // init("http://localhost:8888/stork.wasm").then(x => {
   wasmLoaded = true;
   for (let key in Object.keys(entities)) {
     performSearch(key);
@@ -121,9 +120,6 @@ export function register(name, url, config = {}) {
   });
 
   entities[name].elements.input.addEventListener("input", handleInputEvent);
-  // entities[name].elements.input.addEventListener("blur", e => {
-  //   handleBlurEvent(e);
-  // });
 }
 
 async function resolveSearch(index, query) {
@@ -145,13 +141,6 @@ function handleInputEvent(event) {
 
   updateDom(name);
 }
-
-// function handleBlurEvent(event) {
-//   let name = event.target.getAttribute("data-stork");
-//   if (event.target.value == "") {
-//     updateDom(name);
-//   }
-// }
 
 function performSearch(name) {
   if (!entities[name]) {
