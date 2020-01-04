@@ -19,9 +19,7 @@ Let's put a search box online that searches within the text of the [Federalist P
   <body>
     <div class="stork-wrapper">
       <input data-stork="federalist" class="stork-input" />
-      <ul data-stork="federalist-results" class="stork-results">
-        <!-- Nothing yet -->
-      </ul>
+      <div data-stork="federalist-output" class="stork-output"></div>
     </div>
     <script src="https://files.stork-search.net/stork.js"></script>
     <script>
@@ -40,9 +38,9 @@ Stork hooks into existing HTML that you include on your page. Each Stork instanc
 
 The input hook should have the `data-stork="federalist"` attribute, where `federalist` is the name with which you register that search instance. (This way, you can have multiple, independent search boxes on a page, all pointing to different instances.) It doesn't have to be `federalist` -- you can change it to whatever you want.
 
-The results list should be an empty `<ul>` tag with the attribute `data-stork="federalist-results"`. Again, here, you can change `federalist` to whatever you want.
+The results list should be an empty `<div>` tag with the attribute `data-stork="federalist-results"`. Again, here, you can change `federalist` to whatever you want.
 
-The classes in the example above (`stork-input`, `stork-results`) are for the theme. Most Stork themes assume the format above; the theme documentation will tell you if it requires something different. You can also design your own theme, at which point the styling and class names are up to you.
+The classes in the example above (`stork-input`, `stork-output`) are for the theme. Most Stork themes assume the format above; the theme documentation will tell you if it requires something different. You can also design your own theme, at which point the styling and class names are up to you.
 
 **Step 2: Include the Javascript**
 
@@ -58,13 +56,11 @@ The search index you build needs to be stored somewhere with a public URL. To re
 
 This registers the index stored at `http://files.stork-search.net/federalist.st` under the name `federalist`; the `data-stork` attributes in the HTML will hook into this name.
 
-Finally, you can set some configuration options for how your search bar will interact with the index and with the page. I'll explain more about the different configuration options later.
+Finally, you can set some configuration options for how your search bar will interact with the index and with the page.
 
-# Going Further
+# Building your own index
 
 You probably don't want to add an interface to your own website that lets you search through the Federalist papers. Here's how to make your search bar yours.
-
-## Building your own index
 
 The search index is based on a document structure: you give Stork a list of documents on disk and include some metadata about those documents, and Stork will build its search index based on the contents of those documents.
 
@@ -92,6 +88,10 @@ filename = "federalist.st"
 
 This TOML file describes the base directory of all your documents, then lists out each document along with the web URL at which that document will be found, along with that document's title.
 
+# Going Further
+
+You can read more documentation and learn more about customization at the project's website: <https://stork-search.net>.
+
 # Developing
 
 Dependencies include:
@@ -99,7 +99,6 @@ Dependencies include:
 - Rust, installed from rustup
 - wasm-pack
 - npm
-- npx
 
 **Build the project:**
 
