@@ -1,49 +1,70 @@
 import init, { search } from "../pkg/stork.js";
+const Handlebars = require("handlebars");
+
+Handlebars.registerHelper("highlight", function(text, offset) {
+  var offset = Handlebars.escapeExpression(offset);
+  var text = Handlebars.escapeExpression(text);
+
+  return new Handlebars.SafeString(
+    [
+      text.substring(0, offset),
+      "<span>",
+      text.substring(offset),
+      "</span>"
+    ].join("")
+  );
+});
 
 // @TODO: Change this URL based on webpack production vs. development
 // init("https://d1req3pu7uy8ci.cloudfront.net/stork.wasm");
-init("http://localhost:8888/stork.wasm");
+init("http://localhost:8888/stork.wasm").then(x => {
+  wasmLoaded = true;
+  for (let key in Object.keys(entities)) {
+    performSearch(key);
+  }
+});
 
+var wasmLoaded = false;
 var entities = {};
 
 const defaultConfig = {
-  showProgress: true
+  showProgress: true,
+  listItemTemplateString: `
+    <li class="stork-result">
+      <a href="{{entry.path}}">
+          <p class="stork-title">{{entry.title}}</p>
+          {{#each result.excerpts}}
+            <p class="stork-excerpt">
+              {{! highlight value query_offset}}
+              ...{{value}}...
+            </p>
+          {{/each}}
+      </a>
+    </li>`
 };
-
-var outputTemplate = `<div class="stork-message">{{message}}</div>
-<ul class="stork-results">{{results}}</ul>`;
-
-var htmlResultTemplate = `<li class="stork-result">
-    <a href="{{link}}">
-        <p class="stork-title">{{title}}</p>
-        <p class="stork-excerpt">{{excerpt}}</p>
-    </a>
-</div>`;
 
 function handleDownloadProgress(event, name) {
   let loadedPercentage = event.loaded / event.total;
-  console.log(loadedPercentage);
   entities[name].progress = loadedPercentage;
   if (entities[name].config.showProgress) {
     updateDom(name);
   }
 }
 
-function handleLoadedIndex(event) {
+function handleLoadedIndex(event, name) {
   let response = event.target.response;
-  let name = "federalist"; // @TODO Get actual name
-  console.log(`${name}: ${response.byteLength} bytes loaded`);
-  entities[name]["index"] = new Uint8Array(response);
-  if (entities[name].elements.input.value) {
-    performSearch(name, entities[name].elements.input.value);
-  }
+  console.info(`${name}: ${response.byteLength} bytes loaded`);
+  entities[name].progress = 1;
+  entities[name].index = new Uint8Array(response);
+
+  performSearch(name);
 }
 
 function loadIndexFromUrl(name, url, callbacks) {
   var r = new XMLHttpRequest();
   r.addEventListener("load", e => {
     if (callbacks.load) {
-      callbacks.load(e);
+      callbacks.load(e, name);
     }
   });
   r.addEventListener("progress", e => {
@@ -71,7 +92,10 @@ function calculateOverriddenConfig(original, overrides) {
 export function register(name, url, config = {}) {
   let configOverride = calculateOverriddenConfig(defaultConfig, config);
   entities[name] = { config: configOverride, elements: {} };
-  console.log(entities[name]);
+  entities[name].config.listItemTemplate = Handlebars.compile(
+    entities[name].config.listItemTemplateString,
+    { strict: true }
+  );
 
   loadIndexFromUrl(name, url, {
     load: handleLoadedIndex,
@@ -97,13 +121,13 @@ export function register(name, url, config = {}) {
   });
 
   entities[name].elements.input.addEventListener("input", handleInputEvent);
-  entities[name].elements.input.addEventListener("blur", e => {
-    handleBlurEvent(e);
-  });
+  // entities[name].elements.input.addEventListener("blur", e => {
+  //   handleBlurEvent(e);
+  // });
 }
 
 async function resolveSearch(index, query) {
-  if (!search) {
+  if (!wasmLoaded) {
     return null;
   }
   return Array.from(JSON.parse(search(index, query)));
@@ -113,49 +137,40 @@ function handleInputEvent(event) {
   let name = event.target.getAttribute("data-stork");
   let query = event.target.value;
 
-  if (!entities[name]["index"]) {
+  entities[name].query = query;
+
+  if (entities[name].index) {
+    performSearch(name);
+  }
+
+  updateDom(name);
+}
+
+// function handleBlurEvent(event) {
+//   let name = event.target.getAttribute("data-stork");
+//   if (event.target.value == "") {
+//     updateDom(name);
+//   }
+// }
+
+function performSearch(name) {
+  if (!entities[name]) {
     return;
   }
 
-  performSearch(name, query);
-}
-
-function handleBlurEvent(event) {
-  let name = event.target.getAttribute("data-stork");
-  if (event.target.value == "") {
-    updateDom(name, "", "");
+  if (entities[name].elements.input.value) {
+    entities[name].query = entities[name].elements.input.value;
   }
-}
 
-function performSearch(name, query) {
-  var message = "...";
-  var resultString = "";
-
+  let query = entities[name].query;
   if (query && query.length >= 3) {
-    let results = resolveSearch(entities[name]["index"], query).then(
-      results => {
-        if (results && results.length === 0) {
-          message = "No results found.";
-        } else if (results && results.length > 0) {
-          message = `${results.length} results found.`;
-          for (let i = 0; i < results.length; i++) {
-            let link = results[i]["entry"]["url"];
-            let title = results[i]["entry"]["title"];
-            let excerpt = results[i]["result"]["excerpts"].map(
-              e => `${e.value}<br><br>`
-            );
-            let listItem = htmlResultTemplate
-              .replace("{{link}}", link)
-              .replace("{{title}}", title)
-              .replace("{{excerpt}}", excerpt);
-            resultString += listItem;
-          }
-        }
-        updateDom(name, message, resultString);
-      }
-    );
+    resolveSearch(entities[name]["index"], query).then(results => {
+      entities[name].results = results;
+      updateDom(name);
+    });
   } else {
-    updateDom(name, message, "");
+    entities[name].results = [];
+    updateDom(name);
   }
 }
 
@@ -170,6 +185,21 @@ class Dom {
 
   add(elem, location, reference) {
     reference.insertAdjacentElement(location, elem);
+  }
+
+  clear(elem) {
+    while (elem.firstChild) {
+      elem.removeChild(elem.firstChild);
+    }
+  }
+
+  setText(elem, text) {
+    let textNode = document.createTextNode(text);
+    if (elem.firstChild) {
+      elem.replaceChild(textNode, elem.firstChild);
+    } else {
+      elem.appendChild(textNode);
+    }
   }
 }
 
@@ -192,26 +222,67 @@ function updateDom(name) {
 
     entity.elements.progress.style.width = `${entity.progress * 100}%`;
   } else {
-    debugger;
     if (entity.elements.progress) {
       entity.elements.progress.style.width = `${entity.progress * 100}%`;
       entity.elements.progress.style.opacity = 0;
     }
   }
 
-  // while (entities[name]["listElement"].firstChild) {
-  //   entities[name]["listElement"].removeChild(
-  //     entities[name]["listElement"].firstChild
-  //   );
-  // }
-  // let messageElements = document.getElementsByClassName("stork-message");
-  // for (let elem of messageElements) {
-  //   elem.remove();
-  // }
-  // let messageString = messageTemplate.replace("{{message}}", message);
-  // entities[name]["listElement"].insertAdjacentHTML(
-  //   "beforebegin",
-  //   messageString
-  // );
-  // entities[name]["listElement"].innerHTML = resultString;
+  var message = "";
+
+  if (entity.progress < 1) {
+    message = "Loading...";
+  } else if (entity.query && entity.query.length < 3) {
+    message = "...";
+  } else if (entity.results) {
+    let l = entity.results.length;
+    if (l === 0) {
+      message = "No results found.";
+    } else if (l === 1) {
+      message = "1 result found.";
+    } else {
+      message = `${l} results found.`;
+    }
+  }
+
+  if (!entity.elements.message) {
+    entity.elements.message = dom.create("div", {
+      classNames: ["stork-message"]
+    });
+    dom.add(entity.elements.message, "afterBegin", entity.elements.output);
+  }
+
+  dom.setText(entity.elements.message, message);
+
+  if (entity.results) {
+    if (entity.results.length > 0) {
+      if (!entity.elements.list) {
+        entity.elements.list = dom.create("ul", {
+          classNames: ["stork-results"]
+        });
+        dom.add(entity.elements.list, "beforeEnd", entity.elements.output);
+      }
+
+      dom.clear(entity.elements.list);
+
+      for (let result of entity.results) {
+        let listItem = entity.config.listItemTemplate(result);
+        entity.elements.list.insertAdjacentHTML("beforeEnd", listItem);
+      }
+    } else {
+      if (entity.elements.list) {
+        entity.elements.output.removeChild(entity.elements.list);
+        entity.elements.list = null;
+      }
+    }
+  }
+
+  if (!entity.query || entity.query.length === 0) {
+    entity.elements.message = null;
+    entity.elements.list = null;
+    dom.clear(entity.elements.output);
+    entity.elements.output.classList.remove("stork-output-visible");
+  } else {
+    entity.elements.output.classList.add("stork-output-visible");
+  }
 }

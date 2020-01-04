@@ -29,5 +29,7 @@
     "webpack-cli": "^3.3.10",
     "@open-wc/webpack-import-meta-loader": "^0.4.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "handlebars": "^4.5.3"
+  }
 }
