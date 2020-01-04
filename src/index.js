@@ -30,7 +30,7 @@ const defaultConfig = {
   showProgress: true,
   listItemTemplateString: `
     <li class="stork-result">
-      <a href="{{entry.path}}">
+      <a href="{{entry.url}}">
           <p class="stork-title">{{entry.title}}</p>
           {{#each result.excerpts}}
             <p class="stork-excerpt">
