@@ -113,7 +113,6 @@ pub fn build_index(config: &ConfigInput) -> StorkIndex {
         }
     }
 
-    println!("{:?}", output.entry("present".to_string()));
     return StorkIndex {
         entries: entries,
         results: output,
