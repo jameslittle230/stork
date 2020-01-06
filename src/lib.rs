@@ -65,9 +65,10 @@ pub fn build_index(config: &ConfigInput) -> StorkIndex {
             let max_range = cmp::min(word_index + range_width, words_in_file.len() - 1);
 
             let excerpt = words_in_file[min_range..max_range].join(" ");
-            let offset = excerpt
-                .subslice_offset_stable(&normalized_word.as_str())
-                .unwrap_or(0);
+
+            // Adding 1 to account for the space after the range of words:
+            // "foo bar baz" vs. "foo bar baz "
+            let offset = words_in_file[min_range..word_index].join(" ").len() + 1;
 
             let excerpt = StorkExcerpt {
                 value: excerpt,
