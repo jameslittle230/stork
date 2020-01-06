@@ -16,4 +16,5 @@ pub struct ConfigInput {
 #[derive(Deserialize)]
 pub struct ConfigOutput {
     pub filename: String,
+    pub debug: bool,
 }

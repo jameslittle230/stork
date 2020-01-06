@@ -124,16 +124,36 @@ pub fn write_index(config: &ConfigOutput, index: StorkIndex) {
     let file = File::create(&config.filename).unwrap();
     let mut bufwriter = BufWriter::new(file);
 
-    let entries_encoded = bincode::serialize(&index.entries).unwrap();
-    let results_encoded = bincode::serialize(&index.results).unwrap();
-
     let write_version = b"stork-1.0.0";
-    let _ = bufwriter.write(&(write_version.len() as u64).to_be_bytes());
-    let _ = bufwriter.write(write_version);
-    let _ = bufwriter.write(&(entries_encoded.len() as u64).to_be_bytes());
-    let _ = bufwriter.write(&entries_encoded);
-    let _ = bufwriter.write(&(results_encoded.len() as u64).to_be_bytes());
-    let _ = bufwriter.write(&results_encoded);
+    if config.debug {
+        let entries_encoded = serde_json::to_string(&index.entries).unwrap();
+        let results_encoded = serde_json::to_string(&index.results).unwrap();
+        let byte_vectors_to_write = [
+            write_version,
+            entries_encoded.as_bytes(),
+            results_encoded.as_bytes(),
+        ];
+
+        for vec in byte_vectors_to_write.iter() {
+            let _ = bufwriter.write(vec.len().to_string().as_bytes());
+            let _ = bufwriter.write(b"\n");
+            let _ = bufwriter.write(vec);
+            let _ = bufwriter.write(b"\n\n");
+        }
+    } else {
+        let entries_encoded = bincode::serialize(&index.entries).unwrap();
+        let results_encoded = bincode::serialize(&index.results).unwrap();
+        let byte_vectors_to_write = [
+            write_version,
+            entries_encoded.as_slice(),
+            results_encoded.as_slice(),
+        ];
+
+        for vec in byte_vectors_to_write.iter() {
+            let _ = bufwriter.write(&(vec.len() as u64).to_be_bytes());
+            let _ = bufwriter.write(vec);
+        }
+    }
 }
 
 pub fn perform_search(index: &[u8], query: &String) -> Vec<StorkOutput> {
