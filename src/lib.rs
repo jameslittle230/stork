@@ -233,33 +233,3 @@ fn expand_to_results(
 
     return output;
 }
-
-pub trait SubsliceOffset {
-    /**
-    Returns the byte offset of an inner slice relative to an enclosing outer slice.
-
-    Examples
-
-    ```ignore
-    let string = "a\nb\nc";
-    let lines: Vec<&str> = string.lines().collect();
-    assert!(string.subslice_offset_stable(lines[0]) == Some(0)); // &"a"
-    assert!(string.subslice_offset_stable(lines[1]) == Some(2)); // &"b"
-    assert!(string.subslice_offset_stable(lines[2]) == Some(4)); // &"c"
-    assert!(string.subslice_offset_stable("other!") == None);
-    ```
-    */
-    fn subslice_offset_stable(&self, inner: &Self) -> Option<usize>;
-}
-
-impl SubsliceOffset for str {
-    fn subslice_offset_stable(&self, inner: &str) -> Option<usize> {
-        let self_beg = self.as_ptr() as usize;
-        let inner = inner.as_ptr() as usize;
-        if inner < self_beg || inner > self_beg.wrapping_add(self.len()) {
-            None
-        } else {
-            Some(inner.wrapping_sub(self_beg))
-        }
-    }
-}
