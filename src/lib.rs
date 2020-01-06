@@ -67,7 +67,7 @@ pub fn build_index(config: &ConfigInput) -> StorkIndex {
             let excerpt = words_in_file[min_range..max_range].join(" ");
             let offset = excerpt
                 .subslice_offset_stable(&normalized_word.as_str())
-                .unwrap();
+                .unwrap_or(0);
 
             let excerpt = StorkExcerpt {
                 value: excerpt,
