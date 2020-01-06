@@ -125,7 +125,7 @@ pub fn write_index(config: &ConfigOutput, index: StorkIndex) {
     let mut bufwriter = BufWriter::new(file);
 
     let write_version = b"stork-1.0.0";
-    if config.debug {
+    if config.debug.unwrap_or(false) {
         let entries_encoded = serde_json::to_string(&index.entries).unwrap();
         let results_encoded = serde_json::to_string(&index.results).unwrap();
         let byte_vectors_to_write = [

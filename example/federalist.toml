@@ -15,4 +15,3 @@ files = [
 
 [output]
 filename = "static/federalist.st"
-debug = false
