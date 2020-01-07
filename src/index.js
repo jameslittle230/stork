@@ -16,7 +16,9 @@ Handlebars.registerHelper("highlight", function(text, offset) {
 });
 
 // @TODO: Change this URL based on webpack production vs. development
-init("https://d1req3pu7uy8ci.cloudfront.net/stork.wasm").then(() => {
+const wasmUrlProduction = "https://files.stork-search.net/stork.wasm";
+const _wasmUrlDevelopment = "http://localhost:8888/stork.wasm";
+init(wasmUrlProduction).then(() => {
   wasmLoaded = true;
   for (let key in Object.keys(entities)) {
     performSearch(key);
