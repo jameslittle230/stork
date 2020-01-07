@@ -228,11 +228,11 @@ function updateDom(name) {
   } else if (entity.results) {
     let l = entity.results.length;
     if (l === 0) {
-      message = "No results found.";
+      message = "No files found.";
     } else if (l === 1) {
-      message = "1 result found.";
+      message = "1 file found.";
     } else {
-      message = `${l} results found.`;
+      message = `${l} files found.`;
     }
   }
 
