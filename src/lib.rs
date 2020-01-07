@@ -3,7 +3,6 @@ use std::cmp;
 use std::collections::HashMap;
 use std::path::Path;
 
-use std::convert::TryInto;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::io::{Read, Write};
@@ -15,6 +14,9 @@ use models::{StorkEntry, StorkExcerpt, StorkIndex, StorkOutput, StorkResult, Sto
 
 mod utils;
 use utils::remove_surrounding_punctuation;
+
+mod index_helpers;
+use index_helpers::{get_index_entries, get_index_results, get_index_version};
 
 use wasm_bindgen::prelude::*;
 
@@ -157,57 +159,69 @@ pub fn write_index(config: &ConfigOutput, index: StorkIndex) {
 }
 
 pub fn perform_search(index: &[u8], query: &String) -> Vec<StorkOutput> {
-    let (version_size_bytes, rest) = index.split_at(std::mem::size_of::<u64>());
-    let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());
-    let (version_bytes, rest) = rest.split_at(version_size as usize);
-    let version = String::from_utf8(version_bytes.to_vec()).unwrap();
+    let normalized_query = query.to_lowercase();
+    let mut words_in_query = normalized_query.split(" "); // not sure this needs to be mutable
 
-    let normalized_word = query.to_lowercase();
+    let mut first_results = perform_word_lookup(index, &words_in_query.next().unwrap().to_string());
+
+    for query_word in words_in_query {
+        for result in &mut first_results {
+            result.excerpts = result
+                .excerpts
+                .iter()
+                .filter(|e| e.value.contains(query_word))
+                .cloned()
+                .collect();
+        }
+    }
+
+    first_results = first_results
+        .iter()
+        .filter(|&r| !r.excerpts.is_empty())
+        .cloned()
+        .collect();
+
+    let entries = get_index_entries(index);
+    let mut output_map: HashMap<usize, StorkOutput> = HashMap::new();
+    for mut result in first_results {
+        output_map
+            .entry(result.file_index as usize)
+            .and_modify(|e| e.result.excerpts.append(&mut result.excerpts))
+            // and modify score, too
+            .or_insert(StorkOutput {
+                entry: entries[result.file_index as usize].clone(),
+                result: result,
+            });
+    }
+
+    let mut output_vector = Vec::from_iter(output_map.values().cloned());
+    // eventually sort by score instead
+    output_vector.sort_by_key(|o| o.result.file_index);
+    return output_vector;
+}
+
+fn perform_word_lookup(index: &[u8], query: &String) -> Vec<StorkResult> {
+    let version = get_index_version(index);
+    let full_results = get_index_results(index);
 
     if version == "stork-1.0.0" {
-        let (entries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
-        let entries_size = u64::from_be_bytes(entries_size_bytes.try_into().unwrap());
-        let (entries_bytes, rest) = rest.split_at(entries_size as usize);
-        let entries: Vec<StorkEntry> = bincode::deserialize(entries_bytes).unwrap();
-
-        let (results_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
-        let results_size = u64::from_be_bytes(results_size_bytes.try_into().unwrap());
-        let (results_bytes, _rest) = rest.split_at(results_size as usize);
-        let full_results: HashMap<String, Vec<StorkResultOrAlias>> =
-            bincode::deserialize(results_bytes).unwrap();
-
         let query_result: Vec<StorkResultOrAlias> = full_results
-            .get(&normalized_word)
+            .get(query)
             .unwrap_or(&Vec::new())
             .to_owned()
             .to_vec();
-        let expanded_results = expand_to_results(&full_results, &query_result);
 
+        return expand_aliases_to_results(&full_results, &query_result);
         // At this point we should be able to guarantee that the results vector
         // is ordered by file index (but _not_ that there aren't file index
         // duplicates.)
-
-        let mut output_map: HashMap<usize, StorkOutput> = HashMap::new();
-        for mut result in expanded_results {
-            output_map
-                .entry(result.file_index as usize)
-                .and_modify(|e| e.result.excerpts.append(&mut result.excerpts))
-                // and modify score, too
-                .or_insert(StorkOutput {
-                    entry: entries[result.file_index as usize].clone(),
-                    result: result,
-                });
-        }
-
-        let mut output_vector = Vec::from_iter(output_map.values().cloned());
-        // eventually sort by score instead
-        output_vector.sort_by_key(|o| o.result.file_index);
-        return output_vector;
     }
+
+    // Throw error - unknown index version
     return vec![];
 }
 
-fn expand_to_results(
+fn expand_aliases_to_results(
     full_results: &HashMap<String, Vec<StorkResultOrAlias>>,
     results_aliases: &Vec<StorkResultOrAlias>,
 ) -> Vec<StorkResult> {
@@ -223,7 +237,7 @@ fn expand_to_results(
         } else if let StorkResultOrAlias::Alias(a) = sroa {
             let empty_vec = Vec::new();
             let alias_pointee = full_results.get(a).unwrap_or(&empty_vec);
-            let expanded_inner_results = expand_to_results(full_results, alias_pointee);
+            let expanded_inner_results = expand_aliases_to_results(full_results, alias_pointee);
             for inner_result in expanded_inner_results {
                 output.push(inner_result);
             }
