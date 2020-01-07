@@ -50,7 +50,7 @@ fn print_help() {
         "Stork 1.0.0  --  by James Little\nhttps://stork-search.net\n
 Acceptable command line params:
 --build [config.toml]
---search [config.toml] [query]"
+--search [config.toml] \"[query]\""
     );
     println!("");
 }
