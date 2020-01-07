@@ -29,9 +29,10 @@ fn main() {
         let file = File::open(&args[2]).unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index: Vec<u8> = Vec::new();
-        let _bytes_read = buf_reader.read_to_end(&mut index);
-        println!("{} bytes", index.len());
-        println!("{:?}", perform_search(&index, &args[3]));
+        let bytes_read = buf_reader.read_to_end(&mut index);
+        println!("{} bytes read", bytes_read.unwrap());
+        let results = perform_search(&index, &args[3]);
+        println!("{}", serde_json::to_string_pretty(&results).unwrap());
     }
 }
 
