@@ -1,8 +1,9 @@
 [package]
 name = "stork"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["James Little <littleguy23@gmail.com>"]
 edition = "2018"
+publish = false
 
 [lib]
 crate-type = ["cdylib", "rlib"]
