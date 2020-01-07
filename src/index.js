@@ -1,16 +1,22 @@
 import init, { search } from "../pkg/stork.js";
 const Handlebars = require("handlebars");
 
-Handlebars.registerHelper("highlight", function(text, offset) {
-  var offset = Handlebars.escapeExpression(offset);
+Handlebars.registerHelper("highlight", function(
+  text,
+  queryOffset,
+  queryLength
+) {
+  var queryOffset = parseInt(queryOffset);
+  var queryLength = parseInt(queryLength);
   var text = Handlebars.escapeExpression(text);
 
   return new Handlebars.SafeString(
     [
-      text.substring(0, offset),
-      "<span>",
-      text.substring(offset),
-      "</span>"
+      text.substring(0, queryOffset),
+      '<span class="stork-highlight">',
+      text.substring(queryOffset, queryOffset + queryLength),
+      "</span>",
+      text.substring(queryOffset + queryLength)
     ].join("")
   );
 });
@@ -36,8 +42,7 @@ const defaultConfig = {
           <p class="stork-title">{{entry.title}}</p>
           {{#each result.excerpts}}
             <p class="stork-excerpt">
-              {{! highlight value query_offset}}
-              ...{{value}}...
+              ...{{ highlight value query_offset @queryLength}}...
             </p>
           {{/each}}
       </a>
@@ -257,7 +262,12 @@ function updateDom(name) {
       dom.clear(entity.elements.list);
 
       for (let result of entity.results) {
-        let listItem = entity.config.listItemTemplate(result);
+        let listItem = entity.config.listItemTemplate(result, {
+          data: {
+            queryOffset: 8,
+            queryLength: entity.query.length
+          }
+        });
         entity.elements.list.insertAdjacentHTML("beforeEnd", listItem);
       }
     } else {
