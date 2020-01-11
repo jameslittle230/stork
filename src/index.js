@@ -1,4 +1,6 @@
-import init, { search } from "../pkg/stork.js";
+import init, { search, extract_index_version } from "../pkg/stork.js";
+import Dom from "./dom.js";
+import WasmQueue from "./wasmqueue.js";
 const Handlebars = require("handlebars");
 
 Handlebars.registerHelper("highlight", function(
@@ -25,17 +27,17 @@ Handlebars.registerHelper("highlight", function(
 const wasmUrlProduction = "https://files.stork-search.net/stork.wasm";
 const _wasmUrlDevelopment = "http://localhost:8888/stork.wasm";
 init(wasmUrlProduction).then(() => {
-  wasmLoaded = true;
-  for (let key in Object.keys(entities)) {
-    performSearch(key);
-  }
+  wasmQueue.loaded = true;
+  wasmQueue.handleWasmLoad();
 });
 
-var wasmLoaded = false;
+var wasmQueue = new WasmQueue();
 var entities = {};
 
 const defaultConfig = {
   showProgress: true,
+  printIndexInfo: false,
+
   listItemTemplateString: `
     <li class="stork-result">
       <a href="{{entry.url}}">
@@ -59,11 +61,25 @@ function handleDownloadProgress(event, name) {
 
 function handleLoadedIndex(event, name) {
   let response = event.target.response;
-  console.info(`${name}: ${response.byteLength} bytes loaded`);
   entities[name].progress = 1;
   entities[name].index = new Uint8Array(response);
+  entities[name].indexSize = response.byteLength;
 
-  performSearch(name);
+  wasmQueue.runAfterWasmLoaded(function() {
+    for (let key in Object.keys(entities)) {
+      performSearch(key);
+    }
+  });
+
+  wasmQueue.runAfterWasmLoaded(function() {
+    if (entities[name].config.printIndexInfo) {
+      console.log({
+        name: name,
+        sizeInBytes: entities[name].indexSize,
+        indexVersion: extract_index_version(entities[name].index)
+      });
+    }
+  });
 }
 
 function loadIndexFromUrl(name, url, callbacks) {
@@ -104,7 +120,9 @@ export function register(name, url, config = {}) {
   );
 
   loadIndexFromUrl(name, url, {
-    load: handleLoadedIndex,
+    load: (event, name) => {
+      handleLoadedIndex(event, name);
+    },
     progress: handleDownloadProgress
   });
 
@@ -130,7 +148,7 @@ export function register(name, url, config = {}) {
 }
 
 async function resolveSearch(index, query) {
-  if (!wasmLoaded) {
+  if (!wasmQueue.loaded) {
     return null;
   }
   return Array.from(JSON.parse(search(index, query)));
@@ -167,35 +185,6 @@ function performSearch(name) {
   } else {
     entities[name].results = [];
     updateDom(name);
-  }
-}
-
-class Dom {
-  create(name, attributes) {
-    let elem = document.createElement(name);
-    if (attributes.classNames) {
-      elem.setAttribute("class", attributes.classNames.join(" "));
-    }
-    return elem;
-  }
-
-  add(elem, location, reference) {
-    reference.insertAdjacentElement(location, elem);
-  }
-
-  clear(elem) {
-    while (elem.firstChild) {
-      elem.removeChild(elem.firstChild);
-    }
-  }
-
-  setText(elem, text) {
-    let textNode = document.createTextNode(text);
-    if (elem.firstChild) {
-      elem.replaceChild(textNode, elem.firstChild);
-    } else {
-      elem.appendChild(textNode);
-    }
   }
 }
 

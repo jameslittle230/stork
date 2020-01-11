@@ -39,6 +39,12 @@ pub fn search(index: &[u8], query: String) -> String {
     return serde_json::to_string(&perform_search(&index, &query)).unwrap();
 }
 
+#[wasm_bindgen]
+pub fn extract_index_version(index: &[u8]) -> String {
+    console_error_panic_hook::set_once();
+    return serde_json::to_string(&get_index_version(&index)).unwrap();
+}
+
 pub fn build_index(config: &ConfigInput) -> StorkIndex {
     let mut entries: Vec<StorkEntry> = Vec::new();
     let mut output: HashMap<String, Vec<StorkResultOrAlias>> = HashMap::new();
