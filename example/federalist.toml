@@ -10,7 +10,17 @@ files = [
     {path = "federalist-7.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-7", title = "Concerning Dangers from Dissensions Between the States 2"},
     {path = "federalist-8.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-8", title = "The Consequences of Hostilities Between the States"},
     {path = "federalist-9.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-9", title = "The Union as a Safeguard Against Domestic Faction and Insurrection"},
-    {path = "federalist-10.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-10", title = "The Union as a Safeguard Against Domestic Faction and Insurrection 2"}
+    {path = "federalist-10.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-10", title = "Federalist 10"},
+    {path = "federalist-11.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-11", title = "Federalist 11"},
+    {path = "federalist-12.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-12", title = "Federalist 12"},
+    {path = "federalist-13.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-13", title = "Federalist 13"},
+    {path = "federalist-14.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-14", title = "Federalist 14"},
+    {path = "federalist-15.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-15", title = "Federalist 15"},
+    {path = "federalist-16.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-16", title = "Federalist 16"},
+    {path = "federalist-17.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-17", title = "Federalist 17"},
+    {path = "federalist-18.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-18", title = "Federalist 18"},
+    {path = "federalist-19.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-19", title = "Federalist 19"},
+    {path = "federalist-20.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-20", title = "Federalist 20"}
 ]
 
 [output]
