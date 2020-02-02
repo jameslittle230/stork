@@ -22,7 +22,8 @@ fn main() {
     if command == "--build" {
         let config = parse_config(std::path::PathBuf::from(&args[2]));
         let index = build_index(&config.input);
-        write_index(&config.output, index);
+        let bytes_written = write_index(&config.output, index);
+        println!("{} bytes written", bytes_written)
     }
 
     if command == "--search" {

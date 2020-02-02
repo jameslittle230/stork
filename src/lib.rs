@@ -128,14 +128,14 @@ pub fn build_index(config: &ConfigInput) -> StorkIndex {
     };
 }
 
-pub fn write_index(config: &ConfigOutput, index: StorkIndex) {
+pub fn write_index(config: &ConfigOutput, index: StorkIndex) -> usize {
     let file = File::create(&config.filename).unwrap();
     let mut bufwriter = BufWriter::new(file);
 
     let write_version = b"stork-1.0.0";
     if config.debug.unwrap_or(false) {
-        let entries_encoded = serde_json::to_string(&index.entries).unwrap();
-        let results_encoded = serde_json::to_string(&index.results).unwrap();
+        let entries_encoded = serde_json::to_string_pretty(&index.entries).unwrap();
+        let results_encoded = serde_json::to_string_pretty(&index.results).unwrap();
         let byte_vectors_to_write = [
             write_version,
             entries_encoded.as_bytes(),
@@ -148,7 +148,11 @@ pub fn write_index(config: &ConfigOutput, index: StorkIndex) {
             let _ = bufwriter.write(vec);
             let _ = bufwriter.write(b"\n\n");
         }
+
+        return 0;
     } else {
+        let mut bytes_written: usize = 0;
+
         let entries_encoded = bincode::serialize(&index.entries).unwrap();
         let results_encoded = bincode::serialize(&index.results).unwrap();
         let byte_vectors_to_write = [
@@ -158,9 +162,11 @@ pub fn write_index(config: &ConfigOutput, index: StorkIndex) {
         ];
 
         for vec in byte_vectors_to_write.iter() {
-            let _ = bufwriter.write(&(vec.len() as u64).to_be_bytes());
-            let _ = bufwriter.write(vec);
+            bytes_written += bufwriter.write(&(vec.len() as u64).to_be_bytes()).unwrap();
+            bytes_written += bufwriter.write(vec).unwrap();
         }
+
+        return bytes_written;
     }
 }
 
