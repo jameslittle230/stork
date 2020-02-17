@@ -1,6 +1,6 @@
-mod searcher;
-mod index_versions;
 pub mod config;
+mod index_versions;
+mod searcher;
 
 use config::*;
 use console_error_panic_hook;
@@ -8,8 +8,8 @@ use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 use index_versions::v2 as LatestVersion;
-use LatestVersion::structs::Index as Index;
 use LatestVersion::builder;
+use LatestVersion::structs::Index;
 
 type IndexFromFile = [u8];
 type SearchResultJSON = String;
