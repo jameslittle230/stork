@@ -1,0 +1,9 @@
+/target
+**/*.rs.bk
+node_modules
+/dist
+/target
+/pkg
+/wasm-pack.log
+
+scripts/execute_upload_federalist.sh
