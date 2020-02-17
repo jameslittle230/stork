@@ -50,8 +50,8 @@ pub fn build(config: &Config) -> Index {
 
             entry_result.excerpts.push(Excerpt {
                 contents: RangeInText {
-                    begin: word_index - 8,
-                    end: word_index + 8,
+                    begin: word_index.saturating_sub(8),
+                    end: word_index.saturating_add(8),
                 },
                 highlights: vec![RangeInText {
                     begin: word_index,
@@ -73,8 +73,8 @@ pub fn build(config: &Config) -> Index {
     }
 
     Index {
-        entries: vec![],
-        queries: HashMap::new(),
+        entries: entries,
+        queries: queries,
     }
 }
 
