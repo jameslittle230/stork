@@ -18,12 +18,16 @@ USAGE:
     stork --search [index.st] "[query]"
 "#;
 
+pub type ExitCode = i32;
+pub const EXIT_SUCCESS: ExitCode = 0;
+pub const EXIT_FAILURE: ExitCode = 1;
+
 fn main() {
     let mut a = Argparse::new();
     a.register("build", build_handler);
     a.register("search", search_handler);
     a.register_help(HELP_TEXT);
-    a.exec(env::args().collect());
+    std::process::exit(a.exec(env::args().collect()));
 }
 
 fn build_handler(args: &[String]) {
