@@ -7,3 +7,4 @@ node_modules
 /wasm-pack.log
 
 scripts/execute_upload_federalist.sh
+test/federalist/*.txt
