@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::time::Instant;
 use stork::config::Config;
+use stork::searcher::{search, SearchOutput};
 
 use num_format::{Locale, ToFormattedString};
 
@@ -46,7 +47,8 @@ fn build_handler(args: &[String]) {
     println!(
         "{} bytes written. {}
     {:.3?}s from start to build
-    {:.3?}s from start to end (file written)",
+    {:.3?}s to write file
+    {:.3?}s total",
         bytes_written.to_formatted_string(&Locale::en),
         {
             if bytes_written != 0 {
@@ -56,6 +58,7 @@ fn build_handler(args: &[String]) {
             }
         },
         build.duration_since(start).as_secs_f32(),
+        end.duration_since(build).as_secs_f32(),
         end.duration_since(start).as_secs_f32()
     );
 }
@@ -70,7 +73,7 @@ fn search_handler(args: &[String]) {
     let mut index_bytes: Vec<u8> = Vec::new();
     let bytes_read = buf_reader.read_to_end(&mut index_bytes);
     let read = Instant::now();
-    let results = stork::search(&index_bytes, args[3].to_owned());
+    let results: SearchOutput = search(&index_bytes, &args[3]);
     let end = Instant::now();
     println!("{}", serde_json::to_string_pretty(&results).unwrap());
 

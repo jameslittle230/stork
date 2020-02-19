@@ -1,6 +1,6 @@
 pub mod config;
+pub mod searcher;
 mod index_versions;
-mod searcher;
 
 use config::*;
 use console_error_panic_hook;
@@ -12,11 +12,10 @@ use LatestVersion::builder;
 use LatestVersion::structs::Index;
 
 type IndexFromFile = [u8];
-type SearchResultJSON = String;
 type Fields = Option<HashMap<String, String>>;
 
 #[wasm_bindgen]
-pub fn search(index: &IndexFromFile, query: String) -> SearchResultJSON {
+pub fn search(index: &IndexFromFile, query: String) -> String {
     console_error_panic_hook::set_once();
     serde_json::to_string(&searcher::search(index, &query)).unwrap()
 }

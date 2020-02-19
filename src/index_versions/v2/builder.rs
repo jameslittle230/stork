@@ -49,14 +49,7 @@ pub fn build(config: &Config) -> Index {
                 .or_insert_with(SearchResult::new);
 
             entry_result.excerpts.push(Excerpt {
-                contents: RangeInText {
-                    begin: word_index.saturating_sub(8),
-                    end: word_index.saturating_add(8),
-                },
-                highlights: vec![RangeInText {
-                    begin: word_index,
-                    end: word_index + 1
-                }]
+                word_index
             });
 
             for n in 3..*normalized_word_len {
@@ -73,8 +66,8 @@ pub fn build(config: &Config) -> Index {
     }
 
     Index {
-        entries: entries,
-        queries: queries,
+        entries,
+        queries
     }
 }
 

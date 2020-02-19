@@ -2,9 +2,9 @@ use crate::Fields;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-type EntryIndex = usize;
-type AliasTarget = String;
-type Score = u8;
+pub type EntryIndex = usize;
+pub type AliasTarget = String;
+pub type Score = u8;
 
 pub const HALF_U8: u8 = u8::max_value() / 2;
 
@@ -19,7 +19,7 @@ pub(super) struct Entry {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct SearchResult {
     pub(super) excerpts: Vec<Excerpt>,
-    score: Score,
+    pub(super) score: Score,
 }
 
 impl SearchResult {
@@ -31,16 +31,15 @@ impl SearchResult {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct RangeInText {
-    pub(super) begin: usize,
-    pub(super) end: usize,
-}
+// #[derive(Serialize, Deserialize, Clone, Debug)]
+// pub(super) struct RangeInText {
+//     pub(super) begin: usize,
+//     pub(super) end: usize,
+// }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Excerpt {
-    pub(super) contents: RangeInText,
-    pub(super) highlights: Vec<RangeInText>,
+    pub(super) word_index: usize
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
