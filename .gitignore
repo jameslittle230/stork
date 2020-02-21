@@ -10,3 +10,4 @@ scripts/execute_upload_federalist.sh
 test/federalist/*.txt
 test/*.st
 yarn.lock
+yarn-error.log
