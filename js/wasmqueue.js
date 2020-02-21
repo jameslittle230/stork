@@ -13,8 +13,8 @@ export default class WasmQueue {
   }
 
   handleWasmLoad() {
-    for (let fn of this.queue) {
+    this.queue.forEach(fn => {
       fn();
-    }
+    });
   }
 }
