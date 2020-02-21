@@ -1,7 +1,4 @@
 const path = require("path");
-const webpack = require("webpack");
-const CopyPlugin = require("copy-webpack-plugin");
-const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
 const dist = path.resolve(__dirname, "dist");
@@ -17,19 +14,7 @@ module.exports = {
     library: "stork",
     chunkFilename: "storkmodule-[id].js"
   },
-  plugins: [
-    new CleanWebpackPlugin()
-    // new CopyPlugin(
-    //   [
-    //     path.resolve(__dirname, "static"),
-    //     {
-    //       from: path.resolve(__dirname, "pkg", "stork_bg.wasm"),
-    //       to: "stork.wasm"
-    //     }
-    //   ],
-    //   { copyUnmodified: true }
-    // )
-  ],
+  plugins: [new CleanWebpackPlugin()],
   module: {
     rules: [
       {
