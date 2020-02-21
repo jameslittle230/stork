@@ -9,3 +9,4 @@ node_modules
 scripts/execute_upload_federalist.sh
 test/federalist/*.txt
 test/*.st
+yarn.lock
