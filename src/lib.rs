@@ -1,5 +1,6 @@
 pub mod config;
 pub mod searcher;
+pub mod index_analyzer;
 mod index_versions;
 
 use config::*;
@@ -18,6 +19,11 @@ type Fields = Option<HashMap<String, String>>;
 pub fn search(index: &IndexFromFile, query: String) -> String {
     console_error_panic_hook::set_once();
     serde_json::to_string(&searcher::search(index, &query)).unwrap()
+}
+
+#[wasm_bindgen]
+pub fn get_index_version(index: &IndexFromFile) -> String {
+    return index_analyzer::get_index_version(index);
 }
 
 pub fn build(config: &Config) -> Index {
