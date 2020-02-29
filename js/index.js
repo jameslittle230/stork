@@ -33,7 +33,7 @@ Handlebars.registerHelper(
 const prod = process.env.NODE_ENV === "production";
 const wasmUrl = prod
   ? "https://files.stork-search.net/stork.wasm"
-  : "http://localhost:8888/stork.wasm";
+  : "http://127.0.0.1:8080/stork.wasm";
 
 const wasmQueue = new WasmQueue();
 const entities = {};
@@ -50,9 +50,9 @@ const defaultConfig = {
     <li class="stork-result">
       <a href="{{entry.url}}">
           <p class="stork-title">{{entry.title}}</p>
-          {{#each result.excerpts}}
+          {{#each excerpts}}
             <p class="stork-excerpt">
-              ...{{ highlight value query_offset @queryLength}}...
+              ...{{ highlight text highlight_char_offset @queryLength}}...
             </p>
           {{/each}}
       </a>
@@ -64,16 +64,15 @@ function updateDom(name) {
     throw new Error("No name in updateDom call");
   }
 
-  const dom = new Dom();
   const entity = entities[name];
 
   if (entity.config.showProgress && entity.progress < 1) {
     if (!entity.elements.progress) {
-      entity.elements.progress = dom.create("div", {
+      entity.elements.progress = Dom.create("div", {
         classNames: ["stork-loader"]
       });
 
-      dom.add(entity.elements.progress, "afterend", entity.elements.input);
+      Dom.add(entity.elements.progress, "afterend", entity.elements.input);
     }
 
     entity.elements.progress.style.width = `${entity.progress * 100}%`;
@@ -89,7 +88,7 @@ function updateDom(name) {
   } else if (entity.query && entity.query.length < 3) {
     message = "...";
   } else if (entity.results) {
-    const l = entity.results.length;
+    const l = entity.hitCount;
     if (l === 0) {
       message = "No files found.";
     } else if (l === 1) {
@@ -100,24 +99,24 @@ function updateDom(name) {
   }
 
   if (!entity.elements.message) {
-    entity.elements.message = dom.create("div", {
+    entity.elements.message = Dom.create("div", {
       classNames: ["stork-message"]
     });
-    dom.add(entity.elements.message, "afterBegin", entity.elements.output);
+    Dom.add(entity.elements.message, "afterBegin", entity.elements.output);
   }
 
-  dom.setText(entity.elements.message, message);
+  Dom.setText(entity.elements.message, message);
 
   if (entity.results) {
     if (entity.results.length > 0) {
       if (!entity.elements.list) {
-        entity.elements.list = dom.create("ul", {
+        entity.elements.list = Dom.create("ul", {
           classNames: ["stork-results"]
         });
-        dom.add(entity.elements.list, "beforeEnd", entity.elements.output);
+        Dom.add(entity.elements.list, "beforeEnd", entity.elements.output);
       }
 
-      dom.clear(entity.elements.list);
+      Dom.clear(entity.elements.list);
 
       entity.results.forEach(result => {
         const listItem = entity.config.listItemTemplate(result, {
@@ -137,7 +136,7 @@ function updateDom(name) {
   if (!entity.query || entity.query.length === 0) {
     entity.elements.message = null;
     entity.elements.list = null;
-    dom.clear(entity.elements.output);
+    Dom.clear(entity.elements.output);
     entity.elements.output.classList.remove("stork-output-visible");
   } else {
     entity.elements.output.classList.add("stork-output-visible");
@@ -148,7 +147,7 @@ async function resolveSearch(index, query) {
   if (!wasmQueue.loaded) {
     return null;
   }
-  return Array.from(JSON.parse(search(index, query)));
+  return JSON.parse(search(index, query));
 }
 
 function handleInputEvent(event) {
@@ -177,7 +176,8 @@ function performSearch(name) {
   const { query } = entities[name];
   if (query && query.length >= 3) {
     resolveSearch(entities[name].index, query).then(results => {
-      entities[name].results = results;
+      entities[name].results = results.results;
+      entities[name].hitCount = results.total_hit_count;
       updateDom(name);
     });
   } else {
@@ -247,7 +247,7 @@ function calculateOverriddenConfig(original, overrides) {
   return output;
 }
 
-export default function register(name, url, config = {}) {
+export function register(name, url, config = {}) {
   const configOverride = calculateOverriddenConfig(defaultConfig, config);
   entities[name] = { config: configOverride, elements: {} };
   entities[name].config.listItemTemplate = Handlebars.compile(
@@ -282,3 +282,7 @@ export default function register(name, url, config = {}) {
 
   entities[name].elements.input.addEventListener("input", handleInputEvent);
 }
+
+export default {
+  register
+};
