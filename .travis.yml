@@ -1,14 +1,25 @@
 language: rust
 rust:
-  - stable
-  - beta
-  - nightly
+- stable
+- beta
+- nightly
 jobs:
   allow_failures:
-    - rust: nightly
+  - rust: nightly
   fast_finish: true
+notifications:
+  slack:
+    on_success: always
+    on_failure: always
+    secure: V1ohL6lW5aSpRnbOjV2PwFxjQMAwm0HNZkwhsowouYbiVIP2DiUJHkN74jdv5Tvn+c+NOQMVFT5eqFm3XejKqQKL0nf8NBlHs2v7PT9MeqsJaWVDlT5xihTtRfmfoD4sWxs50yVLG/gHdMjaO2yPXrwRWa9XcYrzGtUQorbd1PmEwarnCvS6NM4VWI+cUyXwuXBFWamD/mXFKzbrEt1MR6h4GXW/d+QqHE1QKPVlNV6ReDtLclicakFlE4EpqssMz/cZ3NKQi+o6kBNgDJGuoyw65HSpinxUtMdLTSQz0YqEkFryyEbVmxYZ09TZrR9zt6XrDE0ogMAFr8tCeVqgVQfxfByrD7/WIQZO3x02nY8LY9hAYSWRpeszKDFws4smpZ+hf+DS5CDerdG8Q0vtdie9i1Duf6Bn8Zj6Ac8bySDxZCBVaTgzzLK5mPjo09OOs7WIib/+eflGVvlTHTQ6lyfmhjuFvB2CSDwX9kWwFdYXtlMvheEWtDE9HgSnDBEQVNPsA6hS1lM5URnafUwTlm8QxfCzAxnwALwSHqnHiivoat7qk/nAnSRSHOThbmTS92t28d9YiniSN75yyDen3Ze2LCdzqJT+e4CJJS4FU0tHib0pKMvMc/Cozkh5Zu/ensQYuZfOQnFrIGwNtSqv4F75aBsw2/HsDyyzoW8CYCc=
+  email: false
+before_install:
+- cargo install wasm-pack
 before_script:
-  - rustup component add clippy
+- rustup component add clippy
+- yarn install
+- wasm-pack build --target web
 script:
-  - cargo clippy
-  - cargo test
+- cargo clippy -- -D warnings
+- cargo test
+- yarn eslint js/*
