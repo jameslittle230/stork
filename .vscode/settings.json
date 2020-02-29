@@ -1,0 +1,8 @@
+{
+    "search.exclude": {
+        "archive": true
+    },
+    "files.watcherExclude": {
+        "archive": true
+    }
+}

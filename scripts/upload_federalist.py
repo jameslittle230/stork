@@ -41,6 +41,8 @@ if __name__ == "__main__":
 
     outof = len(dist_files)
     idx = 0
+
+    print(f"Uploading {outof} files...")
     for file in dist_files:
         idx += 1
         uploadFile(opj(normalized_dir, "..", "dist", file["filename"]),
@@ -51,4 +53,4 @@ if __name__ == "__main__":
 
     invalidate()
     print("Cache invalidated.")
-    print("Done.")
+    print("Done. Visit https://stork-search.net")

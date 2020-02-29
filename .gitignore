@@ -6,7 +6,7 @@ node_modules
 /pkg
 /wasm-pack.log
 
-scripts/execute_upload_federalist.sh
+scripts/*_exe.sh
 test/federalist/*.txt
 test/*.st
 yarn-error.log

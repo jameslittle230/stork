@@ -26,13 +26,13 @@ module.exports = {
         {
           from: path.resolve(__dirname, "test/static", "*"),
           to: ".",
-          flatten: true,
+          flatten: true
         },
         {
           from: path.resolve(__dirname, "test", "federalist.st"),
           to: ".",
-          flatten: true,
-        },
+          flatten: true
+        }
       ],
       { copyUnmodified: true }
     )
