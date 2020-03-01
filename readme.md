@@ -100,37 +100,8 @@ Dependencies include:
 
 - Rust, installed from rustup
 - wasm-pack
-- npm
+- yarn
 
-**Build the project:**
+Run `yarn run` to see all the different build and test options.
 
-```
-$ cargo make build
-```
-
-This runs some sub-build steps:
-
-- format
-- build-wasm (which compiles rust into webassembly)
-- build-js (which runs webpack on the various JS/WASM files created by the prior step)
-- build-indexer (which builds the command line indexing interface)
-
-Once you've built the project, you can **serve the web parts from the `dist/` directory**:
-
-```
-$ python3 -m http.server --directory dist/
-```
-
-Or you can use the HTTP server of your choice.
-
-**Building an index from `federalist.toml`**
-
-```
-$ cargo run -- --build test/federalist.toml
-```
-
-**Searching from the command line**:
-
-```
-$ cargo run -- --search federalist.st liberty
-```
+To download the test data source (text file versions of the first 20 Federalist Papers), visit [the Federalist Papers](https://github.com/jameslittle230/federalist) repository.
