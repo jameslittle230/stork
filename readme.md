@@ -64,9 +64,11 @@ Finally, you can set some configuration options for how your search bar will int
 
 You probably don't want to add an interface to your own website that lets you search through the Federalist papers. Here's how to make your search bar yours.
 
+To build an index, you need the Stork executable on your computer. On a Mac, you can run `$ brew install jameslittle230/stork-tap/stork` to download it. If that doesn't work for you, check out the [installation documentation](https://stork-search.net/docs/) to learn how to build it manually.
+
 The search index is based on a document structure: you give Stork a list of documents on disk and include some metadata about those documents, and Stork will build its search index based on the contents of those documents.
 
-To begin, you need a configuration file that describes, among other things, that list of files:
+First, you need a configuration file that describes, among other things, that list of files:
 
 ```toml
 [input]
@@ -89,6 +91,20 @@ filename = "federalist.st"
 ```
 
 This TOML file describes the base directory of all your documents, then lists out each document along with the web URL at which that document will be found, along with that document's title.
+
+From there, you can build your search index by running:
+
+```bash
+$ stork --build federalist.toml
+```
+
+This will create a new file at `federalist.st`. You can search through it with the same command line tool:
+
+```bash
+$ stork --search federalist.st "liberty"
+```
+
+You can then upload the index to your web server and pass its URL to the `stork.register()` function in your web page's Javascript.
 
 ## Going Further
 
