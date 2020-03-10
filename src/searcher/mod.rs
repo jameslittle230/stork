@@ -1,8 +1,8 @@
+use crate::index_analyzer::get_index_version;
 use crate::index_versions::v2;
 use crate::Fields;
 use crate::IndexFromFile;
 use serde::Serialize;
-use crate::index_analyzer::get_index_version;
 
 #[derive(Serialize, Debug)]
 pub struct SearchOutput {

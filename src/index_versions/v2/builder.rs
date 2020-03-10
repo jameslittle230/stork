@@ -48,9 +48,7 @@ pub fn build(config: &Config) -> Index {
                 .entry(entry_index)
                 .or_insert_with(SearchResult::new);
 
-            entry_result.excerpts.push(Excerpt {
-                word_index
-            });
+            entry_result.excerpts.push(Excerpt { word_index });
 
             for n in 3..*normalized_word_len {
                 let substring = &normalized_word.as_str()[0..n].to_string();
@@ -65,10 +63,7 @@ pub fn build(config: &Config) -> Index {
         }
     }
 
-    Index {
-        entries,
-        queries
-    }
+    Index { entries, queries }
 }
 
 fn remove_surrounding_punctuation(input: &str) -> String {

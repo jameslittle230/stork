@@ -10,13 +10,14 @@ pub struct Config {
 
 impl Config {
     pub fn from_file(path: std::path::PathBuf) -> Config {
-        let contents = fs::read_to_string(&path).unwrap_or_else(|_e| panic!(
-            "Something went wrong reading the file {}",
-            &path.to_str().unwrap()
-        ));
+        let contents = fs::read_to_string(&path).unwrap_or_else(|_e| {
+            panic!(
+                "Something went wrong reading the file {}",
+                &path.to_str().unwrap()
+            )
+        });
 
-        toml::from_str(&contents)
-            .expect("Config file does not contain proper TOML syntax.")
+        toml::from_str(&contents).expect("Config file does not contain proper TOML syntax.")
     }
 }
 

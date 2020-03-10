@@ -39,7 +39,7 @@ impl SearchResult {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Excerpt {
-    pub(super) word_index: usize
+    pub(super) word_index: usize,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

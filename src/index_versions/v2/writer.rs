@@ -47,7 +47,8 @@ impl Index {
         let write_version = super::VERSION_STRING.as_bytes();
 
         if config.debug.unwrap_or(false) {
-            write_debug(self, &mut bufwriter, &write_version); 0
+            write_debug(self, &mut bufwriter, &write_version);
+            0
         } else {
             write_release(self, &mut bufwriter, &write_version)
         }

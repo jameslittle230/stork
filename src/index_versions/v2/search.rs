@@ -42,20 +42,18 @@ impl OutputResult {
                 // sort by score
                 .map(|result| &result.excerpts)
                 .flatten()
-                .map(|excerpt| {
-                    crate::searcher::Excerpt {
-                        text: entry_contents_by_word[excerpt.word_index.saturating_sub(8)
-                            ..std::cmp::min(
-                                excerpt.word_index.saturating_add(8),
-                                entry_contents_by_word_len,
-                            )]
-                            .join(" "),
-                        highlight_char_offset: entry_contents_by_word
-                            [excerpt.word_index.saturating_sub(8)..excerpt.word_index]
-                            .join(" ")
-                            .len()
-                            + 1,
-                    }
+                .map(|excerpt| crate::searcher::Excerpt {
+                    text: entry_contents_by_word[excerpt.word_index.saturating_sub(8)
+                        ..std::cmp::min(
+                            excerpt.word_index.saturating_add(8),
+                            entry_contents_by_word_len,
+                        )]
+                        .join(" "),
+                    highlight_char_offset: entry_contents_by_word
+                        [excerpt.word_index.saturating_sub(8)..excerpt.word_index]
+                        .join(" ")
+                        .len()
+                        + 1,
                 })
                 .collect(),
             title_highlight_char_offset: None,
