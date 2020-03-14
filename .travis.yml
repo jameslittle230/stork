@@ -17,9 +17,11 @@ before_install:
 - cargo install wasm-pack
 before_script:
 - rustup component add clippy
+- rustup component add rustfmt
 - yarn install
 - wasm-pack build --target web
 script:
 - cargo clippy -- -D warnings
 - cargo test
+- cargo fmt -- --check
 - yarn eslint js/*
