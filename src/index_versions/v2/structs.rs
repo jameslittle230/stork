@@ -42,6 +42,15 @@ pub(super) struct Excerpt {
     pub(super) word_index: usize,
 }
 
+/**
+ * A Container is a struct that holds:
+ * 
+ * - a HashMap of EntryIndexes to SearchResults
+ * - a HashMap of AliasTargets to scores
+ * 
+ * Each valid query should return a single Container. It is possible to derive
+ * all search results for a given query from a single container.
+ */
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Container {
     pub(super) results: HashMap<EntryIndex, SearchResult>,
