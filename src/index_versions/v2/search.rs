@@ -67,8 +67,8 @@ impl OutputResult {
                 url: entry.url.clone(),
                 fields: entry.fields.clone(),
             },
-            score: score,
-            excerpts: excerpts,
+            score,
+            excerpts,
             title_highlight_char_offset: None,
         }
     }
