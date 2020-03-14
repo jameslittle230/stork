@@ -22,12 +22,14 @@ pub struct OutputResult {
     pub entry: OutputEntry,
     pub excerpts: Vec<Excerpt>,
     pub title_highlight_char_offset: Option<usize>,
+    pub score: usize,
 }
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Excerpt {
     pub text: String,
     pub highlight_char_offset: usize,
+    pub score: usize
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
