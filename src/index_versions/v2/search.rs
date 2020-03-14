@@ -31,18 +31,11 @@ impl OutputResult {
             .collect();
         let entry_contents_by_word_len = entry_contents_by_word.len();
 
-        OutputResult {
-            entry: OutputEntry {
-                title: entry.title.clone(),
-                url: entry.url.clone(),
-                fields: entry.fields.clone(),
-            },
-            excerpts: results
-                .iter()
-                // sort by score
-                .map(|result| &result.excerpts)
-                .flatten()
-                .map(|excerpt| crate::searcher::Excerpt {
+        let mut excerpts: Vec<crate::searcher::Excerpt> = Vec::new();
+
+        for result in &results {
+            for excerpt in result.excerpts.to_owned() {
+                let e = crate::searcher::Excerpt {
                     text: entry_contents_by_word[excerpt.word_index.saturating_sub(8)
                         ..std::cmp::min(
                             excerpt.word_index.saturating_add(8),
@@ -54,8 +47,28 @@ impl OutputResult {
                         .join(" ")
                         .len()
                         + 1,
-                })
-                .collect(),
+                    score: (result.score as usize),
+                };
+
+                excerpts.push(e);
+            }
+        }
+
+        excerpts.sort_by(|a, b| b.score.cmp(&a.score));
+
+        let results_score_mean =
+            (results.iter().map(|r| r.score).sum::<u8>() as usize) / results.len();
+        let score =
+            results_score_mean * excerpts.len() * 1000 / (entry_contents_by_word_len as usize);
+
+        OutputResult {
+            entry: OutputEntry {
+                title: entry.title.clone(),
+                url: entry.url.clone(),
+                fields: entry.fields.clone(),
+            },
+            score: score,
+            excerpts: excerpts,
             title_highlight_char_offset: None,
         }
     }
@@ -74,6 +87,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
         container: Container,
     }
 
+    // Get the result hashmap for the container's aliases
     let mut aliased_results = container
         .aliases
         .keys()
@@ -89,6 +103,10 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
             results
         })
         .collect::<Vec<HashMap<EntryIndex, SearchResult>>>();
+
+    // Combine the container's results with the aliased results to get a list
+    // of result hashmaps. We might have the same EntryIndex spread multiple
+    // times throughout the vector, each pointing to a different SearchResult.
     let mut all_results: Vec<HashMap<EntryIndex, SearchResult>> = vec![];
     if !container.results.is_empty() {
         all_results.append(&mut vec![container.results])
@@ -97,8 +115,8 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
         all_results.append(&mut aliased_results);
     }
 
+    // Turn our list of result hashmaps into a single hashmap
     let mut combined_results: HashMap<EntryIndex, Vec<SearchResult>> = HashMap::new();
-
     for result_map in &all_results {
         for (index, result) in result_map.iter() {
             let result_vec = combined_results.entry(*index).or_insert_with(Vec::new);
@@ -106,13 +124,16 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
         }
     }
 
-    let output_results: Vec<OutputResult> = combined_results
+    // Turn the result hashmap into a list of OutputResults
+    let mut output_results: Vec<OutputResult> = combined_results
         .iter()
         .map(|(entry_index, results)| {
             let entry = &index.entries[*entry_index];
             OutputResult::from(entry, results.to_vec())
         })
         .collect();
+
+    output_results.sort_by(|a, b| b.score.cmp(&a.score));
 
     SearchOutput {
         results: output_results[0..std::cmp::min(output_results.len(), 10)].to_vec(),
