@@ -44,7 +44,6 @@
     "build:js:prod": "yarn webpack --mode=production",
     "build:prod": "yarn build:wasm && yarn build:test-index && yarn build:js:prod",
     "build:dev": "yarn build:wasm && yarn build:test-index && yarn build:js:dev",
-    
     "lint": "yarn eslint js/*",
     "serve": "yarn http-server ./dist -o"
   }
