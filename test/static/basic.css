@@ -76,7 +76,8 @@
   background: rgb(151, 226, 245);
 }
 
-.stork-result a {
+.stork-result a:link,
+.stork-result a:visited {
   padding: 1rem;
   display: block;
   color: currentcolor;
