@@ -35,6 +35,25 @@ const wasmUrl = prod
   ? "https://files.stork-search.net/stork.wasm"
   : "http://127.0.0.1:8080/stork.wasm";
 
+const showScoresListItemTemplateString = `
+    <li class="stork-result">
+      <a href="{{entry.url}}">
+          <div style="display: flex; justify-content: space-between">
+            <p class="stork-title">{{entry.title}}</p>
+            <code><b>{{score}}</b></code>
+          </div>
+          
+          {{#each excerpts}}
+            <div style="display: flex; justify-content: space-between">
+              <p class="stork-excerpt">
+              ...{{ highlight text highlight_char_offset @queryLength}}...
+              </p>
+              <code>{{score}}</code>
+            </div>
+          {{/each}}
+      </a>
+    </li>`;
+
 const wasmQueue = new WasmQueue();
 const entities = {};
 init(wasmUrl).then(() => {
@@ -45,6 +64,7 @@ init(wasmUrl).then(() => {
 const defaultConfig = {
   showProgress: true,
   printIndexInfo: false,
+  showScores: false,
 
   listItemTemplateString: `
     <li class="stork-result">
@@ -249,6 +269,17 @@ function calculateOverriddenConfig(original, overrides) {
 
 export function register(name, url, config = {}) {
   const configOverride = calculateOverriddenConfig(defaultConfig, config);
+
+  // Use the showScores list item template string if the showScores config key
+  // is set to true.
+  if (
+    configOverride.showScores &&
+    configOverride.listItemTemplateString ===
+      defaultConfig.listItemTemplateString
+  ) {
+    configOverride.listItemTemplateString = showScoresListItemTemplateString;
+  }
+
   entities[name] = { config: configOverride, elements: {} };
   entities[name].config.listItemTemplate = Handlebars.compile(
     entities[name].config.listItemTemplateString,
