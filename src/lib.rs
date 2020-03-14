@@ -4,7 +4,6 @@ mod index_versions;
 pub mod searcher;
 
 use config::*;
-use console_error_panic_hook;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
