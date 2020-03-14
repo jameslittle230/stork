@@ -5,25 +5,56 @@
     <title>Federalist Search</title>
     <link rel="stylesheet" href="/basic.css" />
     <style>
-      .page-wrap {
-        max-width: 600px;
+      .search-wrap {
+        max-width: 1200px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .stork-wrapper {
+        max-width: 550px;
+        width: 100%;
+      }
+
+      .subtitle {
+        margin: 0.8em;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.8em;
       }
       body {
         background-color: lightgray;
+        font-family: sans-serif;
       }
     </style>
   </head>
   <body>
-    <div class="page-wrap">
+    <h1>Test Page</h1>
+    <div class="search-wrap">
       <div class="stork-wrapper">
+        <p class="subtitle">Local index</p>
         <input data-stork="federalist" placeholder="liberty" class="stork-input"></input>
         <div data-stork="federalist-output" class="stork-output"></div>
       </div>
+      
+      <div class="stork-wrapper">
+        <p class="subtitle">Uploaded Index</p>
+        <input data-stork="federalist-prod" placeholder="liberty" class="stork-input"></input>
+        <div data-stork="federalist-prod-output" class="stork-output"></div>
+      </div>
     </div>
+
     <script src="/stork.js"></script>
     <script>
       stork.register("federalist", "/federalist.st", {
         showProgress: true,
+        showScores: true,
+        printIndexInfo: true
+      });
+      
+      stork.register("federalist-prod", "https://files.stork-search.net/federalist.st", {
+        showProgress: true,
+        showScores: true,
         printIndexInfo: true
       });
     </script>
