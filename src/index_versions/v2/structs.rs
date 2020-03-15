@@ -44,10 +44,10 @@ pub(super) struct Excerpt {
 
 /**
  * A Container is a struct that holds:
- * 
+ *
  * - a HashMap of EntryIndexes to SearchResults
  * - a HashMap of AliasTargets to scores
- * 
+ *
  * Each valid query should return a single Container. It is possible to derive
  * all search results for a given query from a single container.
  */

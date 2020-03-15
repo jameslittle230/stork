@@ -29,7 +29,7 @@ pub struct OutputResult {
 pub struct Excerpt {
     pub text: String,
     pub highlight_char_offset: usize,
-    pub score: usize
+    pub score: usize,
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
