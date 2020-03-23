@@ -16,22 +16,12 @@ jobs:
       - cargo install wasm-pack
       - rustup component add clippy
       - rustup component add rustfmt
-
       before_script:
       - wasm-pack build --target web
       script:
       - cargo clippy -- -D warnings
       - cargo test --verbose
       - cargo fmt -- --check
-    - language: rust
-      rust: beta
-      - cargo test --verbose
-    - language: rust
-      rust: nightly
-      - cargo test --verbose
-
-  allow_failures:
-  - rust: nightly
   fast_finish: true
 
 
