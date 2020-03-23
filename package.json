@@ -1,6 +1,6 @@
 {
   "name": "stork",
-  "version": "0.5.0",
+  "version": "0.5.2",
   "description": "Impossibly fast web search.",
   "main": "index.js",
   "repository": {
@@ -42,7 +42,7 @@
     "build:test-index": "cargo run -- --build test/federalist.toml && mkdir -p dist && cp test/federalist.st dist",
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
-    "build:prod": "yarn build:wasm && yarn build:test-index && yarn build:js:prod",
+    "build:prod": "yarn install && yarn build:wasm && yarn build:test-index && yarn build:js:prod",
     "build:dev": "yarn build:wasm && yarn build:test-index && yarn build:js:dev",
     "lint": "yarn eslint js/*",
     "serve": "yarn http-server ./dist -o"
