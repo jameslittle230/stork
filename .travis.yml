@@ -11,18 +11,18 @@ jobs:
       script:
       - yarn eslint js/*
     - language: rust
-      - rust: stable
-        env: RUST_BACKTRACE=1
-        before_install:
-        - cargo install wasm-pack
-        - rustup component add clippy
-        - rustup component add rustfmt
-        before_script:
-        - wasm-pack build --target web
-        script:
-        - cargo clippy -- -D warnings
-        - cargo test --verbose
-        - cargo fmt -- --check
+      rust: stable
+      env: RUST_BACKTRACE=1
+      before_install:
+      - cargo install wasm-pack
+      - rustup component add clippy
+      - rustup component add rustfmt
+      before_script:
+      - wasm-pack build --target web
+      script:
+      - cargo clippy -- -D warnings
+      - cargo test --verbose
+      - cargo fmt -- --check
   fast_finish: true
 
 
