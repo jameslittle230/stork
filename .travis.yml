@@ -1,7 +1,8 @@
+os: linux
 language: rust
 dist: bionic
 cache: cargo
-node_js: 12
+node_js: 12.13.1
 rust:
 - stable
 - beta
@@ -18,13 +19,13 @@ notifications:
   email: false
 before_install:
 - cargo install wasm-pack
-before_script:
 - rustup component add clippy
 - rustup component add rustfmt
+before_script:
 - yarn install
 - wasm-pack build --target web
 script:
 - cargo clippy -- -D warnings
-- cargo test
+- cargo test --verbose
 - cargo fmt -- --check
 - yarn eslint js/*
