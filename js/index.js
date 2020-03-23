@@ -1,6 +1,4 @@
-/* eslint-disable import/no-named-as-default-member */
-/* eslint-disable import/no-named-as-default */
-/* eslint-disable import/named */
+/* eslint-disable no-undef */
 
 import init, {
   search,
@@ -42,7 +40,7 @@ const showScoresListItemTemplateString = `
             <p class="stork-title">{{entry.title}}</p>
             <code><b>{{score}}</b></code>
           </div>
-          
+
           {{#each excerpts}}
             <div style="display: flex; justify-content: space-between">
               <p class="stork-excerpt">

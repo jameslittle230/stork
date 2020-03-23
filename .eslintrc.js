@@ -3,8 +3,7 @@ module.exports = {
     browser: true,
     es6: true
   },
-  extends: ["airbnb-base", "prettier"],
-  plugins: ["prettier"],
+  extends: ["plugin:prettier/recommended"],
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly"
@@ -13,7 +12,14 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module"
   },
+  plugins: ["prettier"],
   rules: {
-    "prettier/prettier": ["error"]
+    "prettier/prettier": [
+      "error",
+      {},
+      {
+        usePrettierrc: true
+      }
+    ]
   }
 };
