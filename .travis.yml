@@ -1,5 +1,6 @@
 language: rust
 dist: bionic
+cache: cargo
 node_js: 12
 rust:
 - stable
