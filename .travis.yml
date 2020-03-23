@@ -23,10 +23,6 @@ jobs:
         - cargo clippy -- -D warnings
         - cargo test --verbose
         - cargo fmt -- --check
-      - rust: beta
-        env: RUST_BACKTRACE=1
-        script:
-        - cargo test --verbose
   fast_finish: true
 
 
