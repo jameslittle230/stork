@@ -32,7 +32,7 @@ pub struct OutputResult {
 #[derive(Serialize, Clone, Debug)]
 pub struct HighlightRange {
     pub beginning: usize,
-    pub end: usize
+    pub end: usize,
 }
 
 #[derive(Serialize, Clone, Debug)]

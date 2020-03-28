@@ -126,7 +126,6 @@ impl OutputResult {
                     .saturating_add(8),
                 entry_contents_by_word_len,
             );
-            
             let e = crate::searcher::Excerpt {
                 text: entry_contents_by_word[minimum_word_index..maximum_word_index].join(" "),
                 highlight_ranges,
@@ -263,7 +262,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
                     container: ctr.to_owned(),
                 })
             } else {
-                return None;
+                None
             }
         })
         .collect();
