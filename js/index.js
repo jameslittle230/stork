@@ -9,24 +9,31 @@ import WasmQueue from "./wasmqueue";
 
 const Handlebars = require("handlebars");
 
-Handlebars.registerHelper(
-  "highlight",
-  (textUnesc, queryOffsetStr, queryLengthStr) => {
-    const queryOffset = parseInt(queryOffsetStr, 10);
-    const queryLength = parseInt(queryLengthStr, 10);
-    const text = Handlebars.escapeExpression(textUnesc);
+Handlebars.registerHelper("highlight", (textUnesc, highlight_ranges) => {
+  var text = Handlebars.escapeExpression(textUnesc);
 
-    return new Handlebars.SafeString(
-      [
-        text.substring(0, queryOffset),
-        '<span class="stork-highlight">',
-        text.substring(queryOffset, queryOffset + queryLength),
-        "</span>",
-        text.substring(queryOffset + queryLength)
-      ].join("")
-    );
+  function insert(str, index, value) {
+    return str.substr(0, index) + value + str.substr(index);
   }
-);
+
+  var charactersAlreadyAdded = 0;
+
+  for (let range of highlight_ranges) {
+    let beginningInsertion = `<span class="stork-highlight">`;
+    text = insert(
+      text,
+      range.beginning + charactersAlreadyAdded,
+      beginningInsertion
+    );
+    charactersAlreadyAdded += beginningInsertion.length;
+
+    let endInsertion = `</span>`;
+    text = insert(text, range.end + charactersAlreadyAdded, endInsertion);
+    charactersAlreadyAdded += endInsertion.length;
+  }
+
+  return new Handlebars.SafeString(text);
+});
 
 const prod = process.env.NODE_ENV === "production";
 const wasmUrl = prod
@@ -44,7 +51,7 @@ const showScoresListItemTemplateString = `
           {{#each excerpts}}
             <div style="display: flex; justify-content: space-between">
               <p class="stork-excerpt">
-              ...{{ highlight text highlight_char_offset @queryLength}}...
+              ...{{ highlight text highlight_ranges }}...
               </p>
               <code>{{score}}</code>
             </div>
@@ -137,12 +144,7 @@ function updateDom(name) {
       Dom.clear(entity.elements.list);
 
       entity.results.forEach(result => {
-        const listItem = entity.config.listItemTemplate(result, {
-          data: {
-            queryOffset: 8,
-            queryLength: entity.query.length
-          }
-        });
+        const listItem = entity.config.listItemTemplate(result);
         entity.elements.list.insertAdjacentHTML("beforeEnd", listItem);
       });
     } else if (entity.elements.list) {
@@ -194,6 +196,10 @@ function performSearch(name) {
   const { query } = entities[name];
   if (query && query.length >= 3) {
     resolveSearch(entities[name].index, query).then(results => {
+      if (process.env.NODE_ENV === "development") {
+        console.log(results);
+      }
+
       entities[name].results = results.results;
       entities[name].hitCount = results.total_hit_count;
       updateDom(name);

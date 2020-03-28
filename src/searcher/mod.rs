@@ -30,9 +30,15 @@ pub struct OutputResult {
 }
 
 #[derive(Serialize, Clone, Debug)]
+pub struct HighlightRange {
+    pub beginning: usize,
+    pub end: usize
+}
+
+#[derive(Serialize, Clone, Debug)]
 pub struct Excerpt {
     pub text: String,
-    pub highlight_char_offset: Vec<usize>,
+    pub highlight_ranges: Vec<HighlightRange>,
     pub score: usize,
 }
 
