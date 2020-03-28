@@ -17,6 +17,10 @@ pub struct OutputEntry {
     pub fields: Fields,
 }
 
+/**
+ * Correlates an OutputEntry with a vector of excerpts. Represents a single
+ * document that contains search results.
+ */
 #[derive(Serialize, Clone, Debug)]
 pub struct OutputResult {
     pub entry: OutputEntry,
@@ -28,7 +32,7 @@ pub struct OutputResult {
 #[derive(Serialize, Clone, Debug)]
 pub struct Excerpt {
     pub text: String,
-    pub highlight_char_offset: usize,
+    pub highlight_char_offset: Vec<usize>,
     pub score: usize,
 }
 
