@@ -77,7 +77,7 @@ const defaultConfig = {
           <p class="stork-title">{{entry.title}}</p>
           {{#each excerpts}}
             <p class="stork-excerpt">
-              ...{{ highlight text highlight_char_offset @queryLength}}...
+              ...{{ highlight text highlight_ranges }}...
             </p>
           {{/each}}
       </a>
