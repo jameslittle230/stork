@@ -31,19 +31,13 @@ impl SearchResult {
     }
 }
 
-// #[derive(Serialize, Deserialize, Clone, Debug)]
-// pub(super) struct RangeInText {
-//     pub(super) begin: usize,
-//     pub(super) end: usize,
-// }
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Excerpt {
     pub(super) word_index: usize,
 }
 
 /**
- * A Container is a struct that holds:
+ * A Container holds:
  *
  * - a HashMap of EntryIndexes to SearchResults
  * - a HashMap of AliasTargets to scores

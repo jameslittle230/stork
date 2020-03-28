@@ -68,7 +68,6 @@
 
 .stork-result {
   font-size: 0.8em;
-  /* padding: 1rem; */
   border-bottom: 1px solid hsla(0, 0%, 90%, 1);
 }
 
@@ -91,11 +90,11 @@
 .stork-result .stork-title {
   font-weight: bold;
   font-size: 1.1em;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.8em;
 }
 
 .stork-result .stork-excerpt {
-  margin-bottom: 0.5em;
+  margin-bottom: 0.8em;
   line-height: 1;
 }
 

@@ -23,7 +23,7 @@ fn deserialize(index: &IndexFromFile) -> Index {
 }
 
 impl OutputResult {
-    fn from(entry: &Entry, results: Vec<SearchResult>) -> OutputResult {
+    fn from(entry: &Entry, result: &SearchResultWithAnnotatedExcerpts) -> OutputResult {
         let entry_contents_by_word: Vec<String> = entry
             .contents
             .split_whitespace()
@@ -31,35 +31,118 @@ impl OutputResult {
             .collect();
         let entry_contents_by_word_len = entry_contents_by_word.len();
 
-        let mut excerpts: Vec<crate::searcher::Excerpt> = Vec::new();
+        let mut output_excerpts: Vec<crate::searcher::Excerpt> = Vec::new();
 
-        for result in &results {
-            for excerpt in result.excerpts.to_owned() {
-                let e = crate::searcher::Excerpt {
-                    text: entry_contents_by_word[excerpt.word_index.saturating_sub(8)
-                        ..std::cmp::min(
-                            excerpt.word_index.saturating_add(8),
-                            entry_contents_by_word_len,
-                        )]
-                        .join(" "),
-                    highlight_char_offset: entry_contents_by_word
-                        [excerpt.word_index.saturating_sub(8)..excerpt.word_index]
-                        .join(" ")
-                        .len()
-                        + 1,
-                    score: (result.score as usize),
-                };
+        let mut input_excerpts = result.excerpts.clone();
+        input_excerpts.sort_by(|a, b| a.excerpt.word_index.cmp(&b.excerpt.word_index));
 
-                excerpts.push(e);
-            }
+        #[derive(Debug)]
+        struct QueryWordToWordIndex {
+            word_index: usize,
+            query: String,
         }
 
-        excerpts.sort_by(|a, b| b.score.cmp(&a.score));
+        #[derive(Debug)]
+        struct CombinedExcerpt {
+            word_indices: Vec<QueryWordToWordIndex>,
+        }
 
-        let results_score_mean =
-            (results.iter().map(|r| r.score).sum::<u8>() as usize) / results.len();
-        let score =
-            results_score_mean * excerpts.len() * 1000 / (entry_contents_by_word_len as usize);
+        let mut combined_excerpts: Vec<CombinedExcerpt> = vec![];
+
+        // this seems... dangerous
+        let mut idx = 0;
+        while idx < input_excerpts.len() {
+            let rabbit = input_excerpts.get(idx).unwrap();
+            combined_excerpts.push(CombinedExcerpt {
+                word_indices: vec![QueryWordToWordIndex {
+                    word_index: rabbit.excerpt.word_index,
+                    query: rabbit.word.to_string(),
+                }],
+            });
+
+            let mut hare_index = idx;
+            while let Some(hare) = input_excerpts.get(hare_index + 1) {
+                if hare.excerpt.word_index - rabbit.excerpt.word_index < 8 {
+                    combined_excerpts
+                        .last_mut()
+                        .unwrap()
+                        .word_indices
+                        .push(QueryWordToWordIndex {
+                            word_index: hare.excerpt.word_index,
+                            query: hare.word.to_string(),
+                        });
+                    // .push(hare.word_index);
+                    hare_index += 1;
+                } else {
+                    idx = hare_index;
+                    break;
+                }
+            }
+            idx += 1
+        }
+
+        println!("{:#?}", combined_excerpts);
+
+        for excerpt in combined_excerpts {
+            let mut highlight_ranges = excerpt
+                .word_indices
+                .iter()
+                .map(|query_word_index_struct| {
+                    let minimum_word_index = excerpt
+                        .word_indices
+                        .first()
+                        .unwrap()
+                        .word_index
+                        .saturating_sub(8);
+
+                    let maximum_word_index = query_word_index_struct.word_index;
+
+                    let beginning = entry_contents_by_word[minimum_word_index..maximum_word_index]
+                        .join(" ")
+                        .len()
+                        + 1;
+                    HighlightRange {
+                        beginning,
+                        end: beginning + query_word_index_struct.query.len(),
+                    }
+                })
+                .collect::<Vec<HighlightRange>>();
+
+            highlight_ranges.sort_by(|a, b| a.beginning.cmp(&b.beginning));
+
+            let minimum_word_index = excerpt
+                .word_indices
+                .first()
+                .unwrap()
+                .word_index
+                .saturating_sub(8);
+
+            let maximum_word_index = std::cmp::min(
+                excerpt
+                    .word_indices
+                    .last()
+                    .unwrap()
+                    .word_index
+                    .saturating_add(8),
+                entry_contents_by_word_len,
+            );
+            let e = crate::searcher::Excerpt {
+                text: entry_contents_by_word[minimum_word_index..maximum_word_index].join(" "),
+                highlight_ranges,
+                score: (result.score as usize) * excerpt.word_indices.len(),
+            };
+
+            output_excerpts.push(e);
+        }
+
+        output_excerpts.sort_by(|a, b| b.score.cmp(&a.score));
+
+        let score = output_excerpts
+            .iter()
+            .map(|e| e.score)
+            .max()
+            .unwrap_or(0)
+            .saturating_mul(output_excerpts.len());
 
         OutputResult {
             entry: OutputEntry {
@@ -68,32 +151,53 @@ impl OutputResult {
                 fields: entry.fields.clone(),
             },
             score,
-            excerpts,
+            excerpts: output_excerpts,
             title_highlight_char_offset: None,
         }
     }
 }
 
-pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
-    let index: Index = deserialize(index);
-    let normalized_query = query.to_lowercase();
-    let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
-    let first_word = &words_in_query[0];
-    let container: Container = index.queries.get(first_word).unwrap().to_owned();
+#[derive(Debug)]
+struct ScoreToContainer {
+    score: Score,
+    container: Container,
+}
 
-    #[derive(Debug)]
-    struct ScoreToContainer {
-        score: Score,
-        container: Container,
-    }
+#[derive(Debug, Clone)]
+struct QueryWordToContainer {
+    word: String,
+    container: Container,
+}
 
-    // Get the result hashmap for the container's aliases
-    let mut aliased_results = container
+#[derive(Debug, Clone)]
+struct QueryWordToSearchResult {
+    word: String,
+    result: SearchResult,
+}
+
+#[derive(Debug, Clone)]
+pub struct QueryWordToExcerpt {
+    word: String,
+    excerpt: super::structs::Excerpt,
+}
+
+pub(super) struct SearchResultWithAnnotatedExcerpts {
+    pub(super) excerpts: Vec<QueryWordToExcerpt>,
+    pub(super) score: Score,
+}
+
+fn resolve_aliases(
+    index: &Index,
+    query: String,
+    container: &Container,
+) -> Vec<HashMap<EntryIndex, QueryWordToSearchResult>> {
+    // Get results hash maps for _just_ the container's aliases
+    let aliased_results = container
         .aliases
         .keys()
-        .map(|alias| ScoreToContainer {
-            score: container.aliases.get(alias).unwrap().to_owned(),
-            container: index.queries.get(alias).unwrap().to_owned(),
+        .map(|alias_target| ScoreToContainer {
+            score: container.aliases.get(alias_target).unwrap().to_owned(),
+            container: index.queries.get(alias_target).unwrap().to_owned(),
         })
         .map(|score_to_container| {
             let mut results = score_to_container.container.results;
@@ -104,33 +208,112 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
         })
         .collect::<Vec<HashMap<EntryIndex, SearchResult>>>();
 
-    // Combine the container's results with the aliased results to get a list
-    // of result hashmaps. We might have the same EntryIndex spread multiple
-    // times throughout the vector, each pointing to a different SearchResult.
-    let mut all_results: Vec<HashMap<EntryIndex, SearchResult>> = vec![];
+    // Combine the container's results hashes with the aliased results hash to get
+    // a list of result hashmaps.
+    //
+    // We might have the same EntryIndex spread multiple times throughout the
+    // vector, each pointing to a different SearchResult.
+    let mut all_results: Vec<HashMap<EntryIndex, QueryWordToSearchResult>> = vec![];
     if !container.results.is_empty() {
-        all_results.append(&mut vec![container.results])
-    }
-    if !aliased_results.is_empty() {
-        all_results.append(&mut aliased_results);
+        let mut results_mapped_to_structs: HashMap<EntryIndex, QueryWordToSearchResult> =
+            HashMap::new();
+        for (key, val) in container.results.iter() {
+            results_mapped_to_structs.insert(
+                *key,
+                QueryWordToSearchResult {
+                    word: query.to_string(),
+                    result: val.to_owned(),
+                },
+            );
+        }
+        all_results.push(results_mapped_to_structs);
     }
 
-    // Turn our list of result hashmaps into a single hashmap
-    let mut combined_results: HashMap<EntryIndex, Vec<SearchResult>> = HashMap::new();
-    for result_map in &all_results {
+    for aliased_result in aliased_results {
+        let mut results_mapped_to_structs: HashMap<EntryIndex, QueryWordToSearchResult> =
+            HashMap::new();
+        for (key, val) in aliased_result.iter() {
+            results_mapped_to_structs.insert(
+                *key,
+                QueryWordToSearchResult {
+                    word: query.to_string(),
+                    result: val.to_owned(),
+                },
+            );
+        }
+        all_results.push(results_mapped_to_structs);
+    }
+
+    all_results
+}
+
+pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
+    let index: Index = deserialize(index);
+    let normalized_query = query.to_lowercase();
+    let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
+
+    // Get containers for each word in the query
+    let containers: Vec<QueryWordToContainer> = words_in_query
+        .iter()
+        .flat_map(|word| {
+            if let Some(ctr) = index.queries.get(word) {
+                Some(QueryWordToContainer {
+                    word: word.to_string(),
+                    container: ctr.to_owned(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
+    // Resolve aliases for those containers so we get a bunch of result hashes
+    let results_with_duplicates: Vec<HashMap<EntryIndex, QueryWordToSearchResult>> = containers
+        .iter()
+        .map(|ctr| resolve_aliases(&index, ctr.word.to_string(), &ctr.container))
+        .flatten()
+        .collect::<Vec<HashMap<EntryIndex, QueryWordToSearchResult>>>();
+
+    // Turn the vector of hashmaps into a single hashmap, joining the results
+    // on the entry index.
+    let mut combined_results: HashMap<EntryIndex, Vec<QueryWordToSearchResult>> = HashMap::new();
+    for result_map in &results_with_duplicates {
         for (index, result) in result_map.iter() {
             let result_vec = combined_results.entry(*index).or_insert_with(Vec::new);
-            result_vec.push(result.to_owned());
+            result_vec.push(result.clone());
         }
     }
 
-    // Turn the result hashmap into a list of OutputResults
-    let mut output_results: Vec<OutputResult> = combined_results
+    // For each entry in the hash map, turn the vector of results into a single
+    // result with concatenated excerpt vectors and summed scores
+    let mut combined_excerpts: HashMap<EntryIndex, SearchResultWithAnnotatedExcerpts> =
+        HashMap::new();
+    for (k, v) in combined_results.iter() {
+        for r in v {
+            let mut search_result =
+                combined_excerpts
+                    .entry(k.clone())
+                    .or_insert(SearchResultWithAnnotatedExcerpts {
+                        excerpts: vec![],
+                        score: 0,
+                    });
+
+            let mut annotated_excerpts: Vec<QueryWordToExcerpt> = r
+                .result
+                .excerpts
+                .iter()
+                .map(|excerpt| QueryWordToExcerpt {
+                    word: r.word.to_string(),
+                    excerpt: excerpt.to_owned(),
+                })
+                .collect();
+            search_result.excerpts.append(&mut annotated_excerpts);
+            search_result.score = search_result.score.saturating_add(r.result.score);
+        }
+    }
+
+    let mut output_results: Vec<OutputResult> = combined_excerpts
         .iter()
-        .map(|(entry_index, results)| {
-            let entry = &index.entries[*entry_index];
-            OutputResult::from(entry, results.to_vec())
-        })
+        .map(|(k, v)| OutputResult::from(&index.entries[*k], v))
         .collect();
 
     output_results.sort_by(|a, b| b.score.cmp(&a.score));
