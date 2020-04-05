@@ -81,8 +81,6 @@ impl OutputResult {
             idx += 1
         }
 
-        println!("{:#?}", combined_excerpts);
-
         for excerpt in combined_excerpts {
             let mut highlight_ranges = excerpt
                 .word_indices
