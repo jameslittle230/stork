@@ -4,12 +4,14 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "(OSX) Launch",
       "type": "lldb",
       "request": "launch",
       "program": "${workspaceRoot}/target/debug/stork",
-      "args": ["--search", "dist/federalist.st", "liber old world"],
+      // "args": ["--search", "dist/federalist.st", "liber old world"],
+      "args": ["--search", "dist/federalist.st", "consume"],
       "cwd": "${workspaceRoot}"
     }
   ]
