@@ -1,6 +1,8 @@
+use super::stopwords::STOPWORDS;
 use super::structs::*;
 use crate::searcher::*;
 use crate::IndexFromFile;
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
@@ -22,227 +24,181 @@ fn deserialize(index: &IndexFromFile) -> Index {
     Index { entries, queries }
 }
 
-impl OutputResult {
-    fn from(entry: &Entry, result: &SearchResultWithAnnotatedExcerpts) -> OutputResult {
-        let entry_contents_by_word: Vec<String> = entry
-            .contents
-            .split_whitespace()
-            .map(|w| w.to_string())
-            .collect();
-        let entry_contents_by_word_len = entry_contents_by_word.len();
+#[derive(Clone, Debug, Eq)]
+struct IntermediateExcerpt {
+    query: String,
+    entry_index: EntryIndex,
+    score: Score,
+    word_index: usize,
+}
 
-        let mut output_excerpts: Vec<crate::searcher::Excerpt> = Vec::new();
+impl Ord for IntermediateExcerpt {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.score.cmp(&other.score)
+    }
+}
 
-        let mut input_excerpts = result.excerpts.clone();
-        input_excerpts.sort_by(|a, b| a.excerpt.word_index.cmp(&b.excerpt.word_index));
+impl PartialOrd for IntermediateExcerpt {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
-        #[derive(Debug)]
-        struct QueryWordToWordIndex {
-            word_index: usize,
-            query: String,
+impl PartialEq for IntermediateExcerpt {
+    fn eq(&self, other: &Self) -> bool {
+        self.entry_index == other.entry_index
+    }
+}
+
+struct ContainerWithQuery {
+    results: HashMap<EntryIndex, SearchResult>,
+    aliases: HashMap<AliasTarget, Score>,
+    query: String,
+}
+
+impl ContainerWithQuery {
+    fn new(container: Container, query: &String) -> Self {
+        ContainerWithQuery {
+            query: query.to_string(),
+            results: container.results,
+            aliases: container.aliases,
+        }
+    }
+
+    fn get_intermediate_excerpts(&self, index: &Index) -> Vec<IntermediateExcerpt> {
+        let mut output = vec![];
+        // Put container's results in output
+        for (entry_index, result) in self.results.iter() {
+            for excerpt in result.excerpts.to_owned() {
+                output.push(IntermediateExcerpt {
+                    query: self.query.to_string(),
+                    entry_index: *entry_index,
+                    score: result.score,
+                    word_index: excerpt.word_index,
+                })
+            }
         }
 
-        #[derive(Debug)]
-        struct CombinedExcerpt {
-            word_indices: Vec<QueryWordToWordIndex>,
-        }
-
-        let mut combined_excerpts: Vec<CombinedExcerpt> = vec![];
-
-        // this seems... dangerous
-        let mut idx = 0;
-        while idx < input_excerpts.len() {
-            let rabbit = input_excerpts.get(idx).unwrap();
-            combined_excerpts.push(CombinedExcerpt {
-                word_indices: vec![QueryWordToWordIndex {
-                    word_index: rabbit.excerpt.word_index,
-                    query: rabbit.word.to_string(),
-                }],
-            });
-
-            let mut hare_index = idx;
-            while let Some(hare) = input_excerpts.get(hare_index + 1) {
-                if hare.excerpt.word_index - rabbit.excerpt.word_index < 8 {
-                    combined_excerpts
-                        .last_mut()
-                        .unwrap()
-                        .word_indices
-                        .push(QueryWordToWordIndex {
-                            word_index: hare.excerpt.word_index,
-                            query: hare.word.to_string(),
-                        });
-                    // .push(hare.word_index);
-                    hare_index += 1;
-                } else {
-                    idx = hare_index;
-                    break;
+        // Put alias containers' results in output
+        for (alias_target, alias_score) in self.aliases.iter() {
+            if let Some(target_container) = index.queries.get(alias_target) {
+                for (entry_index, result) in target_container.results.to_owned() {
+                    for excerpt in result.excerpts.to_owned() {
+                        output.push(IntermediateExcerpt {
+                            query: alias_target.to_string(),
+                            entry_index: entry_index,
+                            score: *alias_score,
+                            word_index: excerpt.word_index,
+                        })
+                    }
                 }
             }
-            idx += 1
         }
 
-        for excerpt in combined_excerpts {
-            let mut highlight_ranges = excerpt
-                .word_indices
-                .iter()
-                .map(|query_word_index_struct| {
-                    let minimum_word_index = excerpt
-                        .word_indices
-                        .first()
-                        .unwrap()
-                        .word_index
-                        .saturating_sub(8);
+        output
+    }
+}
 
-                    let maximum_word_index = query_word_index_struct.word_index;
+impl OutputEntry {
+    fn from(entry: &Entry) -> Self {
+        OutputEntry {
+            url: entry.url.clone(),
+            title: entry.title.clone(),
+            fields: entry.fields.clone(),
+        }
+    }
+}
 
-                    let beginning = entry_contents_by_word[minimum_word_index..maximum_word_index]
-                        .join(" ")
-                        .len()
-                        + 1;
-                    HighlightRange {
-                        beginning,
-                        end: beginning + query_word_index_struct.query.len(),
+impl OutputResult {
+    fn from(entry: &Entry, intermediate_excerpts: &Vec<IntermediateExcerpt>) -> Self {
+        let split_contents: Vec<String> = entry
+            .contents
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
+        let mut ies = intermediate_excerpts.to_vec();
+        // Get rid of intermediate excerpts that refer to the same word index.
+        // Ideally we'd have sorted by score within the same word index so that
+        // only the highest score is kept.
+        ies.sort_by_key(|ie| ie.word_index);
+        ies.dedup_by_key(|ie| ie.word_index);
+
+        // println!("{} {:#?}\n{}\n", entry.title, ies, "=".repeat(32 * 8));
+
+        let mut ies_grouped_by_word_index: Vec<Vec<&IntermediateExcerpt>> = vec![];
+
+        for ie in &ies {
+            if let Some(most_recent) = ies_grouped_by_word_index.last_mut() {
+                if let Some(trailing_ie) = most_recent.first() {
+                    // println!("{}/{}", trailing_ie.word_index, ie.word_index);
+                    if (ie.word_index as isize) - (trailing_ie.word_index as isize) < 8 {
+                        most_recent.push(ie);
+                        continue;
                     }
-                })
-                .collect::<Vec<HighlightRange>>();
-
-            highlight_ranges.sort_by(|a, b| a.beginning.cmp(&b.beginning));
-
-            let minimum_word_index = excerpt
-                .word_indices
-                .first()
-                .unwrap()
-                .word_index
-                .saturating_sub(8);
-
-            let maximum_word_index = std::cmp::min(
-                excerpt
-                    .word_indices
-                    .last()
-                    .unwrap()
-                    .word_index
-                    .saturating_add(8),
-                entry_contents_by_word_len,
-            );
-            let e = crate::searcher::Excerpt {
-                text: entry_contents_by_word[minimum_word_index..maximum_word_index].join(" "),
-                highlight_ranges,
-                score: (result.score as usize) * excerpt.word_indices.len(),
-            };
-
-            output_excerpts.push(e);
-        }
-
-        output_excerpts.sort_by(|a, b| b.score.cmp(&a.score));
-
-        let score = output_excerpts
-            .iter()
-            .map(|e| e.score)
-            .max()
-            .unwrap_or(0)
-            .saturating_mul(output_excerpts.len());
-
-        OutputResult {
-            entry: OutputEntry {
-                title: entry.title.clone(),
-                url: entry.url.clone(),
-                fields: entry.fields.clone(),
-            },
-            score,
-            excerpts: output_excerpts,
-            title_highlight_char_offset: None,
-        }
-    }
-}
-
-#[derive(Debug)]
-struct ScoreToContainer {
-    score: Score,
-    container: Container,
-}
-
-#[derive(Debug, Clone)]
-struct QueryWordToContainer {
-    word: String,
-    container: Container,
-}
-
-#[derive(Debug, Clone)]
-struct QueryWordToSearchResult {
-    word: String,
-    result: SearchResult,
-}
-
-#[derive(Debug, Clone)]
-pub struct QueryWordToExcerpt {
-    word: String,
-    excerpt: super::structs::Excerpt,
-}
-
-pub(super) struct SearchResultWithAnnotatedExcerpts {
-    pub(super) excerpts: Vec<QueryWordToExcerpt>,
-    pub(super) score: Score,
-}
-
-fn resolve_aliases(
-    index: &Index,
-    query: String,
-    container: &Container,
-) -> Vec<HashMap<EntryIndex, QueryWordToSearchResult>> {
-    // Get results hash maps for _just_ the container's aliases
-    let aliased_results = container
-        .aliases
-        .keys()
-        .map(|alias_target| ScoreToContainer {
-            score: container.aliases.get(alias_target).unwrap().to_owned(),
-            container: index.queries.get(alias_target).unwrap().to_owned(),
-        })
-        .map(|score_to_container| {
-            let mut results = score_to_container.container.results;
-            for result in results.values_mut() {
-                result.score = score_to_container.score
+                }
             }
-            results
-        })
-        .collect::<Vec<HashMap<EntryIndex, SearchResult>>>();
 
-    // Combine the container's results hashes with the aliased results hash to get
-    // a list of result hashmaps.
-    //
-    // We might have the same EntryIndex spread multiple times throughout the
-    // vector, each pointing to a different SearchResult.
-    let mut all_results: Vec<HashMap<EntryIndex, QueryWordToSearchResult>> = vec![];
-    if !container.results.is_empty() {
-        let mut results_mapped_to_structs: HashMap<EntryIndex, QueryWordToSearchResult> =
-            HashMap::new();
-        for (key, val) in container.results.iter() {
-            results_mapped_to_structs.insert(
-                *key,
-                QueryWordToSearchResult {
-                    word: query.to_string(),
-                    result: val.to_owned(),
-                },
-            );
+            ies_grouped_by_word_index.push(vec![ie])
         }
-        all_results.push(results_mapped_to_structs);
-    }
 
-    for aliased_result in aliased_results {
-        let mut results_mapped_to_structs: HashMap<EntryIndex, QueryWordToSearchResult> =
-            HashMap::new();
-        for (key, val) in aliased_result.iter() {
-            results_mapped_to_structs.insert(
-                *key,
-                QueryWordToSearchResult {
-                    word: query.to_string(),
-                    result: val.to_owned(),
-                },
-            );
+        // println!("{} {:#?}\n{}\n", entry.title, ies_grouped_by_word_index, "=".repeat(32 * 8));
+
+        let mut excerpts: Vec<crate::searcher::Excerpt> = ies_grouped_by_word_index
+            .iter()
+            .map(|ies| {
+                let minimum_word_index = ies.first().unwrap().word_index.saturating_sub(8);
+
+                let maximum_word_index = std::cmp::min(
+                    ies.last().unwrap().word_index.saturating_add(8),
+                    split_contents.len(),
+                );
+
+                let text = split_contents[minimum_word_index..maximum_word_index].join(" ");
+
+                let highlight_ranges: Vec<HighlightRange> = ies
+                    .iter()
+                    .map(|ie| {
+                        let beginning = split_contents[minimum_word_index..ie.word_index]
+                            .join(" ")
+                            .len()
+                            + 1;
+                        HighlightRange {
+                            beginning,
+                            end: beginning + ie.query.len(),
+                        }
+                    })
+                    .collect();
+
+                let score = ies.iter().map(|ie| (ie.score as usize)).sum();
+
+                crate::searcher::Excerpt {
+                    text,
+                    highlight_ranges,
+                    score,
+                }
+            })
+            .collect();
+        
+
+        excerpts.sort_by_key(|e| (e.score as i16) * -1);
+        excerpts.truncate(10);
+
+        let mut score: usize = excerpts.iter().map(|e| (e.score as usize)).sum();
+        if excerpts.len() > 3 {
+            let sum_of_first_three = &excerpts[0..3].iter().map(|e| (e.score as usize)).sum();
+            let mean_of_rest = &excerpts[3..].iter().map(|e| (e.score as usize)).sum() / (excerpts.len() - 3);
+            score = sum_of_first_three + mean_of_rest;
         }
-        all_results.push(results_mapped_to_structs);
-    }
 
-    all_results
+        // @TODO check for index out of bounds errors
+
+        return OutputResult {
+            entry: OutputEntry::from(entry),
+            excerpts,
+            title_highlight_char_offset: None,
+            score,
+        };
+    }
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
@@ -251,73 +207,38 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
     let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
 
     // Get containers for each word in the query
-    let containers: Vec<QueryWordToContainer> = words_in_query
+    let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
         .iter()
-        .flat_map(|word| {
-            if let Some(ctr) = index.queries.get(word) {
-                Some(QueryWordToContainer {
-                    word: word.to_string(),
-                    container: ctr.to_owned(),
-                })
-            } else {
-                None
-            }
-        })
-        .collect();
-    // Resolve aliases for those containers so we get a bunch of result hashes
-    let results_with_duplicates: Vec<HashMap<EntryIndex, QueryWordToSearchResult>> = containers
-        .iter()
-        .map(|ctr| resolve_aliases(&index, ctr.word.to_string(), &ctr.container))
+        .flat_map(|word| index.queries.get_key_value(word))
+        .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
+        .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
         .flatten()
-        .collect::<Vec<HashMap<EntryIndex, QueryWordToSearchResult>>>();
-
-    // Turn the vector of hashmaps into a single hashmap, joining the results
-    // on the entry index.
-    let mut combined_results: HashMap<EntryIndex, Vec<QueryWordToSearchResult>> = HashMap::new();
-    for result_map in &results_with_duplicates {
-        for (index, result) in result_map.iter() {
-            let result_vec = combined_results.entry(*index).or_insert_with(Vec::new);
-            result_vec.push(result.clone());
-        }
-    }
-
-    // For each entry in the hash map, turn the vector of results into a single
-    // result with concatenated excerpt vectors and summed scores
-    let mut combined_excerpts: HashMap<EntryIndex, SearchResultWithAnnotatedExcerpts> =
-        HashMap::new();
-    for (k, v) in combined_results.iter() {
-        for r in v {
-            let mut search_result =
-                combined_excerpts
-                    .entry(k.clone())
-                    .or_insert(SearchResultWithAnnotatedExcerpts {
-                        excerpts: vec![],
-                        score: 0,
-                    });
-
-            let mut annotated_excerpts: Vec<QueryWordToExcerpt> = r
-                .result
-                .excerpts
-                .iter()
-                .map(|excerpt| QueryWordToExcerpt {
-                    word: r.word.to_string(),
-                    excerpt: excerpt.to_owned(),
-                })
-                .collect();
-            search_result.excerpts.append(&mut annotated_excerpts);
-            search_result.score = search_result.score.saturating_add(r.result.score);
-        }
-    }
-
-    let mut output_results: Vec<OutputResult> = combined_excerpts
-        .iter()
-        .map(|(k, v)| OutputResult::from(&index.entries[*k], v))
         .collect();
 
-    output_results.sort_by(|a, b| b.score.cmp(&a.score));
+    for mut ie in &mut intermediate_excerpts {
+        if STOPWORDS.contains(&ie.query.as_str()) {
+            ie.score = 40;
+        }
+    }
+
+    let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> = HashMap::new();
+    for ie in intermediate_excerpts {
+        excerpts_by_index
+            .entry(ie.entry_index)
+            .or_insert(vec![])
+            .push(ie)
+    }
+
+    let mut output_results: Vec<OutputResult> = excerpts_by_index
+        .iter()
+        .map(|(entry_index, ie)| OutputResult::from(&index.entries[*entry_index], &ie))
+        .take(10)
+        .collect();
+    output_results.sort_by_key(|or| (or.score as i64) * -1);
+    let or_len = &output_results.len();
 
     SearchOutput {
-        results: output_results[0..std::cmp::min(output_results.len(), 10)].to_vec(),
-        total_hit_count: output_results.len(),
+        results: output_results,
+        total_hit_count: *or_len,
     }
 }
