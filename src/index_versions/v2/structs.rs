@@ -1,12 +1,13 @@
+use super::scores::*;
 use crate::Fields;
+use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::convert::TryInto;
 
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
 pub type Score = u8;
-
-pub const HALF_U8: u8 = u8::max_value() / 2;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Entry {
@@ -26,7 +27,7 @@ impl SearchResult {
     pub(super) fn new() -> SearchResult {
         SearchResult {
             excerpts: vec![],
-            score: HALF_U8,
+            score: MATCHED_WORD_SCORE,
         }
     }
 }
@@ -64,4 +65,24 @@ impl Container {
 pub struct Index {
     pub(super) entries: Vec<Entry>,
     pub(super) queries: HashMap<String, Container>,
+}
+
+impl Index {
+    pub fn from_file(file: &IndexFromFile) -> Index {
+        let (version_size_bytes, rest) = file.split_at(std::mem::size_of::<u64>());
+        let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());
+        let (_version_bytes, rest) = rest.split_at(version_size as usize);
+
+        let (entries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
+        let entries_size = u64::from_be_bytes(entries_size_bytes.try_into().unwrap());
+        let (entries_bytes, rest) = rest.split_at(entries_size as usize);
+        let entries = bincode::deserialize(entries_bytes).unwrap();
+
+        let (queries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
+        let queries_size = u64::from_be_bytes(queries_size_bytes.try_into().unwrap());
+        let (queries_bytes, _rest) = rest.split_at(queries_size as usize);
+        let queries = bincode::deserialize(queries_bytes).unwrap();
+
+        Index { entries, queries }
+    }
 }

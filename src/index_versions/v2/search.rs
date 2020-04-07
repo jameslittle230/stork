@@ -1,28 +1,14 @@
+use super::scores::*;
 use super::stopwords::STOPWORDS;
 use super::structs::*;
 use crate::searcher::*;
 use crate::IndexFromFile;
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::convert::TryInto;
 
-fn deserialize(index: &IndexFromFile) -> Index {
-    let (version_size_bytes, rest) = index.split_at(std::mem::size_of::<u64>());
-    let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());
-    let (_version_bytes, rest) = rest.split_at(version_size as usize);
-
-    let (entries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
-    let entries_size = u64::from_be_bytes(entries_size_bytes.try_into().unwrap());
-    let (entries_bytes, rest) = rest.split_at(entries_size as usize);
-    let entries = bincode::deserialize(entries_bytes).unwrap();
-
-    let (queries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
-    let queries_size = u64::from_be_bytes(queries_size_bytes.try_into().unwrap());
-    let (queries_bytes, _rest) = rest.split_at(queries_size as usize);
-    let queries = bincode::deserialize(queries_bytes).unwrap();
-
-    Index { entries, queries }
-}
+const EXCERPT_BUFFER: usize = 8;
+const EXCERPTS_PER_RESULT: usize = 10;
+const DISPLAYED_RESULTS_COUNT: usize = 10;
 
 #[derive(Clone, Debug, Eq)]
 struct IntermediateExcerpt {
@@ -57,7 +43,7 @@ struct ContainerWithQuery {
 }
 
 impl ContainerWithQuery {
-    fn new(container: Container, query: &String) -> Self {
+    fn new(container: Container, query: &str) -> Self {
         ContainerWithQuery {
             query: query.to_string(),
             results: container.results,
@@ -86,7 +72,7 @@ impl ContainerWithQuery {
                     for excerpt in result.excerpts.to_owned() {
                         output.push(IntermediateExcerpt {
                             query: alias_target.to_string(),
-                            entry_index: entry_index,
+                            entry_index,
                             score: *alias_score,
                             word_index: excerpt.word_index,
                         })
@@ -110,7 +96,7 @@ impl OutputEntry {
 }
 
 impl OutputResult {
-    fn from(entry: &Entry, intermediate_excerpts: &Vec<IntermediateExcerpt>) -> Self {
+    fn from(entry: &Entry, intermediate_excerpts: &[IntermediateExcerpt]) -> Self {
         let split_contents: Vec<String> = entry
             .contents
             .split_whitespace()
@@ -123,15 +109,14 @@ impl OutputResult {
         ies.sort_by_key(|ie| ie.word_index);
         ies.dedup_by_key(|ie| ie.word_index);
 
-        // println!("{} {:#?}\n{}\n", entry.title, ies, "=".repeat(32 * 8));
-
         let mut ies_grouped_by_word_index: Vec<Vec<&IntermediateExcerpt>> = vec![];
 
         for ie in &ies {
             if let Some(most_recent) = ies_grouped_by_word_index.last_mut() {
                 if let Some(trailing_ie) = most_recent.first() {
-                    // println!("{}/{}", trailing_ie.word_index, ie.word_index);
-                    if (ie.word_index as isize) - (trailing_ie.word_index as isize) < 8 {
+                    if (ie.word_index as isize) - (trailing_ie.word_index as isize)
+                        < (EXCERPT_BUFFER as isize)
+                    {
                         most_recent.push(ie);
                         continue;
                     }
@@ -141,15 +126,20 @@ impl OutputResult {
             ies_grouped_by_word_index.push(vec![ie])
         }
 
-        // println!("{} {:#?}\n{}\n", entry.title, ies_grouped_by_word_index, "=".repeat(32 * 8));
-
         let mut excerpts: Vec<crate::searcher::Excerpt> = ies_grouped_by_word_index
             .iter()
             .map(|ies| {
-                let minimum_word_index = ies.first().unwrap().word_index.saturating_sub(8);
+                let minimum_word_index = ies
+                    .first()
+                    .unwrap()
+                    .word_index
+                    .saturating_sub(EXCERPT_BUFFER);
 
                 let maximum_word_index = std::cmp::min(
-                    ies.last().unwrap().word_index.saturating_add(8),
+                    ies.last()
+                        .unwrap()
+                        .word_index
+                        .saturating_add(EXCERPT_BUFFER),
                     split_contents.len(),
                 );
 
@@ -178,31 +168,31 @@ impl OutputResult {
                 }
             })
             .collect();
-        
 
-        excerpts.sort_by_key(|e| (e.score as i16) * -1);
-        excerpts.truncate(10);
+        excerpts.sort_by_key(|e| -(e.score as i16));
+        excerpts.truncate(EXCERPTS_PER_RESULT);
 
-        let mut score: usize = excerpts.iter().map(|e| (e.score as usize)).sum();
-        if excerpts.len() > 3 {
-            let sum_of_first_three = &excerpts[0..3].iter().map(|e| (e.score as usize)).sum();
-            let mean_of_rest = &excerpts[3..].iter().map(|e| (e.score as usize)).sum() / (excerpts.len() - 3);
-            score = sum_of_first_three + mean_of_rest;
-        }
+        let split = 3;
+        let score = if excerpts.len() > split {
+            let pre_split_sum: usize = excerpts[0..split].iter().map(|e| (e.score as usize)).sum();
+            let post_split_sum: usize = excerpts[split..].iter().map(|e| (e.score as usize)).sum();
+            let post_split_mean: usize = post_split_sum / (excerpts.len() - split);
+            pre_split_sum + post_split_mean
+        } else {
+            excerpts.iter().map(|e| (e.score as usize)).sum()
+        };
 
-        // @TODO check for index out of bounds errors
-
-        return OutputResult {
+        OutputResult {
             entry: OutputEntry::from(entry),
             excerpts,
             title_highlight_char_offset: None,
             score,
-        };
+        }
     }
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
-    let index: Index = deserialize(index);
+    let index = Index::from_file(index);
     let normalized_query = query.to_lowercase();
     let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
 
@@ -217,7 +207,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
 
     for mut ie in &mut intermediate_excerpts {
         if STOPWORDS.contains(&ie.query.as_str()) {
-            ie.score = 40;
+            ie.score = STOPWORD_SCORE;
         }
     }
 
@@ -225,16 +215,16 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
     for ie in intermediate_excerpts {
         excerpts_by_index
             .entry(ie.entry_index)
-            .or_insert(vec![])
+            .or_insert_with(|| vec![])
             .push(ie)
     }
 
     let mut output_results: Vec<OutputResult> = excerpts_by_index
         .iter()
         .map(|(entry_index, ie)| OutputResult::from(&index.entries[*entry_index], &ie))
-        .take(10)
+        .take(DISPLAYED_RESULTS_COUNT)
         .collect();
-    output_results.sort_by_key(|or| (or.score as i64) * -1);
+    output_results.sort_by_key(|or| -(or.score as i64));
     let or_len = &output_results.len();
 
     SearchOutput {

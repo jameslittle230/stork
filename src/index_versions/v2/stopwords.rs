@@ -1,4 +1,4 @@
-pub const STOPWORDS: &'static [&'static str]  = &[
+pub const STOPWORDS: &[&str] = &[
     "a",
     "about",
     "above",

@@ -1,3 +1,4 @@
+use super::scores::*;
 use super::structs::*;
 use crate::config::Config;
 use std::collections::HashMap;
@@ -47,7 +48,7 @@ pub fn build(config: &Config) -> Index {
         for word in words {
             let normalized_word = remove_surrounding_punctuation(&word.to_lowercase());
             let stem = en_stemmer.stem(&normalized_word).to_string();
-            let stem_vector = stems.entry(stem).or_insert(vec![]);
+            let stem_vector = stems.entry(stem).or_insert_with(|| vec![]);
             if !stem_vector.contains(&normalized_word) {
                 stem_vector.push(normalized_word);
             }
@@ -90,7 +91,7 @@ pub fn build(config: &Config) -> Index {
 
                 let _alias_score = alises_map
                     .entry(normalized_word.clone())
-                    .or_insert(127 - (*normalized_word_len - n) as u8);
+                    .or_insert(PREFIX_SCORE - (*normalized_word_len - n) as u8);
             }
 
             // Step 2C: Fill _other containers'_ alias maps with the
@@ -104,7 +105,7 @@ pub fn build(config: &Config) -> Index {
                             .or_insert_with(Container::new)
                             .aliases
                             .entry(normalized_word.clone())
-                            .or_insert(50 as u8);
+                            .or_insert(STEM_SCORE as u8);
                     }
                 }
             }
