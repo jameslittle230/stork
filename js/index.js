@@ -11,13 +11,6 @@ import WasmQueue from "./wasmqueue";
 import { generateScoresListItem, generateListItem } from "./pencil";
 import { defaultConfig, calculateOverriddenConfig } from "./config";
 
-// const Handlebars = require("handlebars");
-
-// Handlebars.registerHelper("highlight", (text, ranges) => {
-//   console.log(highlight(Handlebars.escapeExpression(text), ranges));
-//   return Handlebars.SafeString(highlight(text, ranges));
-// });
-
 const prod = process.env.NODE_ENV === "production";
 const wasmUrl = prod
   ? "https://files.stork-search.net/stork.wasm"
@@ -220,21 +213,7 @@ function loadIndexFromUrl(name, url, callbacks) {
 export function register(name, url, config = {}) {
   const configOverride = calculateOverriddenConfig(defaultConfig, config);
 
-  // Use the showScores list item template string if the showScores config key
-  // is set to true.
-  // if (
-  //   configOverride.showScores &&
-  //   configOverride.listItemTemplateString ===
-  //     defaultConfig.listItemTemplateString
-  // ) {
-  //   configOverride.listItemTemplateString = showScoresListItemTemplateString;
-  // }
-
   entities[name] = { config: configOverride, elements: {} };
-  // entities[name].config.listItemTemplate = Handlebars.compile(
-  //   entities[name].config.listItemTemplateString,
-  //   { strict: true }
-  // );
 
   loadIndexFromUrl(name, url, {
     load: (event, indexName) => {
