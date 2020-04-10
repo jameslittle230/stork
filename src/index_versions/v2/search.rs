@@ -7,7 +7,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 
 const EXCERPT_BUFFER: usize = 8;
-const EXCERPTS_PER_RESULT: usize = 10;
+const EXCERPTS_PER_RESULT: usize = 5;
 const DISPLAYED_RESULTS_COUNT: usize = 10;
 
 #[derive(Clone, Debug, Eq)]
@@ -225,10 +225,10 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
         .take(DISPLAYED_RESULTS_COUNT)
         .collect();
     output_results.sort_by_key(|or| -(or.score as i64));
-    let or_len = &output_results.len();
+    let total_len = &excerpts_by_index.len();
 
     SearchOutput {
         results: output_results,
-        total_hit_count: *or_len,
+        total_hit_count: *total_len,
     }
 }
