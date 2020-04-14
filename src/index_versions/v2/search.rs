@@ -104,9 +104,10 @@ impl OutputResult {
             .collect();
         let mut ies = intermediate_excerpts.to_vec();
         // Get rid of intermediate excerpts that refer to the same word index.
-        // Ideally we'd have sorted by score within the same word index so that
-        // only the highest score is kept.
-        ies.sort_by_key(|ie| ie.word_index);
+        // First, sort by score so that only the highest score within the same
+        // word index is kept.
+        ies.sort_by_cached_key(|ie| ie.score);
+        ies.sort_by_cached_key(|ie| ie.word_index);
         ies.dedup_by_key(|ie| ie.word_index);
 
         let mut ies_grouped_by_word_index: Vec<Vec<&IntermediateExcerpt>> = vec![];
@@ -145,7 +146,7 @@ impl OutputResult {
 
                 let text = split_contents[minimum_word_index..maximum_word_index].join(" ");
 
-                let highlight_ranges: Vec<HighlightRange> = ies
+                let mut highlight_ranges: Vec<HighlightRange> = ies
                     .iter()
                     .map(|ie| {
                         let beginning = split_contents[minimum_word_index..ie.word_index]
@@ -158,8 +159,21 @@ impl OutputResult {
                         }
                     })
                     .collect();
+                // Maybe unneccesary?
+                highlight_ranges.sort_by_key(|hr| hr.beginning);
 
-                let score = ies.iter().map(|ie| (ie.score as usize)).sum();
+                let highlighted_character_range = highlight_ranges.last().unwrap().end
+                    - highlight_ranges.first().unwrap().beginning;
+
+                let highlighted_characters_count: usize = highlight_ranges
+                    .iter()
+                    .map(|hr| hr.end - hr.beginning)
+                    .sum();
+
+                let score_modifier = highlighted_character_range - highlighted_characters_count;
+
+                let score =
+                    ies.iter().map(|ie| (ie.score as usize)).sum::<usize>() - score_modifier;
 
                 crate::searcher::Excerpt {
                     text,
@@ -172,14 +186,10 @@ impl OutputResult {
         excerpts.sort_by_key(|e| -(e.score as i16));
         excerpts.truncate(EXCERPTS_PER_RESULT);
 
-        let split = 3;
-        let score = if excerpts.len() > split {
-            let pre_split_sum: usize = excerpts[0..split].iter().map(|e| (e.score as usize)).sum();
-            let post_split_sum: usize = excerpts[split..].iter().map(|e| (e.score as usize)).sum();
-            let post_split_mean: usize = post_split_sum / (excerpts.len() - split);
-            pre_split_sum + post_split_mean
+        let score = if let Some(first) = excerpts.first() {
+            first.score
         } else {
-            excerpts.iter().map(|e| (e.score as usize)).sum()
+            0
         };
 
         OutputResult {
@@ -219,13 +229,15 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
             .push(ie)
     }
 
+    let total_len = &excerpts_by_index.len();
+
     let mut output_results: Vec<OutputResult> = excerpts_by_index
         .iter()
         .map(|(entry_index, ie)| OutputResult::from(&index.entries[*entry_index], &ie))
-        .take(DISPLAYED_RESULTS_COUNT)
         .collect();
+    output_results.sort_by_key(|or| or.entry.title.clone());
     output_results.sort_by_key(|or| -(or.score as i64));
-    let total_len = &excerpts_by_index.len();
+    output_results.truncate(DISPLAYED_RESULTS_COUNT);
 
     SearchOutput {
         results: output_results,
