@@ -34,9 +34,7 @@
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10"
   },
-  "dependencies": {
-    "handlebars": "^4.5.3"
-  },
+  "dependencies": {},
   "scripts": {
     "build:wasm": "wasm-pack build --target web",
     "build:test-index": "cargo run -- --build test/federalist.toml && mkdir -p dist && cp test/federalist.st dist",

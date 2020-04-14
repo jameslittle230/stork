@@ -9,6 +9,9 @@ use std::path::Path;
 extern crate rust_stemmers;
 use rust_stemmers::{Algorithm, Stemmer};
 
+extern crate htmlescape;
+use htmlescape::encode_minimal;
+
 pub fn build(config: &Config) -> Index {
     let en_stemmer = Stemmer::create(Algorithm::English);
     let mut entries: Vec<Entry> = Vec::new();
@@ -25,6 +28,7 @@ pub fn build(config: &Config) -> Index {
         let mut contents = String::new();
         let _bytes_read = buf_reader.read_to_string(&mut contents);
         let stork_fields = stork_file.fields.clone();
+        contents = encode_minimal(&contents);
 
         let entry = Entry {
             contents,

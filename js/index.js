@@ -4,60 +4,17 @@ import init, {
   search,
   get_index_version as getIndexVersion
 } from "../pkg/stork";
-import Dom from "./dom";
+
+import { create, add, clear, setText } from "./dom";
 import WasmQueue from "./wasmqueue";
 
-const Handlebars = require("handlebars");
-
-Handlebars.registerHelper("highlight", (textUnesc, highlight_ranges) => {
-  var text = Handlebars.escapeExpression(textUnesc);
-
-  function insert(str, index, value) {
-    return str.substr(0, index) + value + str.substr(index);
-  }
-
-  var charactersAlreadyAdded = 0;
-
-  for (let range of highlight_ranges) {
-    let beginningInsertion = `<span class="stork-highlight">`;
-    text = insert(
-      text,
-      range.beginning + charactersAlreadyAdded,
-      beginningInsertion
-    );
-    charactersAlreadyAdded += beginningInsertion.length;
-
-    let endInsertion = `</span>`;
-    text = insert(text, range.end + charactersAlreadyAdded, endInsertion);
-    charactersAlreadyAdded += endInsertion.length;
-  }
-
-  return new Handlebars.SafeString(text);
-});
+import { generateScoresListItem, generateListItem } from "./pencil";
+import { defaultConfig, calculateOverriddenConfig } from "./config";
 
 const prod = process.env.NODE_ENV === "production";
 const wasmUrl = prod
   ? "https://files.stork-search.net/stork.wasm"
   : "http://127.0.0.1:8080/stork.wasm";
-
-const showScoresListItemTemplateString = `
-    <li class="stork-result">
-      <a href="{{entry.url}}">
-          <div style="display: flex; justify-content: space-between">
-            <p class="stork-title">{{entry.title}}</p>
-            <code><b>{{score}}</b></code>
-          </div>
-
-          {{#each excerpts}}
-            <div style="display: flex; justify-content: space-between">
-              <p class="stork-excerpt">
-              ...{{ highlight text highlight_ranges }}...
-              </p>
-              <code>{{score}}</code>
-            </div>
-          {{/each}}
-      </a>
-    </li>`;
 
 const wasmQueue = new WasmQueue();
 const entities = {};
@@ -65,24 +22,6 @@ init(wasmUrl).then(() => {
   wasmQueue.loaded = true;
   wasmQueue.handleWasmLoad();
 });
-
-const defaultConfig = {
-  showProgress: true,
-  printIndexInfo: false,
-  showScores: false,
-
-  listItemTemplateString: `
-    <li class="stork-result">
-      <a href="{{entry.url}}">
-          <p class="stork-title">{{entry.title}}</p>
-          {{#each excerpts}}
-            <p class="stork-excerpt">
-              ...{{ highlight text highlight_ranges }}...
-            </p>
-          {{/each}}
-      </a>
-    </li>`
-};
 
 function updateDom(name) {
   if (!name) {
@@ -93,11 +32,11 @@ function updateDom(name) {
 
   if (entity.config.showProgress && entity.progress < 1) {
     if (!entity.elements.progress) {
-      entity.elements.progress = Dom.create("div", {
+      entity.elements.progress = create("div", {
         classNames: ["stork-loader"]
       });
 
-      Dom.add(entity.elements.progress, "afterend", entity.elements.input);
+      add(entity.elements.progress, "afterend", entity.elements.input);
     }
 
     entity.elements.progress.style.width = `${entity.progress * 100}%`;
@@ -124,27 +63,29 @@ function updateDom(name) {
   }
 
   if (!entity.elements.message) {
-    entity.elements.message = Dom.create("div", {
+    entity.elements.message = create("div", {
       classNames: ["stork-message"]
     });
-    Dom.add(entity.elements.message, "afterBegin", entity.elements.output);
+    add(entity.elements.message, "afterBegin", entity.elements.output);
   }
 
-  Dom.setText(entity.elements.message, message);
+  setText(entity.elements.message, message);
 
   if (entity.results) {
     if (entity.results.length > 0) {
       if (!entity.elements.list) {
-        entity.elements.list = Dom.create("ul", {
+        entity.elements.list = create("ul", {
           classNames: ["stork-results"]
         });
-        Dom.add(entity.elements.list, "beforeEnd", entity.elements.output);
+        add(entity.elements.list, "beforeEnd", entity.elements.output);
       }
 
-      Dom.clear(entity.elements.list);
+      clear(entity.elements.list);
 
       entity.results.forEach(result => {
-        const listItem = entity.config.listItemTemplate(result);
+        const listItem = entity.config.showScores
+          ? generateScoresListItem(result)
+          : generateListItem(result);
         entity.elements.list.insertAdjacentHTML("beforeEnd", listItem);
       });
     } else if (entity.elements.list) {
@@ -156,7 +97,7 @@ function updateDom(name) {
   if (!entity.query || entity.query.length === 0) {
     entity.elements.message = null;
     entity.elements.list = null;
-    Dom.clear(entity.elements.output);
+    clear(entity.elements.output);
     entity.elements.output.classList.remove("stork-output-visible");
   } else {
     entity.elements.output.classList.add("stork-output-visible");
@@ -167,7 +108,11 @@ async function resolveSearch(index, query) {
   if (!wasmQueue.loaded) {
     return null;
   }
-  return JSON.parse(search(index, query));
+  try {
+    return JSON.parse(search(index, query));
+  } catch (e) {
+    // analytics.log(e)
+  }
 }
 
 function handleInputEvent(event) {
@@ -196,6 +141,12 @@ function performSearch(name) {
   const { query } = entities[name];
   if (query && query.length >= 3) {
     resolveSearch(entities[name].index, query).then(results => {
+      // Results might be undefined if resolveSearch errored. However, if this
+      // happens, resolveSearch should log the error itself.
+      if (!results) {
+        return;
+      }
+
       if (process.env.NODE_ENV === "development") {
         console.log(results);
       }
@@ -259,36 +210,10 @@ function loadIndexFromUrl(name, url, callbacks) {
   r.send();
 }
 
-function calculateOverriddenConfig(original, overrides) {
-  const output = Object.create({});
-  Object.keys(original).forEach(key => {
-    if (key in overrides) {
-      output[key] = overrides[key];
-    } else {
-      output[key] = original[key];
-    }
-  });
-  return output;
-}
-
 export function register(name, url, config = {}) {
   const configOverride = calculateOverriddenConfig(defaultConfig, config);
 
-  // Use the showScores list item template string if the showScores config key
-  // is set to true.
-  if (
-    configOverride.showScores &&
-    configOverride.listItemTemplateString ===
-      defaultConfig.listItemTemplateString
-  ) {
-    configOverride.listItemTemplateString = showScoresListItemTemplateString;
-  }
-
   entities[name] = { config: configOverride, elements: {} };
-  entities[name].config.listItemTemplate = Handlebars.compile(
-    entities[name].config.listItemTemplateString,
-    { strict: true }
-  );
 
   loadIndexFromUrl(name, url, {
     load: (event, indexName) => {
