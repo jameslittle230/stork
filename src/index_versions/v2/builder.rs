@@ -1,6 +1,7 @@
 use super::scores::*;
 use super::structs::*;
 use crate::config::Config;
+use crate::config::DataSource;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -21,12 +22,20 @@ pub fn build(config: &Config) -> Index {
 
     // Step 1: Fill entries vector
     let base_directory = Path::new(&config.base_directory);
-    for stork_file in config.files.as_ref().unwrap_or(&vec![]).iter() {
-        let full_pathname = &base_directory.join(&stork_file.path);
-        let file = File::open(&full_pathname).unwrap();
-        let mut buf_reader = BufReader::new(file);
-        let mut contents = String::new();
-        let _bytes_read = buf_reader.read_to_string(&mut contents);
+    for stork_file in config.files.iter() {
+        let mut contents: String = match &stork_file.source {
+            DataSource::Contents(contents) => contents.to_string(),
+            DataSource::FilePath(path_string) => {
+                let full_pathname = &base_directory.join(&path_string);
+                let file = File::open(&full_pathname).unwrap();
+                let mut buf_reader = BufReader::new(file);
+                let mut c = String::new();
+                let _bytes_read = buf_reader.read_to_string(&mut c);
+                encode_minimal(&c)
+            }
+            DataSource::URL(_url) => panic!("URL not available yet"),
+        };
+
         let stork_fields = stork_file.fields.clone();
         contents = encode_minimal(&contents);
 
