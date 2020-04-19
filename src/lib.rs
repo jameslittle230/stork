@@ -12,7 +12,7 @@ use LatestVersion::builder;
 use LatestVersion::structs::Index;
 
 type IndexFromFile = [u8];
-type Fields = Option<HashMap<String, String>>;
+type Fields = HashMap<String, String>;
 
 #[wasm_bindgen]
 extern "C" {
