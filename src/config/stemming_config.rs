@@ -1,6 +1,6 @@
 use rust_stemmers::Algorithm;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Write};
+use std::fmt::Write;
 use toml::Value;
 
 #[derive(Serialize, Debug, Clone)]
@@ -8,7 +8,7 @@ use toml::Value;
 #[serde(try_from = "String")]
 pub enum StemmingConfig {
     None,
-    Language(Algorithm)
+    Language(Algorithm),
 }
 
 impl Default for StemmingConfig {
@@ -48,7 +48,9 @@ impl<'de> serde::Deserialize<'de> for StemmingConfig {
             return Err(Error::custom(error_msg));
         }
 
-        Err(Error::custom("Unexpected stemming config value; could not parse as string. (Maybe you need quotes?)"))
+        Err(Error::custom(
+            "Unexpected stemming config value; could not parse as string. (Maybe you need quotes?)",
+        ))
     }
 }
 
@@ -57,7 +59,7 @@ impl From<StemmingConfig> for String {
         let mut output = String::new();
         let _result = match stemming_config {
             StemmingConfig::Language(l) => write!(&mut output, "{:?}", l),
-            StemmingConfig::None        => write!(&mut output, "none"),
+            StemmingConfig::None => write!(&mut output, "none"),
         };
         output
     }

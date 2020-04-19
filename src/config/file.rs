@@ -1,19 +1,16 @@
-use crate::Fields;
 use super::StemmingConfig;
-use serde::{Serialize, Deserialize};
+use crate::Fields;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct File {
     pub title: String,
-    
     pub url: String,
-    
     #[serde(flatten)]
     pub source: DataSource,
 
     pub id: Option<String>,
-    
     #[serde(default)]
     pub stemming_override: Option<StemmingConfig>,
 
@@ -33,14 +30,13 @@ impl Default for File {
             id: None,
             stemming_override: None,
             filetype: None,
-            fields: HashMap::new()
+            fields: HashMap::new(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum DataSource {
-
     #[serde(rename = "contents")]
     Contents(String),
 
@@ -48,9 +44,8 @@ pub enum DataSource {
     URL(String),
 
     #[serde(rename = "path")]
-    FilePath(String)
+    FilePath(String),
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Filetype {

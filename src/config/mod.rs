@@ -1,9 +1,9 @@
+use serde::{Deserialize, Serialize};
 use std::fs;
-use serde::{Serialize, Deserialize};
 
 mod file;
-pub use file::File;
 pub use file::DataSource;
+pub use file::File;
 pub use file::Filetype;
 
 pub mod stemming_config;
@@ -36,7 +36,7 @@ pub struct InputConfig {
     pub url_prefix: String,
     pub stemming: StemmingConfig,
     pub files: Vec<File>,
-    pub srt_config: SRTConfig
+    pub srt_config: SRTConfig,
 }
 
 impl Default for InputConfig {
@@ -64,7 +64,7 @@ impl Default for OutputConfig {
         OutputConfig {
             filename: "output.st".to_string(),
             debug: false,
-            surrounding_word_count: 8
+            surrounding_word_count: 8,
         }
     }
 }
@@ -73,7 +73,7 @@ impl Default for OutputConfig {
 pub struct SRTConfig {
     timestamp_linking: bool,
     timestamp_template_string: String,
-    timestamp_format: SRTTimestampFormat
+    timestamp_format: SRTTimestampFormat,
 }
 
 impl Default for SRTConfig {
@@ -81,7 +81,7 @@ impl Default for SRTConfig {
         SRTConfig {
             timestamp_linking: true,
             timestamp_template_string: "{ts}".to_string(),
-            timestamp_format: SRTTimestampFormat::NumberOfSeconds
+            timestamp_format: SRTTimestampFormat::NumberOfSeconds,
         }
     }
 }
