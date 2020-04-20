@@ -12,7 +12,7 @@ use LatestVersion::builder;
 use LatestVersion::structs::Index;
 
 type IndexFromFile = [u8];
-type Fields = Option<HashMap<String, String>>;
+type Fields = HashMap<String, String>;
 
 #[wasm_bindgen]
 extern "C" {
@@ -38,12 +38,4 @@ pub fn build(config: &Config) -> Index {
 
 pub fn write_index(config: &Config, index: Index) -> usize {
     index.write(config)
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }

@@ -46,7 +46,7 @@ impl Index {
         let mut bufwriter = BufWriter::new(file);
         let write_version = super::VERSION_STRING.as_bytes();
 
-        if config.debug.unwrap_or(false) {
+        if config.debug {
             write_debug(self, &mut bufwriter, &write_version);
             0
         } else {

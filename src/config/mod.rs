@@ -1,8 +1,18 @@
-use crate::Fields;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 
-#[derive(Deserialize)]
+mod file;
+pub use file::DataSource;
+pub use file::File;
+pub use file::Filetype;
+
+pub mod stemming_config;
+pub use stemming_config::StemmingConfig;
+
+mod test;
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields, default)]
 pub struct Config {
     pub input: InputConfig,
     pub output: OutputConfig,
@@ -21,23 +31,78 @@ impl Config {
     }
 }
 
-#[derive(Deserialize)]
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            input: InputConfig::default(),
+            output: OutputConfig::default(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields, default)]
+#[allow(non_snake_case)]
 pub struct InputConfig {
-    pub surrounding_word_count: Option<u8>,
+    #[serde(rename = "surrounding_word_count")]
+    pub UNUSED_surrounding_word_count: Option<u8>,
     pub base_directory: String,
-    pub files: Option<Vec<InputFileListing>>,
+    pub url_prefix: String,
+    pub stemming: StemmingConfig,
+    pub files: Vec<File>,
+    pub srt_config: SRTConfig,
 }
 
-#[derive(Deserialize)]
-pub struct InputFileListing {
-    pub path: String,
-    pub url: String,
-    pub title: String,
-    pub fields: Fields,
+impl Default for InputConfig {
+    fn default() -> Self {
+        InputConfig {
+            UNUSED_surrounding_word_count: None,
+            base_directory: "".to_string(),
+            url_prefix: "".to_string(),
+            stemming: StemmingConfig::default(),
+            files: vec![],
+            srt_config: SRTConfig::default(),
+        }
+    }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(deny_unknown_fields, default)]
 pub struct OutputConfig {
     pub filename: String,
-    pub debug: Option<bool>,
+    pub debug: bool,
+    pub surrounding_word_count: u8,
+}
+
+impl Default for OutputConfig {
+    fn default() -> Self {
+        OutputConfig {
+            filename: "output.st".to_string(),
+            debug: false,
+            surrounding_word_count: 8,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SRTConfig {
+    timestamp_linking: bool,
+    timestamp_template_string: String,
+    timestamp_format: SRTTimestampFormat,
+}
+
+impl Default for SRTConfig {
+    fn default() -> Self {
+        SRTConfig {
+            timestamp_linking: true,
+            timestamp_template_string: "{ts}".to_string(),
+            timestamp_format: SRTTimestampFormat::NumberOfSeconds,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum SRTTimestampFormat {
+    NumberOfSeconds,
 }
