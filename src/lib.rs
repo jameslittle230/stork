@@ -39,11 +39,3 @@ pub fn build(config: &Config) -> Index {
 pub fn write_index(config: &Config, index: Index) -> usize {
     index.write(config)
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}

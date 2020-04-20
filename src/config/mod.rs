@@ -9,8 +9,10 @@ pub use file::Filetype;
 pub mod stemming_config;
 pub use stemming_config::StemmingConfig;
 
+mod test;
+
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, default)]
 pub struct Config {
     pub input: InputConfig,
     pub output: OutputConfig,
@@ -29,9 +31,21 @@ impl Config {
     }
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            input: InputConfig::default(),
+            output: OutputConfig::default(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields, default)]
+#[allow(non_snake_case)]
 pub struct InputConfig {
+    #[serde(rename = "surrounding_word_count")]
+    pub UNUSED_surrounding_word_count: Option<u8>,
     pub base_directory: String,
     pub url_prefix: String,
     pub stemming: StemmingConfig,
@@ -42,6 +56,7 @@ pub struct InputConfig {
 impl Default for InputConfig {
     fn default() -> Self {
         InputConfig {
+            UNUSED_surrounding_word_count: None,
             base_directory: "".to_string(),
             url_prefix: "".to_string(),
             stemming: StemmingConfig::default(),
