@@ -4,7 +4,7 @@ use crate::Fields;
 use crate::IndexFromFile;
 use serde::Serialize;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Default)]
 pub struct SearchOutput {
     pub results: Vec<OutputResult>,
     pub total_hit_count: usize,
@@ -43,11 +43,14 @@ pub struct Excerpt {
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
-    let version = get_index_version(index);
-    let search_function = match version.as_str() {
-        v2::VERSION_STRING => v2::search::search,
-        _ => panic!("Unknown index version"),
-    };
+    if let Ok(version) = get_index_version(index) {
+        let search_function = match version.as_str() {
+            v2::VERSION_STRING => v2::search::search,
+            _ => panic!("Unknown index version"),
+        };
 
-    search_function(index, query)
+        search_function(index, query)
+    } else {
+        SearchOutput::default()
+    }
 }
