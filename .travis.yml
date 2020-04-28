@@ -30,8 +30,6 @@ jobs:
     env: RUST_BACKTRACE=1
     before_install:
     - cargo install wasm-pack
-    - rustup component add clippy
-    - rustup component add rustfmt
     before_script:
     - wasm-pack build --target web
     script:
@@ -42,14 +40,14 @@ jobs:
     env: RUST_BACKTRACE=1
     before_install:
     - cargo install wasm-pack
-    - rustup component add clippy
-    - rustup component add rustfmt
     before_script:
     - wasm-pack build --target web
     script:
     - cargo test --verbose
 
   fast_finish: true
+  allow_failures:
+    - rust: nightly
 
 notifications:
   slack:
