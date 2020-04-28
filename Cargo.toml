@@ -1,6 +1,6 @@
 [package]
 name = "stork"
-version = "0.5.3"
+version = "0.6.0"
 authors = ["James Little <littleguy23@gmail.com>"]
 edition = "2018"
 description = "Impossibly fast web search."
