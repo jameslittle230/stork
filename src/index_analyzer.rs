@@ -1,7 +1,7 @@
 use crate::IndexFromFile;
 use std::convert::TryInto;
-use std::fmt;
 use std::error::Error;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct IndexParseError {}
@@ -19,9 +19,9 @@ pub fn get_index_version(index: &IndexFromFile) -> Result<String, IndexParseErro
     if let Ok(byte_array) = version_size_bytes.try_into() {
         let version_size = u64::from_be_bytes(byte_array);
         let (version_bytes, _rest) = rest.split_at(version_size as usize);
-        String::from_utf8(version_bytes.to_vec()).map_err(|_err| IndexParseError{})
+        String::from_utf8(version_bytes.to_vec()).map_err(|_err| IndexParseError {})
     } else {
-        Err(IndexParseError{})
+        Err(IndexParseError {})
     }
 }
 
