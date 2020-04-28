@@ -14,7 +14,7 @@ import { defaultConfig, calculateOverriddenConfig } from "./config";
 const prod = process.env.NODE_ENV === "production";
 const wasmUrl = prod
   ? "https://files.stork-search.net/stork.wasm"
-  : "http://127.0.0.1:8080/stork.wasm";
+  : "http://127.0.0.1:8025/stork.wasm";
 
 const wasmQueue = new WasmQueue();
 const entities = {};
