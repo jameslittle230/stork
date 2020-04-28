@@ -29,7 +29,8 @@ pub fn search(index: &IndexFromFile, query: String) -> String {
 
 #[wasm_bindgen]
 pub fn get_index_version(index: &IndexFromFile) -> String {
-    index_analyzer::get_index_version(index).unwrap_or("Could not parse version".to_string())
+    index_analyzer::get_index_version(index)
+        .unwrap_or_else(|_| "Could not parse version".to_string())
 }
 
 pub fn build(config: &Config) -> Index {
