@@ -4,5 +4,6 @@
     },
     "files.watcherExclude": {
         "archive": true
-    }
+    },
+    "python.pythonPath": "/usr/local/bin/python3"
 }
