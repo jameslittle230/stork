@@ -4,15 +4,13 @@ mod index_versions;
 pub mod searcher;
 
 use config::*;
-use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
-use index_versions::v2 as LatestVersion;
+use index_versions::v3 as LatestVersion;
 use LatestVersion::builder;
 use LatestVersion::structs::Index;
 
 type IndexFromFile = [u8];
-type Fields = HashMap<String, String>;
 
 #[wasm_bindgen]
 extern "C" {

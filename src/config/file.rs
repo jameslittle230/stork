@@ -1,7 +1,8 @@
 use super::StemmingConfig;
-use crate::Fields;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+type Fields = HashMap<String, String>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct File {

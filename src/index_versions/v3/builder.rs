@@ -127,7 +127,8 @@ pub fn build(config: &Config) -> Index {
 
     Index {
         entries,
-        queries: containers,
+        containers,
+        ..Default::default()
     }
 }
 

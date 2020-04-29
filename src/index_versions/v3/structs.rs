@@ -2,12 +2,12 @@ use super::scores::*;
 use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::convert::TryInto;
+use std::convert::{TryInto, TryFrom};
 
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
 pub type Score = u8;
-type Fields = Option<HashMap<String, String>>;
+pub type Fields = HashMap<String, String>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Entry {
@@ -24,10 +24,10 @@ pub(super) struct SearchResult {
 }
 
 impl SearchResult {
-    pub(super) fn _new() -> SearchResult {
+    pub(super) fn new() -> SearchResult {
         SearchResult {
             excerpts: vec![],
-            score: _MATCHED_WORD_SCORE,
+            score: MATCHED_WORD_SCORE,
         }
     }
 }
@@ -46,44 +46,37 @@ pub(super) struct Excerpt {
  * Each valid query should return a single Container. It is possible to derive
  * all search results for a given query from a single container.
  */
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct Container {
     pub(super) results: HashMap<EntryIndex, SearchResult>,
     pub(super) aliases: HashMap<AliasTarget, Score>,
 }
 
 impl Container {
-    pub fn _new() -> Container {
-        Container {
-            results: HashMap::new(),
-            aliases: HashMap::new(),
-        }
+    pub fn new() -> Container {
+        Container::default()
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Index {
+    pub(super) passthrough_config: Fields,
     pub(super) entries: Vec<Entry>,
-    pub(super) queries: HashMap<String, Container>,
+    pub(super) containers: HashMap<String, Container>,
 }
 
-impl Index {
-    pub fn from_file(file: &IndexFromFile) -> Index {
+impl TryFrom<&IndexFromFile> for Index {
+    type Error = serde_cbor::error::Error;
+    fn try_from(file: &IndexFromFile) -> Result<Self, Self::Error> {
         let (version_size_bytes, rest) = file.split_at(std::mem::size_of::<u64>());
         let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());
         let (_version_bytes, rest) = rest.split_at(version_size as usize);
 
-        let (entries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
-        let entries_size = u64::from_be_bytes(entries_size_bytes.try_into().unwrap());
-        let (entries_bytes, rest) = rest.split_at(entries_size as usize);
-        let entries = bincode::deserialize(entries_bytes).unwrap();
-
-        let (queries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
-        let queries_size = u64::from_be_bytes(queries_size_bytes.try_into().unwrap());
-        let (queries_bytes, _rest) = rest.split_at(queries_size as usize);
-        let queries = bincode::deserialize(queries_bytes).unwrap();
-
-        Index { entries, queries }
+        let (index_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
+        let index_size = u64::from_be_bytes(index_size_bytes.try_into().unwrap());
+        let (index_bytes, _rest) = rest.split_at(index_size as usize);
+        
+        serde_cbor::de::from_slice(index_bytes)
     }
 }
 
@@ -94,13 +87,13 @@ mod tests {
     use std::io::{BufReader, Read};
 
     #[test]
-    fn can_parse_0_5_3_index() {
+    fn can_parse_1_0_0_index() {
         let file = fs::File::open("./test-assets/federalist-min.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
-        let index = Index::from_file(index_bytes.as_slice());
+        let index = Index::try_from(index_bytes.as_slice()).unwrap();
         assert_eq!(1, index.entries.len());
-        assert_eq!(2477, index.queries.len());
+        assert_eq!(2477, index.containers.len());
     }
 }

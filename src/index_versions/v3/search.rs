@@ -5,6 +5,7 @@ use crate::searcher::*;
 use crate::IndexFromFile;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 
 const EXCERPT_BUFFER: usize = 8;
 const EXCERPTS_PER_RESULT: usize = 5;
@@ -67,7 +68,7 @@ impl ContainerWithQuery {
 
         // Put alias containers' results in output
         for (alias_target, alias_score) in self.aliases.iter() {
-            if let Some(target_container) = index.queries.get(alias_target) {
+            if let Some(target_container) = index.containers.get(alias_target) {
                 for (entry_index, result) in target_container.results.to_owned() {
                     for excerpt in result.excerpts.to_owned() {
                         output.push(IntermediateExcerpt {
@@ -90,26 +91,25 @@ impl From<Entry> for OutputEntry {
         OutputEntry {
             url: entry.url.clone(),
             title: entry.title.clone(),
-            fields: entry.fields.unwrap_or(HashMap::default()).clone(),
+            fields: entry.fields.clone(),
         }
     }
 }
 
 struct EntryAndIntermediateExcerpts {
     entry: Entry,
-    intermediate_excerpts: Vec<IntermediateExcerpt>
+    intermediate_excerpts: Vec<IntermediateExcerpt>,
 }
 
 impl From<EntryAndIntermediateExcerpts> for OutputResult {
     fn from(data: EntryAndIntermediateExcerpts) -> Self {
         let entry = data.entry;
-        let mut ies = data.intermediate_excerpts;
         let split_contents: Vec<String> = entry
             .contents
             .split_whitespace()
             .map(|s| s.to_string())
             .collect();
-
+        let mut ies = data.intermediate_excerpts;
         // Get rid of intermediate excerpts that refer to the same word index.
         // First, sort by score so that only the highest score within the same
         // word index is kept.
@@ -200,7 +200,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         };
 
         OutputResult {
-            entry: OutputEntry::from(entry),
+            entry: OutputEntry::from(entry.to_owned()),
             excerpts,
             title_highlight_char_offset: None,
             score,
@@ -209,50 +209,60 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
-    let index = Index::from_file(index);
-    let normalized_query = query.to_lowercase();
-    let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
+    match Index::try_from(index) {
+        Err(_) => SearchOutput {
+            results: vec![],
+            total_hit_count: 0,
+        },
+        Ok(index) => {
+            let normalized_query = query.to_lowercase();
+            let words_in_query: Vec<String> =
+                normalized_query.split(' ').map(|s| s.to_string()).collect();
 
-    // Get containers for each word in the query
-    let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
-        .iter()
-        .flat_map(|word| index.queries.get_key_value(word))
-        .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
-        .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
-        .flatten()
-        .collect();
+            // Get containers for each word in the query
+            let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
+                .iter()
+                .flat_map(|word| index.containers.get_key_value(word))
+                .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
+                .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
+                .flatten()
+                .collect();
 
-    for mut ie in &mut intermediate_excerpts {
-        if STOPWORDS.contains(&ie.query.as_str()) {
-            ie.score = STOPWORD_SCORE;
+            for mut ie in &mut intermediate_excerpts {
+                if STOPWORDS.contains(&ie.query.as_str()) {
+                    ie.score = STOPWORD_SCORE;
+                }
+            }
+
+            let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> =
+                HashMap::new();
+            for ie in intermediate_excerpts {
+                excerpts_by_index
+                    .entry(ie.entry_index)
+                    .or_insert_with(|| vec![])
+                    .push(ie)
+            }
+
+            let total_len = &excerpts_by_index.len();
+
+            let mut output_results: Vec<OutputResult> = excerpts_by_index
+                .iter()
+                .map(|(entry_index, ies)| {
+                    let data = EntryAndIntermediateExcerpts {
+                        entry: index.entries[*entry_index].to_owned(),
+                        intermediate_excerpts: ies.to_owned(),
+                    };
+                    OutputResult::from(data)
+                })
+                .collect();
+            output_results.sort_by_key(|or| or.entry.title.clone());
+            output_results.sort_by_key(|or| -(or.score as i64));
+            output_results.truncate(DISPLAYED_RESULTS_COUNT);
+
+            SearchOutput {
+                results: output_results,
+                total_hit_count: *total_len,
+            }
         }
-    }
-
-    let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> = HashMap::new();
-    for ie in intermediate_excerpts {
-        excerpts_by_index
-            .entry(ie.entry_index)
-            .or_insert_with(|| vec![])
-            .push(ie)
-    }
-
-    let total_len = &excerpts_by_index.len();
-
-    let mut output_results: Vec<OutputResult> = excerpts_by_index
-        .iter()
-        .map(|(entry_index, ies)| {
-            let data = EntryAndIntermediateExcerpts {
-                entry: index.entries[*entry_index].to_owned(),
-                intermediate_excerpts: ies.to_owned(),
-            };
-            OutputResult::from(data)})
-        .collect();
-    output_results.sort_by_key(|or| or.entry.title.clone());
-    output_results.sort_by_key(|or| -(or.score as i64));
-    output_results.truncate(DISPLAYED_RESULTS_COUNT);
-
-    SearchOutput {
-        results: output_results,
-        total_hit_count: *total_len,
     }
 }
