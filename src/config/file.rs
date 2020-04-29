@@ -1,7 +1,6 @@
 use super::StemmingConfig;
 use crate::Fields;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct File {
@@ -30,7 +29,7 @@ impl Default for File {
             id: None,
             stemming_override: None,
             filetype: None,
-            fields: HashMap::new(),
+            fields: None,
         }
     }
 }
