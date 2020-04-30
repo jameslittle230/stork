@@ -95,7 +95,18 @@ mod tests {
 
     #[test]
     fn can_parse_0_5_3_index() {
-        let file = fs::File::open("./test-assets/federalist-min.st").unwrap();
+        let file = fs::File::open("./test-assets/federalist-min-0.5.3.st").unwrap();
+        let mut buf_reader = BufReader::new(file);
+        let mut index_bytes: Vec<u8> = Vec::new();
+        let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
+        let index = Index::from_file(index_bytes.as_slice());
+        assert_eq!(1, index.entries.len());
+        assert_eq!(2477, index.queries.len());
+    }
+
+    #[test]
+    fn can_parse_0_6_0_index() {
+        let file = fs::File::open("./test-assets/federalist-min-0.6.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
