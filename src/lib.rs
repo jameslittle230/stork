@@ -1,7 +1,9 @@
 pub mod config;
 pub mod index_analyzer;
-mod index_versions;
 pub mod searcher;
+pub mod stopwords;
+
+mod index_versions;
 
 use config::*;
 use wasm_bindgen::prelude::*;

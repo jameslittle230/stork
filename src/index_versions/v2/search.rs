@@ -1,7 +1,7 @@
 use super::scores::*;
-use super::stopwords::STOPWORDS;
 use super::structs::*;
 use crate::searcher::*;
+use crate::stopwords::STOPWORDS;
 use crate::IndexFromFile;
 use std::cmp::Ordering;
 use std::collections::HashMap;
