@@ -89,7 +89,7 @@ pub fn build(config: &Config) -> Index {
         for (word_index, annotated_word) in words_in_contents.iter().enumerate() {
             let normalized_word =
                 remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
-            if normalized_word.len() == 0 {
+            if normalized_word.is_empty() {
                 break;
             }
 
@@ -112,7 +112,7 @@ pub fn build(config: &Config) -> Index {
             // prefixes of this word
             let chars: Vec<char> = normalized_word.chars().collect();
             for n in 3..chars.len() {
-                let substring: String = chars[0..n].into_iter().collect();
+                let substring: String = chars[0..n].iter().collect();
 
                 let alises_map = &mut containers
                     .entry(substring.clone())
