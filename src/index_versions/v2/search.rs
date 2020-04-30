@@ -97,7 +97,7 @@ impl From<Entry> for OutputEntry {
 
 struct EntryAndIntermediateExcerpts {
     entry: Entry,
-    intermediate_excerpts: Vec<IntermediateExcerpt>
+    intermediate_excerpts: Vec<IntermediateExcerpt>,
 }
 
 impl From<EntryAndIntermediateExcerpts> for OutputResult {
@@ -186,7 +186,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     text,
                     highlight_ranges,
                     score,
-                    fields: HashMap::default()
+                    fields: HashMap::default(),
                 }
             })
             .collect();
@@ -246,7 +246,8 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
                 entry: index.entries[*entry_index].to_owned(),
                 intermediate_excerpts: ies.to_owned(),
             };
-            OutputResult::from(data)})
+            OutputResult::from(data)
+        })
         .collect();
     output_results.sort_by_key(|or| or.entry.title.clone());
     output_results.sort_by_key(|or| -(or.score as i64));
@@ -255,6 +256,6 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
     SearchOutput {
         results: output_results,
         total_hit_count: *total_len,
-        url_prefix: String::default()
+        url_prefix: String::default(),
     }
 }

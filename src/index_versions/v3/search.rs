@@ -63,7 +63,7 @@ impl ContainerWithQuery {
                     entry_index: *entry_index,
                     score: result.score,
                     word_index: excerpt.word_index,
-                    fields: excerpt.fields
+                    fields: excerpt.fields,
                 })
             }
         }
@@ -197,7 +197,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     text,
                     highlight_ranges,
                     score,
-                    fields
+                    fields,
                 }
             })
             .collect();
