@@ -31,13 +31,29 @@ mod tests {
     use std::fs;
     use std::io::{BufReader, Read};
 
+    macro_rules! validate_version {
+        ($file:expr, $version:expr) => {
+            let file = fs::File::open($file).unwrap();
+            let mut buf_reader = BufReader::new(file);
+            let mut index_bytes: Vec<u8> = Vec::new();
+            let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
+            let result = get_index_version(index_bytes.as_slice());
+            assert_eq!($version, result.unwrap());
+        };
+    }
+
     #[test]
     fn can_get_version_of_0_5_3_index() {
-        let file = fs::File::open("./test-assets/federalist-min-0.5.3.st").unwrap();
-        let mut buf_reader = BufReader::new(file);
-        let mut index_bytes: Vec<u8> = Vec::new();
-        let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
-        let result = get_index_version(index_bytes.as_slice());
-        assert_eq!("stork-2", result.unwrap());
+        validate_version!("./test-assets/federalist-min-0.5.3.st", "stork-2");
+    }
+
+    #[test]
+    fn can_get_version_of_0_6_0_index() {
+        validate_version!("./test-assets/federalist-min-0.6.0.st", "stork-2");
+    }
+
+    #[test]
+    fn can_get_version_of_1_0_0_index() {
+        validate_version!("./test-assets/federalist-min-1.0.0.st", "stork-3");
     }
 }

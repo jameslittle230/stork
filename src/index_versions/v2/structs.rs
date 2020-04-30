@@ -1,5 +1,4 @@
 use super::scores::*;
-use crate::Fields;
 use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -8,6 +7,7 @@ use std::convert::TryInto;
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
 pub type Score = u8;
+type Fields = Option<HashMap<String, String>>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Entry {
@@ -24,10 +24,10 @@ pub(super) struct SearchResult {
 }
 
 impl SearchResult {
-    pub(super) fn new() -> SearchResult {
+    pub(super) fn _new() -> SearchResult {
         SearchResult {
             excerpts: vec![],
-            score: MATCHED_WORD_SCORE,
+            score: _MATCHED_WORD_SCORE,
         }
     }
 }
@@ -53,7 +53,7 @@ pub(super) struct Container {
 }
 
 impl Container {
-    pub fn new() -> Container {
+    pub fn _new() -> Container {
         Container {
             results: HashMap::new(),
             aliases: HashMap::new(),

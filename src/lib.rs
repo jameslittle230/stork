@@ -1,18 +1,18 @@
 pub mod config;
 pub mod index_analyzer;
-mod index_versions;
 pub mod searcher;
+pub mod stopwords;
+
+mod index_versions;
 
 use config::*;
-use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
-use index_versions::v2 as LatestVersion;
+use index_versions::v3 as LatestVersion;
 use LatestVersion::builder;
 use LatestVersion::structs::Index;
 
 type IndexFromFile = [u8];
-type Fields = Option<HashMap<String, String>>;
 
 #[wasm_bindgen]
 extern "C" {

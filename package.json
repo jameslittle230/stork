@@ -37,7 +37,7 @@
   "dependencies": {},
   "scripts": {
     "build:wasm": "wasm-pack build --target web",
-    "build:test-index": "cargo run -- --build test/federalist.toml && mkdir -p dist && cp test/*.st dist",
+    "build:test-index": "cargo run -- --build test/3b1b-config/3b1b.toml && mkdir -p dist && cp test/*.st dist",
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
     "build:prod": "yarn install && yarn build:wasm && yarn build:test-index && yarn build:js:prod",
