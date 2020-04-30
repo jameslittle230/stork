@@ -98,8 +98,13 @@ impl Container {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub(super) struct PassthroughConfig {
+    pub(super) url_prefix: String
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Index {
-    pub(super) passthrough_config: Fields,
+    pub(super) config: PassthroughConfig,
     pub(super) entries: Vec<Entry>,
     pub(super) containers: HashMap<String, Container>,
 }

@@ -143,10 +143,14 @@ pub fn build(config: &Config) -> Index {
 
     let entries: Vec<Entry> = intermediate_entries.iter().map(Entry::from).collect();
 
+    let config = PassthroughConfig {
+        url_prefix: config.url_prefix.clone(),
+    };
+
     Index {
         entries,
         containers,
-        ..Default::default()
+        config
     }
 }
 
