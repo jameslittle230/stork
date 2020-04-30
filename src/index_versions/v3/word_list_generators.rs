@@ -1,4 +1,4 @@
-use super::structs::{Contents, AnnotatedWord};
+use super::structs::{AnnotatedWord, Contents};
 use std::collections::HashMap;
 
 pub(super) trait WordListGenerator {
@@ -32,7 +32,7 @@ impl WordListGenerator for SRTWordListGenerator {
             for word in sub.text.split_whitespace() {
                 word_list.push({
                     let mut fields = HashMap::new();
-                    fields.insert("time".to_string(), format!("{}", sub.start_time));
+                    fields.insert("_srt_url_suffix".to_string(), format!("{}", sub.start_time));
 
                     AnnotatedWord {
                         word: word.to_string(),

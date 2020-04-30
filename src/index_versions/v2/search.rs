@@ -186,6 +186,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     text,
                     highlight_ranges,
                     score,
+                    fields: HashMap::default()
                 }
             })
             .collect();
@@ -254,5 +255,6 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
     SearchOutput {
         results: output_results,
         total_hit_count: *total_len,
+        url_prefix: String::default()
     }
 }

@@ -153,6 +153,14 @@ function performSearch(name) {
 
       entities[name].results = results.results;
       entities[name].hitCount = results.total_hit_count;
+
+      // Mutate the result URL, like we do when there's a url prefix or suffix
+      const urlPrefix = results.url_prefix || "";
+      entities[name].results.map(r => {
+        const urlSuffix = r.excerpts[0].fields["_srt_url_suffix"] || "";
+        r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix}`;
+      });
+
       updateDom(name);
     });
   } else {

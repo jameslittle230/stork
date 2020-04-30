@@ -11,6 +11,7 @@ type Fields = HashMap<String, String>;
 pub struct SearchOutput {
     pub results: Vec<OutputResult>,
     pub total_hit_count: usize,
+    pub url_prefix: String,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -43,6 +44,7 @@ pub struct Excerpt {
     pub text: String,
     pub highlight_ranges: Vec<HighlightRange>,
     pub score: usize,
+    pub fields: Fields,
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {

@@ -17,6 +17,7 @@ struct IntermediateExcerpt {
     entry_index: EntryIndex,
     score: Score,
     word_index: usize,
+    fields: Fields,
 }
 
 impl Ord for IntermediateExcerpt {
@@ -62,6 +63,7 @@ impl ContainerWithQuery {
                     entry_index: *entry_index,
                     score: result.score,
                     word_index: excerpt.word_index,
+                    fields: excerpt.fields
                 })
             }
         }
@@ -76,6 +78,7 @@ impl ContainerWithQuery {
                             entry_index,
                             score: *alias_score,
                             word_index: excerpt.word_index,
+                            fields: excerpt.fields,
                         })
                     }
                 }
@@ -182,10 +185,19 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 let score =
                     ies.iter().map(|ie| (ie.score as usize)).sum::<usize>() - score_modifier;
 
+                let fields = {
+                    if let Some(first) = ies.first() {
+                        first.fields.clone()
+                    } else {
+                        HashMap::new()
+                    }
+                };
+
                 crate::searcher::Excerpt {
                     text,
                     highlight_ranges,
                     score,
+                    fields
                 }
             })
             .collect();
@@ -210,10 +222,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
     match Index::try_from(index) {
-        Err(_) => SearchOutput {
-            results: vec![],
-            total_hit_count: 0,
-        },
+        Err(_) => SearchOutput::default(),
         Ok(index) => {
             let normalized_query = query.to_lowercase();
             let words_in_query: Vec<String> =
@@ -262,6 +271,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
             SearchOutput {
                 results: output_results,
                 total_hit_count: *total_len,
+                url_prefix: index.config.url_prefix,
             }
         }
     }
