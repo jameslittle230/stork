@@ -1,8 +1,7 @@
 use super::scores::*;
 use super::structs::*;
 use super::word_list_generators::{
-    HTMLWordListGenerator, PlainTextWordListGenerator,
-    SRTWordListGenerator, WordListGenerator,
+    HTMLWordListGenerator, PlainTextWordListGenerator, SRTWordListGenerator, WordListGenerator,
 };
 use crate::config::DataSource;
 use crate::config::{Config, Filetype};
@@ -13,9 +12,6 @@ use std::path::Path;
 
 extern crate rust_stemmers;
 use rust_stemmers::{Algorithm, Stemmer};
-
-extern crate htmlescape;
-use htmlescape::encode_minimal;
 
 pub(super) struct IntermediateEntry {
     pub(super) contents: Contents,
@@ -42,9 +38,9 @@ pub fn build(config: &Config) -> Index {
                 let full_pathname = &base_directory.join(&path_string);
                 let file = File::open(&full_pathname).unwrap();
                 let mut buf_reader = BufReader::new(file);
-                let mut c = String::new();
-                let _bytes_read = buf_reader.read_to_string(&mut c);
-                encode_minimal(&c)
+                let mut buffer = String::new();
+                let _bytes_read = buf_reader.read_to_string(&mut buffer);
+                buffer
             }
             DataSource::URL(_url) => panic!("URL not available yet"),
         };
@@ -92,7 +88,9 @@ pub fn build(config: &Config) -> Index {
         for (word_index, annotated_word) in words_in_contents.iter().enumerate() {
             let normalized_word =
                 remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
-            let normalized_word_len = &normalized_word.len();
+            if normalized_word.len() == 0 {
+                break;
+            }
 
             // Step 2A: Fill the container's results map
             let results_map = &mut containers
@@ -106,13 +104,14 @@ pub fn build(config: &Config) -> Index {
 
             entry_result.excerpts.push(Excerpt {
                 word_index,
-                ..Default::default()
+                fields: annotated_word.fields.clone(),
             });
 
             // Step 2B: Fill _other containers'_ aliases maps with the
             // prefixes of this word
-            for n in 3..*normalized_word_len {
-                let substring = &normalized_word.as_str()[0..n].to_string();
+            let chars: Vec<char> = normalized_word.chars().collect();
+            for n in 3..chars.len() {
+                let substring: String = chars[0..n].into_iter().collect();
 
                 let alises_map = &mut containers
                     .entry(substring.clone())
@@ -121,7 +120,7 @@ pub fn build(config: &Config) -> Index {
 
                 let _alias_score = alises_map
                     .entry(normalized_word.clone())
-                    .or_insert(PREFIX_SCORE - (*normalized_word_len - n) as u8);
+                    .or_insert(PREFIX_SCORE - (chars.len() - n) as u8);
             }
 
             // Step 2C: Fill _other containers'_ alias maps with the
@@ -154,11 +153,11 @@ pub fn build(config: &Config) -> Index {
 fn remove_surrounding_punctuation(input: &str) -> String {
     let mut chars: Vec<char> = input.chars().collect();
 
-    while chars.first().unwrap().is_ascii_punctuation() {
+    while chars.first().unwrap_or(&'a').is_ascii_punctuation() {
         chars.remove(0);
     }
 
-    while chars.last().unwrap().is_ascii_punctuation() {
+    while chars.last().unwrap_or(&'a').is_ascii_punctuation() {
         chars.pop();
     }
 

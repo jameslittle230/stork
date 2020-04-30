@@ -25,7 +25,7 @@ pub(super) struct SRTWordListGenerator {}
 
 impl WordListGenerator for SRTWordListGenerator {
     fn create_word_list(&self, buffer: &str) -> Contents {
-        let subs = srtparse::from_str(buffer.as_bytes()).expect("Can't parse SRT file.");
+        let subs = srtparse::from_str(buffer).expect("Can't parse SRT file");
         let mut word_list: Vec<AnnotatedWord> = Vec::new();
 
         for sub in subs {
