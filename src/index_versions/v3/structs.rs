@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn can_parse_1_0_0_index() {
-        let file = fs::File::open("./test-assets/federalist-min.st").unwrap();
+        let file = fs::File::open("./test-assets/federalist-min-1.0.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);

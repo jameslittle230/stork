@@ -64,9 +64,9 @@ impl SRTWordListGenerator {
                 .to_string(),
         };
 
-        return srt_config
+        srt_config
             .timestamp_template_string
-            .replace("{ts}", &time_string);
+            .replace("{ts}", &time_string)
     }
 }
 

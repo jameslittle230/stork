@@ -5,5 +5,5 @@ files = [
 ]
 
 [output]
-filename = "test-assets/federalist-min-0.6.0.st"
+filename = "test-assets/federalist-min.st"
 debug = false
