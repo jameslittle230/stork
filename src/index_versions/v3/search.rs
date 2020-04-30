@@ -91,7 +91,7 @@ impl From<Entry> for OutputEntry {
         OutputEntry {
             url: entry.url.clone(),
             title: entry.title.clone(),
-            fields: entry.fields.clone(),
+            fields: entry.fields,
         }
     }
 }
@@ -200,7 +200,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         };
 
         OutputResult {
-            entry: OutputEntry::from(entry.to_owned()),
+            entry: OutputEntry::from(entry),
             excerpts,
             title_highlight_char_offset: None,
             score,

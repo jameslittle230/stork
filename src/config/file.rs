@@ -1,10 +1,11 @@
 use super::StemmingConfig;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::Path;
 
 type Fields = HashMap<String, String>;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct File {
     pub title: String,
     pub url: String,
@@ -22,21 +23,29 @@ pub struct File {
     pub fields: Fields,
 }
 
-impl Default for File {
-    fn default() -> Self {
-        File {
-            title: "".to_string(),
-            url: "".to_string(),
-            source: DataSource::Contents("".to_string()),
-            id: None,
-            stemming_override: None,
-            filetype: None,
-            fields: HashMap::new(),
+impl File {
+    pub fn computed_filetype(&self) -> Option<Filetype> {
+        if let Some(user_specified_filetype) = self.filetype.clone() {
+            return Some(user_specified_filetype);
+        }
+
+        if let DataSource::FilePath(path_string) = &self.source {
+            let path = Path::new(&path_string);
+            let ext_str = path.extension()?.to_str()?;
+            match String::from(ext_str).as_ref() {
+                "html" => Some(Filetype::HTML),
+                "htm" => Some(Filetype::HTML),
+                "srt" => Some(Filetype::SRTSubtitle),
+                "txt" => Some(Filetype::PlainText),
+                _ => None,
+            }
+        } else {
+            None
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum DataSource {
     #[serde(rename = "contents")]
     Contents(String),
@@ -48,8 +57,15 @@ pub enum DataSource {
     FilePath(String),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+impl Default for DataSource {
+    fn default() -> Self {
+        DataSource::Contents(String::default())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Filetype {
     PlainText,
     SRTSubtitle,
+    HTML,
 }

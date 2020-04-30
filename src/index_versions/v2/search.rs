@@ -90,7 +90,7 @@ impl From<Entry> for OutputEntry {
         OutputEntry {
             url: entry.url.clone(),
             title: entry.title.clone(),
-            fields: entry.fields.unwrap_or(HashMap::default()).clone(),
+            fields: entry.fields.unwrap_or_default(),
         }
     }
 }

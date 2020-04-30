@@ -3,6 +3,7 @@ use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::{TryInto, TryFrom};
+use super::builder::IntermediateEntry;
 
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
@@ -10,11 +11,43 @@ pub type Score = u8;
 pub type Fields = HashMap<String, String>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub(super) struct AnnotatedWord {
+    pub(super) word: String,
+    pub(super) fields: Fields,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub(super) struct Contents {
+    pub(super) word_list: Vec<AnnotatedWord>,
+}
+
+impl Contents {
+    pub(super) fn get_full_text(&self) -> String {
+        self.word_list
+            .iter()
+            .map(|aw| aw.word.clone())
+            .collect::<Vec<String>>()
+            .join(" ")
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct Entry {
     pub(super) contents: String,
     pub(super) title: String,
     pub(super) url: String,
     pub(super) fields: Fields,
+}
+
+impl From<&IntermediateEntry> for Entry {
+    fn from(ie: &IntermediateEntry) -> Self {
+        Entry {
+            contents: ie.contents.get_full_text(),
+            title: ie.title.clone(),
+            url: ie.url.clone(),
+            fields: ie.fields.clone()
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -32,9 +65,12 @@ impl SearchResult {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct Excerpt {
     pub(super) word_index: usize,
+
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub(super) fields: Fields,
 }
 
 /**
@@ -48,7 +84,10 @@ pub(super) struct Excerpt {
  */
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct Container {
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) results: HashMap<EntryIndex, SearchResult>,
+
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) aliases: HashMap<AliasTarget, Score>,
 }
 
