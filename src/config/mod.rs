@@ -86,16 +86,16 @@ impl Default for OutputConfig {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SRTConfig {
-    timestamp_linking: bool,
-    timestamp_template_string: String,
-    timestamp_format: SRTTimestampFormat,
+    pub timestamp_linking: bool,
+    pub timestamp_template_string: String,
+    pub timestamp_format: SRTTimestampFormat,
 }
 
 impl Default for SRTConfig {
     fn default() -> Self {
         SRTConfig {
             timestamp_linking: true,
-            timestamp_template_string: "{ts}".to_string(),
+            timestamp_template_string: "&t={ts}".to_string(),
             timestamp_format: SRTTimestampFormat::NumberOfSeconds,
         }
     }

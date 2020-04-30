@@ -1,9 +1,12 @@
+use super::builder::IntermediateEntry;
 use super::scores::*;
 use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::convert::{TryInto, TryFrom};
-use super::builder::IntermediateEntry;
+use std::convert::{TryFrom, TryInto};
+
+extern crate htmlescape;
+use htmlescape::encode_minimal;
 
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
@@ -23,11 +26,13 @@ pub(super) struct Contents {
 
 impl Contents {
     pub(super) fn get_full_text(&self) -> String {
-        self.word_list
+        let out = self
+            .word_list
             .iter()
             .map(|aw| aw.word.clone())
             .collect::<Vec<String>>()
-            .join(" ")
+            .join(" ");
+        encode_minimal(out.as_str())
     }
 }
 
@@ -45,7 +50,7 @@ impl From<&IntermediateEntry> for Entry {
             contents: ie.contents.get_full_text(),
             title: ie.title.clone(),
             url: ie.url.clone(),
-            fields: ie.fields.clone()
+            fields: ie.fields.clone(),
         }
     }
 }
@@ -99,7 +104,7 @@ impl Container {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct PassthroughConfig {
-    pub(super) url_prefix: String
+    pub(super) url_prefix: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -119,7 +124,7 @@ impl TryFrom<&IndexFromFile> for Index {
         let (index_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
         let index_size = u64::from_be_bytes(index_size_bytes.try_into().unwrap());
         let (index_bytes, _rest) = rest.split_at(index_size as usize);
-        
+
         serde_cbor::de::from_slice(index_bytes)
     }
 }

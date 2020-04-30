@@ -53,7 +53,8 @@ pub fn build(config: &Config) -> Index {
             }
         }
 
-        let contents: Contents = returns_word_list_generator(filetype).create_word_list(&buffer);
+        let contents: Contents =
+            returns_word_list_generator(filetype).create_word_list(config, &buffer);
 
         let entry = IntermediateEntry {
             contents,
@@ -150,7 +151,7 @@ pub fn build(config: &Config) -> Index {
     Index {
         entries,
         containers,
-        config
+        config,
     }
 }
 
