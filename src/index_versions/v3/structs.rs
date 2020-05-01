@@ -13,6 +13,24 @@ pub type AliasTarget = String;
 pub type Score = u8;
 pub type Fields = HashMap<String, String>;
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+pub(super) enum WordListSource {
+    Title,
+    Contents,
+}
+
+impl Default for WordListSource {
+    fn default() -> Self {
+        WordListSource::Contents
+    }
+}
+
+impl WordListSource {
+    fn is_default(&self) -> bool {
+        self == &WordListSource::default()
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct AnnotatedWord {
     pub(super) word: String,
@@ -73,6 +91,9 @@ impl SearchResult {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct Excerpt {
     pub(super) word_index: usize,
+
+    #[serde(default, skip_serializing_if = "WordListSource::is_default")]
+    pub(super) source: WordListSource,
 
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) fields: Fields,

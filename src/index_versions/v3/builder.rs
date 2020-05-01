@@ -84,58 +84,75 @@ pub fn build(config: &Config) -> Index {
 
     // Step 2: Fill containers map
     for (entry_index, entry) in intermediate_entries.iter().enumerate() {
+        let words_in_title: Vec<AnnotatedWord> = entry
+            .title
+            .split_whitespace()
+            .map(|w| AnnotatedWord {
+                word: w.to_string(),
+                fields: HashMap::default(),
+            })
+            .collect();
+
         let words_in_contents: Vec<AnnotatedWord> = entry.contents.word_list.to_owned();
 
-        for (word_index, annotated_word) in words_in_contents.iter().enumerate() {
-            let normalized_word =
-                remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
-            if normalized_word.is_empty() {
-                break;
-            }
+        let word_lists = vec![
+            (WordListSource::Title, words_in_title),
+            (WordListSource::Contents, words_in_contents),
+        ];
 
-            // Step 2A: Fill the container's results map
-            let results_map = &mut containers
-                .entry(normalized_word.clone())
-                .or_insert_with(Container::new)
-                .results;
+        for (source, word_list) in word_lists {
+            for (word_index, annotated_word) in word_list.iter().enumerate() {
+                let normalized_word =
+                    remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
+                if normalized_word.is_empty() {
+                    break;
+                }
 
-            let entry_result: &mut SearchResult = results_map
-                .entry(entry_index)
-                .or_insert_with(SearchResult::new);
-
-            entry_result.excerpts.push(Excerpt {
-                word_index,
-                fields: annotated_word.fields.clone(),
-            });
-
-            // Step 2B: Fill _other containers'_ aliases maps with the
-            // prefixes of this word
-            let chars: Vec<char> = normalized_word.chars().collect();
-            for n in 3..chars.len() {
-                let substring: String = chars[0..n].iter().collect();
-
-                let alises_map = &mut containers
-                    .entry(substring.clone())
-                    .or_insert_with(Container::new)
-                    .aliases;
-
-                let _alias_score = alises_map
+                // Step 2A: Fill the container's results map
+                let results_map = &mut containers
                     .entry(normalized_word.clone())
-                    .or_insert(PREFIX_SCORE - (chars.len() - n) as u8);
-            }
+                    .or_insert_with(Container::new)
+                    .results;
 
-            // Step 2C: Fill _other containers'_ alias maps with the
-            // reverse-stems of this word
-            let stem = en_stemmer.stem(&normalized_word).to_string();
-            if let Some(reverse_stems_vector) = stems.get(&stem) {
-                for reverse_stem in reverse_stems_vector {
-                    if reverse_stem != &normalized_word {
-                        let _alias_score = containers
-                            .entry(reverse_stem.clone())
-                            .or_insert_with(Container::new)
-                            .aliases
-                            .entry(normalized_word.clone())
-                            .or_insert(STEM_SCORE as u8);
+                let entry_result: &mut SearchResult = results_map
+                    .entry(entry_index)
+                    .or_insert_with(SearchResult::new);
+
+                entry_result.excerpts.push(Excerpt {
+                    word_index,
+                    source,
+                    fields: annotated_word.fields.clone(),
+                });
+
+                // Step 2B: Fill _other containers'_ aliases maps with the
+                // prefixes of this word
+                let chars: Vec<char> = normalized_word.chars().collect();
+                for n in 3..chars.len() {
+                    let substring: String = chars[0..n].iter().collect();
+
+                    let alises_map = &mut containers
+                        .entry(substring.clone())
+                        .or_insert_with(Container::new)
+                        .aliases;
+
+                    let _alias_score = alises_map
+                        .entry(normalized_word.clone())
+                        .or_insert(PREFIX_SCORE - (chars.len() - n) as u8);
+                }
+
+                // Step 2C: Fill _other containers'_ alias maps with the
+                // reverse-stems of this word
+                let stem = en_stemmer.stem(&normalized_word).to_string();
+                if let Some(reverse_stems_vector) = stems.get(&stem) {
+                    for reverse_stem in reverse_stems_vector {
+                        if reverse_stem != &normalized_word {
+                            let _alias_score = containers
+                                .entry(reverse_stem.clone())
+                                .or_insert_with(Container::new)
+                                .aliases
+                                .entry(normalized_word.clone())
+                                .or_insert(STEM_SCORE as u8);
+                        }
                     }
                 }
             }
