@@ -152,20 +152,20 @@ impl TryFrom<&IndexFromFile> for Index {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::fs;
-    use std::io::{BufReader, Read};
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use std::fs;
+//     use std::io::{BufReader, Read};
 
-    #[test]
-    fn can_parse_1_0_0_index() {
-        let file = fs::File::open("./test-assets/federalist-min-1.0.0.st").unwrap();
-        let mut buf_reader = BufReader::new(file);
-        let mut index_bytes: Vec<u8> = Vec::new();
-        let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
-        let index = Index::try_from(index_bytes.as_slice()).unwrap();
-        assert_eq!(1, index.entries.len());
-        assert_eq!(2477, index.containers.len());
-    }
-}
+//     #[test]
+//     fn can_parse_1_0_0_index() {
+//         let file = fs::File::open("./test-assets/federalist-min-1.0.0.st").unwrap();
+//         let mut buf_reader = BufReader::new(file);
+//         let mut index_bytes: Vec<u8> = Vec::new();
+//         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
+//         let index = Index::try_from(index_bytes.as_slice()).unwrap();
+//         assert_eq!(1, index.entries.len());
+//         assert_eq!(2477, index.containers.len());
+//     }
+// }
