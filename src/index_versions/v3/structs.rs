@@ -27,6 +27,7 @@ impl Default for WordListSource {
 }
 
 impl WordListSource {
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn is_default(&self) -> bool {
         self == &WordListSource::default()
     }
