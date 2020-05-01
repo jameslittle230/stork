@@ -17,12 +17,12 @@ pub enum TitleBoost {
     Minimal,
     Moderate,
     Large,
-    Ridiculous
+    Ridiculous,
 }
 
 impl Default for TitleBoost {
     fn default() -> Self {
-        return TitleBoost::Moderate
+        TitleBoost::Moderate
     }
 }
 

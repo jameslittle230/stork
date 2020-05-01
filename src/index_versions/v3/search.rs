@@ -168,7 +168,10 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 let mut highlight_ranges: Vec<HighlightRange> = ies
                     .iter()
                     .map(|ie| {
-                        println!("{:?}", split_contents[minimum_word_index..ie.word_index].join(" "));
+                        println!(
+                            "{:?}",
+                            split_contents[minimum_word_index..ie.word_index].join(" ")
+                        );
                         let beginning = split_contents[minimum_word_index..ie.word_index]
                             .join(" ")
                             .len()

@@ -45,13 +45,11 @@ pub(super) struct Contents {
 
 impl Contents {
     pub(super) fn get_full_text(&self) -> String {
-        let out = self
-            .word_list
+        self.word_list
             .iter()
             .map(|aw| aw.word.clone())
             .collect::<Vec<String>>()
-            .join(" ");
-        out
+            .join(" ")
         // encode_minimal(out.as_str())
     }
 }
