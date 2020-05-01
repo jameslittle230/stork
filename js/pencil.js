@@ -45,7 +45,6 @@ export function generateListItem(r) {
 }
 
 export function generateScoresListItem(r) {
-  console.log(highlight(r.entry.title, r.title_highlight_ranges));
   return `
 <li class="stork-result">
     <a href="${r.entry.url}">

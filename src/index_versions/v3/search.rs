@@ -1,5 +1,6 @@
 use super::scores::*;
 use super::structs::*;
+use crate::config::TitleBoost;
 use crate::searcher::*;
 use crate::stopwords::STOPWORDS;
 use crate::IndexFromFile;
@@ -104,6 +105,7 @@ impl From<Entry> for OutputEntry {
 
 struct EntryAndIntermediateExcerpts {
     entry: Entry,
+    title_boost: TitleBoost,
     intermediate_excerpts: Vec<IntermediateExcerpt>,
 }
 
@@ -166,6 +168,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 let mut highlight_ranges: Vec<HighlightRange> = ies
                     .iter()
                     .map(|ie| {
+                        println!("{:?}", split_contents[minimum_word_index..ie.word_index].join(" "));
                         let beginning = split_contents[minimum_word_index..ie.word_index]
                             .join(" ")
                             .len()
@@ -212,14 +215,14 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         excerpts.sort_by_key(|e| -(e.score as i16));
         excerpts.truncate(EXCERPTS_PER_RESULT);
 
-        let title_highlight_ranges: Vec<HighlightRange> = data.intermediate_excerpts
+        let split_title: Vec<&str> = entry.title.split_whitespace().collect();
+        let title_highlight_ranges: Vec<HighlightRange> = data
+            .intermediate_excerpts
             .iter()
             .filter(|&ie| ie.source == WordListSource::Title)
             .map(|ie| {
-                let beginning = split_contents[0..ie.word_index]
-                    .join(" ")
-                    .len()
-                    + 1;
+                let space_offset = if ie.word_index == 0 { 0 } else { 1 };
+                let beginning = split_title[0..ie.word_index].join(" ").len() + space_offset;
                 HighlightRange {
                     beginning,
                     end: beginning + ie.query.len(),
@@ -228,11 +231,19 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             .collect();
         println!("{}", title_highlight_ranges.len());
 
+        let title_boost_modifier = title_highlight_ranges.len()
+            * match data.title_boost {
+                TitleBoost::Minimal => 25,
+                TitleBoost::Moderate => 75,
+                TitleBoost::Large => 150,
+                TitleBoost::Ridiculous => 5000,
+            };
+
         let score = if let Some(first) = excerpts.first() {
             first.score
         } else {
             0
-        };
+        } + title_boost_modifier;
 
         OutputResult {
             entry: OutputEntry::from(entry),
@@ -282,6 +293,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
                 .map(|(entry_index, ies)| {
                     let data = EntryAndIntermediateExcerpts {
                         entry: index.entries[*entry_index].to_owned(),
+                        title_boost: index.config.title_boost,
                         intermediate_excerpts: ies.to_owned(),
                     };
                     OutputResult::from(data)

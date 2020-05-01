@@ -11,6 +11,21 @@ pub use stemming_config::StemmingConfig;
 
 mod test;
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[serde(deny_unknown_fields)]
+pub enum TitleBoost {
+    Minimal,
+    Moderate,
+    Large,
+    Ridiculous
+}
+
+impl Default for TitleBoost {
+    fn default() -> Self {
+        return TitleBoost::Moderate
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields, default)]
 pub struct Config {
@@ -40,7 +55,7 @@ impl Default for Config {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
 pub struct InputConfig {
@@ -48,22 +63,10 @@ pub struct InputConfig {
     pub UNUSED_surrounding_word_count: Option<u8>,
     pub base_directory: String,
     pub url_prefix: String,
+    pub title_boost: TitleBoost,
     pub stemming: StemmingConfig,
     pub files: Vec<File>,
     pub srt_config: SRTConfig,
-}
-
-impl Default for InputConfig {
-    fn default() -> Self {
-        InputConfig {
-            UNUSED_surrounding_word_count: None,
-            base_directory: "".to_string(),
-            url_prefix: "".to_string(),
-            stemming: StemmingConfig::default(),
-            files: vec![],
-            srt_config: SRTConfig::default(),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

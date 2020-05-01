@@ -1,12 +1,13 @@
 use super::builder::IntermediateEntry;
 use super::scores::*;
+use crate::config::TitleBoost;
 use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 
-extern crate htmlescape;
-use htmlescape::encode_minimal;
+// extern crate htmlescape;
+// use htmlescape::encode_minimal;
 
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
@@ -50,7 +51,8 @@ impl Contents {
             .map(|aw| aw.word.clone())
             .collect::<Vec<String>>()
             .join(" ");
-        encode_minimal(out.as_str())
+        out
+        // encode_minimal(out.as_str())
     }
 }
 
@@ -126,6 +128,7 @@ impl Container {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct PassthroughConfig {
     pub(super) url_prefix: String,
+    pub(super) title_boost: TitleBoost,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]

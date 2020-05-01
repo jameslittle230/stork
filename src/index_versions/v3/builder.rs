@@ -163,6 +163,7 @@ pub fn build(config: &Config) -> Index {
 
     let config = PassthroughConfig {
         url_prefix: config.url_prefix.clone(),
+        title_boost: config.title_boost,
     };
 
     Index {
