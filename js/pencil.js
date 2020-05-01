@@ -29,7 +29,10 @@ export function generateListItem(r) {
   return `
 <li class="stork-result">
     <a href="${r.entry.url}">
-        <p class="stork-title">${r.entry.title}</p>
+        <p class="stork-title">${highlight(
+          r.entry.title,
+          r.title_highlight_ranges
+        )}</p>
         ${r.excerpts
           .map(
             e => `<p class="stork-excerpt">
@@ -46,7 +49,10 @@ export function generateScoresListItem(r) {
 <li class="stork-result">
     <a href="${r.entry.url}">
       <div style="display: flex; justify-content: space-between">
-        <p class="stork-title">${r.entry.title}</p>
+        <p class="stork-title">${highlight(
+          r.entry.title,
+          r.title_highlight_ranges
+        )}</p>
         <code><b>${r.score}</b></code>
       </div>
         ${r.excerpts

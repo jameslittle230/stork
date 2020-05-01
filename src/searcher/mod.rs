@@ -29,7 +29,7 @@ pub struct OutputEntry {
 pub struct OutputResult {
     pub entry: OutputEntry,
     pub excerpts: Vec<Excerpt>,
-    pub title_highlight_char_offset: Option<usize>,
+    pub title_highlight_ranges: Vec<HighlightRange>,
     pub score: usize,
 }
 

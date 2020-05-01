@@ -1,5 +1,6 @@
 use super::scores::*;
 use super::structs::*;
+use crate::config::TitleBoost;
 use crate::searcher::*;
 use crate::stopwords::STOPWORDS;
 use crate::IndexFromFile;
@@ -16,6 +17,7 @@ struct IntermediateExcerpt {
     query: String,
     entry_index: EntryIndex,
     score: Score,
+    source: WordListSource,
     word_index: usize,
     fields: Fields,
 }
@@ -62,6 +64,7 @@ impl ContainerWithQuery {
                     query: self.query.to_string(),
                     entry_index: *entry_index,
                     score: result.score,
+                    source: excerpt.source,
                     word_index: excerpt.word_index,
                     fields: excerpt.fields,
                 })
@@ -77,6 +80,7 @@ impl ContainerWithQuery {
                             query: alias_target.to_string(),
                             entry_index,
                             score: *alias_score,
+                            source: excerpt.source,
                             word_index: excerpt.word_index,
                             fields: excerpt.fields,
                         })
@@ -101,6 +105,7 @@ impl From<Entry> for OutputEntry {
 
 struct EntryAndIntermediateExcerpts {
     entry: Entry,
+    title_boost: TitleBoost,
     intermediate_excerpts: Vec<IntermediateExcerpt>,
 }
 
@@ -112,7 +117,11 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             .split_whitespace()
             .map(|s| s.to_string())
             .collect();
-        let mut ies = data.intermediate_excerpts;
+        let mut ies: Vec<&IntermediateExcerpt> = data
+            .intermediate_excerpts
+            .iter()
+            .filter(|ie| ie.source == WordListSource::Contents)
+            .collect();
         // Get rid of intermediate excerpts that refer to the same word index.
         // First, sort by score so that only the highest score within the same
         // word index is kept.
@@ -159,6 +168,10 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 let mut highlight_ranges: Vec<HighlightRange> = ies
                     .iter()
                     .map(|ie| {
+                        println!(
+                            "{:?}",
+                            split_contents[minimum_word_index..ie.word_index].join(" ")
+                        );
                         let beginning = split_contents[minimum_word_index..ie.word_index]
                             .join(" ")
                             .len()
@@ -205,16 +218,40 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         excerpts.sort_by_key(|e| -(e.score as i16));
         excerpts.truncate(EXCERPTS_PER_RESULT);
 
+        let split_title: Vec<&str> = entry.title.split_whitespace().collect();
+        let title_highlight_ranges: Vec<HighlightRange> = data
+            .intermediate_excerpts
+            .iter()
+            .filter(|&ie| ie.source == WordListSource::Title)
+            .map(|ie| {
+                let space_offset = if ie.word_index == 0 { 0 } else { 1 };
+                let beginning = split_title[0..ie.word_index].join(" ").len() + space_offset;
+                HighlightRange {
+                    beginning,
+                    end: beginning + ie.query.len(),
+                }
+            })
+            .collect();
+        println!("{}", title_highlight_ranges.len());
+
+        let title_boost_modifier = title_highlight_ranges.len()
+            * match data.title_boost {
+                TitleBoost::Minimal => 25,
+                TitleBoost::Moderate => 75,
+                TitleBoost::Large => 150,
+                TitleBoost::Ridiculous => 5000,
+            };
+
         let score = if let Some(first) = excerpts.first() {
             first.score
         } else {
             0
-        };
+        } + title_boost_modifier;
 
         OutputResult {
             entry: OutputEntry::from(entry),
             excerpts,
-            title_highlight_char_offset: None,
+            title_highlight_ranges,
             score,
         }
     }
@@ -259,6 +296,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
                 .map(|(entry_index, ies)| {
                     let data = EntryAndIntermediateExcerpts {
                         entry: index.entries[*entry_index].to_owned(),
+                        title_boost: index.config.title_boost,
                         intermediate_excerpts: ies.to_owned(),
                     };
                     OutputResult::from(data)

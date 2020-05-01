@@ -1,6 +1,7 @@
 [input]
 base_directory = "test/3b1b"
 url_prefix = "https://www.youtube.com/watch?v="
+title_boost = "Ridiculous"
 
 [[input.files]] 
 path = "ch1.srt"

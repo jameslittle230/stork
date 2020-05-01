@@ -203,7 +203,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         OutputResult {
             entry: OutputEntry::from(entry),
             excerpts,
-            title_highlight_char_offset: None,
+            title_highlight_ranges: vec![],
             score,
         }
     }
