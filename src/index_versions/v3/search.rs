@@ -16,6 +16,7 @@ struct IntermediateExcerpt {
     query: String,
     entry_index: EntryIndex,
     score: Score,
+    source: WordListSource,
     word_index: usize,
     fields: Fields,
 }
@@ -62,6 +63,7 @@ impl ContainerWithQuery {
                     query: self.query.to_string(),
                     entry_index: *entry_index,
                     score: result.score,
+                    source: excerpt.source,
                     word_index: excerpt.word_index,
                     fields: excerpt.fields,
                 })
@@ -77,6 +79,7 @@ impl ContainerWithQuery {
                             query: alias_target.to_string(),
                             entry_index,
                             score: *alias_score,
+                            source: excerpt.source,
                             word_index: excerpt.word_index,
                             fields: excerpt.fields,
                         })
@@ -112,7 +115,11 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             .split_whitespace()
             .map(|s| s.to_string())
             .collect();
-        let mut ies = data.intermediate_excerpts;
+        let mut ies: Vec<&IntermediateExcerpt> = data
+            .intermediate_excerpts
+            .iter()
+            .filter(|ie| ie.source == WordListSource::Contents)
+            .collect();
         // Get rid of intermediate excerpts that refer to the same word index.
         // First, sort by score so that only the highest score within the same
         // word index is kept.
@@ -205,6 +212,22 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         excerpts.sort_by_key(|e| -(e.score as i16));
         excerpts.truncate(EXCERPTS_PER_RESULT);
 
+        let title_highlight_ranges: Vec<HighlightRange> = data.intermediate_excerpts
+            .iter()
+            .filter(|&ie| ie.source == WordListSource::Title)
+            .map(|ie| {
+                let beginning = split_contents[0..ie.word_index]
+                    .join(" ")
+                    .len()
+                    + 1;
+                HighlightRange {
+                    beginning,
+                    end: beginning + ie.query.len(),
+                }
+            })
+            .collect();
+        println!("{}", title_highlight_ranges.len());
+
         let score = if let Some(first) = excerpts.first() {
             first.score
         } else {
@@ -214,7 +237,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         OutputResult {
             entry: OutputEntry::from(entry),
             excerpts,
-            title_highlight_char_offset: None,
+            title_highlight_ranges,
             score,
         }
     }

@@ -13,7 +13,7 @@ pub type AliasTarget = String;
 pub type Score = u8;
 pub type Fields = HashMap<String, String>;
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum WordListSource {
     Title,
     Contents,
