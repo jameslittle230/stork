@@ -25,11 +25,10 @@ pub fn build(config: &Config) -> Index {
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
     let mut containers: HashMap<String, Container> = HashMap::new();
 
-    let config = &config.input;
 
     // Step 1: Fill entries vector
-    let base_directory = Path::new(&config.base_directory);
-    for stork_file in config.files.iter() {
+    let base_directory = Path::new(&config.input.base_directory);
+    for stork_file in config.input.files.iter() {
         let filetype = &stork_file.computed_filetype().unwrap_or_else(|| panic!("Cannot determine a filetype for {}. Please include a filetype field in your config file or use a known file extension.", &stork_file.title));
 
         let buffer: String = match &stork_file.source {
@@ -54,7 +53,7 @@ pub fn build(config: &Config) -> Index {
         }
 
         let contents: Contents =
-            returns_word_list_generator(filetype).create_word_list(config, &buffer);
+            returns_word_list_generator(filetype).create_word_list(&config.input, &buffer);
 
         let entry = IntermediateEntry {
             contents,
@@ -162,8 +161,11 @@ pub fn build(config: &Config) -> Index {
     let entries: Vec<Entry> = intermediate_entries.iter().map(Entry::from).collect();
 
     let config = PassthroughConfig {
-        url_prefix: config.url_prefix.clone(),
-        title_boost: config.title_boost,
+        url_prefix: config.input.url_prefix.clone(),
+        title_boost: config.input.title_boost.clone(),
+        excerpt_buffer: config.output.excerpt_buffer,
+        excerpts_per_result: config.output.excerpts_per_result,
+        displayed_results_count: config.output.displayed_results_count,
     };
 
     Index {

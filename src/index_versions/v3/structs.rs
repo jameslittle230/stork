@@ -128,6 +128,9 @@ impl Container {
 pub(super) struct PassthroughConfig {
     pub(super) url_prefix: String,
     pub(super) title_boost: TitleBoost,
+    pub(super) excerpt_buffer: u8,
+    pub(super) excerpts_per_result: u8,
+    pub(super) displayed_results_count: u8,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
