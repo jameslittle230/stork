@@ -72,7 +72,7 @@ pub struct InputConfig {
 /**
  * Configuration settings that either:
  * - Alter how the index file is written to disk OR
- * - Gets "burned into" the index file and is passed through to the Javascript 
+ * - Gets "burned into" the index file and is passed through to the Javascript
  *   runtime, and thus can be overridden in JS.
  */
 #[derive(Serialize, Deserialize, Debug)]
@@ -92,7 +92,7 @@ impl Default for OutputConfig {
             debug: false,
             excerpt_buffer: 8,
             excerpts_per_result: 5,
-            displayed_results_count: 10
+            displayed_results_count: 10,
         }
     }
 }

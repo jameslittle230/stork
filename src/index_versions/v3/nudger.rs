@@ -2,7 +2,7 @@ use crate::config::Config;
 
 /**
  * Nudge users to build better config files.
- * 
+ *
  * Config files have to be backwards compatible, so we can't remove any fields
  * that the user might want to deserialize. But we _can_ detect that those
  * fields are being used, ignore them, and throw up a warning saying they're
