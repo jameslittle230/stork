@@ -29,7 +29,7 @@ impl From<&Config> for Nudger {
     fn from(config: &Config) -> Self {
         let mut nudges: Vec<Nudge> = vec![];
 
-        if let Some(_) = config.input.UNUSED_surrounding_word_count {
+        if config.input.UNUSED_surrounding_word_count.is_some() {
             nudges.push(Nudge::InputSurroundingWordCount)
         }
 
