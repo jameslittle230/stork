@@ -298,7 +298,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
             for ie in intermediate_excerpts {
                 excerpts_by_index
                     .entry(ie.entry_index)
-                    .or_insert_with(|| vec![])
+                    .or_insert_with(Vec::new)
                     .push(ie)
             }
 

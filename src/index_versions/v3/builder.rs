@@ -90,7 +90,7 @@ pub fn build(config: &Config) -> Index {
                 let stem = Stemmer::create(stem_algorithm)
                     .stem(&normalized_word)
                     .to_string();
-                let stem_vector = stems.entry(stem).or_insert_with(|| vec![]);
+                let stem_vector = stems.entry(stem).or_insert_with(Vec::default);
                 if !stem_vector.contains(&normalized_word) {
                     stem_vector.push(normalized_word);
                 }
