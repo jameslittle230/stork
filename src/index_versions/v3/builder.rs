@@ -49,7 +49,7 @@ pub fn build(config: &Config) -> Index {
         let current_stem_config = stork_file
             .stemming_override
             .clone()
-            .unwrap_or(config.input.stemming.clone());
+            .unwrap_or_else(|| config.input.stemming.clone());
 
         let stem_algorithm: Option<Algorithm> = match current_stem_config {
             StemmingConfig::Language(alg) => Some(alg.to_owned()),
