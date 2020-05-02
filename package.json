@@ -1,7 +1,7 @@
 {
-  "name": "stork",
-  "version": "0.6.0",
-  "description": "Impossibly fast web search.",
+  "name": "stork-search",
+  "version": "1.0.0",
+  "description": "Impossibly fast web search, made for static sites.",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -34,7 +34,6 @@
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10"
   },
-  "dependencies": {},
   "scripts": {
     "build:wasm": "wasm-pack build --target web",
     "build:test-index": "cargo run -- --build test/3b1b-config/3b1b.toml && mkdir -p dist && cp test/*.st dist",
