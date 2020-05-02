@@ -8,13 +8,14 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
-#[derive(Clone, Debug, Eq)]
+#[derive(Clone, Debug)]
 struct IntermediateExcerpt {
     query: String,
     entry_index: EntryIndex,
     score: Score,
     source: WordListSource,
     word_index: usize,
+    internal_annotations: Vec<InternalWordAnnotation>,
     fields: Fields,
 }
 
@@ -29,6 +30,8 @@ impl PartialOrd for IntermediateExcerpt {
         Some(self.cmp(other))
     }
 }
+
+impl Eq for IntermediateExcerpt {}
 
 impl PartialEq for IntermediateExcerpt {
     fn eq(&self, other: &Self) -> bool {
@@ -62,6 +65,7 @@ impl ContainerWithQuery {
                     score: result.score,
                     source: excerpt.source,
                     word_index: excerpt.word_index,
+                    internal_annotations: excerpt.internal_annotations,
                     fields: excerpt.fields,
                 })
             }
@@ -76,6 +80,7 @@ impl ContainerWithQuery {
                             query: alias_target.to_string(),
                             entry_index,
                             score: *alias_score,
+                            internal_annotations: excerpt.internal_annotations,
                             source: excerpt.source,
                             word_index: excerpt.word_index,
                             fields: excerpt.fields,
@@ -165,10 +170,6 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 let mut highlight_ranges: Vec<HighlightRange> = ies
                     .iter()
                     .map(|ie| {
-                        println!(
-                            "{:?}",
-                            split_contents[minimum_word_index..ie.word_index].join(" ")
-                        );
                         let beginning = split_contents[minimum_word_index..ie.word_index]
                             .join(" ")
                             .len()
@@ -192,9 +193,16 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 
                 let score_modifier = highlighted_character_range - highlighted_characters_count;
 
-                let score =
-                    ies.iter().map(|ie| (ie.score as usize)).sum::<usize>() - score_modifier;
+                let score = ies
+                    .iter()
+                    .map(|ie| (ie.score as usize))
+                    .sum::<usize>()
+                    .saturating_sub(score_modifier);
 
+                // Since we're mapping from multiple IntermediateExcerpts to one
+                // Excerpt, we have to either combine or filter data. For
+                // `fields` and `internal_annotations`, I'm taking the data from
+                // the first intermediate excerpt in the vector.
                 let fields = {
                     if let Some(first) = ies.first() {
                         first.fields.clone()
@@ -203,9 +211,18 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     }
                 };
 
+                let internal_annotations = {
+                    if let Some(first) = ies.first() {
+                        first.internal_annotations.clone()
+                    } else {
+                        Vec::default()
+                    }
+                };
+
                 crate::searcher::Excerpt {
                     text,
                     highlight_ranges,
+                    internal_annotations,
                     score,
                     fields,
                 }
@@ -229,7 +246,6 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 }
             })
             .collect();
-        println!("{}", title_highlight_ranges.len());
 
         let title_boost_modifier = title_highlight_ranges.len()
             * match data.config.title_boost {

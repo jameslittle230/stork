@@ -2,7 +2,7 @@ use crate::index_analyzer::get_index_version;
 use crate::index_versions::v2;
 use crate::index_versions::v3;
 use crate::IndexFromFile;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 type Fields = HashMap<String, String>;
@@ -12,6 +12,12 @@ pub struct SearchOutput {
     pub results: Vec<OutputResult>,
     pub total_hit_count: usize,
     pub url_prefix: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum InternalWordAnnotation {
+    #[serde(rename = "a")]
+    SRTUrlSuffix(String),
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -44,6 +50,7 @@ pub struct Excerpt {
     pub text: String,
     pub highlight_ranges: Vec<HighlightRange>,
     pub score: usize,
+    pub internal_annotations: Vec<InternalWordAnnotation>,
     pub fields: Fields,
 }
 

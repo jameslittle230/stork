@@ -1,6 +1,7 @@
 use super::builder::IntermediateEntry;
 use super::scores::*;
 use crate::config::TitleBoost;
+use crate::searcher::InternalWordAnnotation;
 use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -33,9 +34,10 @@ impl WordListSource {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct AnnotatedWord {
     pub(super) word: String,
+    pub(super) internal_annotations: Vec<InternalWordAnnotation>,
     pub(super) fields: Fields,
 }
 
@@ -95,6 +97,9 @@ pub(super) struct Excerpt {
 
     #[serde(default, skip_serializing_if = "WordListSource::is_default")]
     pub(super) source: WordListSource,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub(super) internal_annotations: Vec<InternalWordAnnotation>,
 
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) fields: Fields,

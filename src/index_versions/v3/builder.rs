@@ -105,7 +105,7 @@ pub fn build(config: &Config) -> Index {
             .split_whitespace()
             .map(|w| AnnotatedWord {
                 word: w.to_string(),
-                fields: HashMap::default(),
+                ..Default::default()
             })
             .collect();
 
@@ -137,6 +137,7 @@ pub fn build(config: &Config) -> Index {
                 entry_result.excerpts.push(Excerpt {
                     word_index,
                     source,
+                    internal_annotations: annotated_word.internal_annotations.clone(),
                     fields: annotated_word.fields.clone(),
                 });
 

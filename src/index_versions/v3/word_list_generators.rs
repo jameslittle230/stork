@@ -1,6 +1,6 @@
 use super::structs::{AnnotatedWord, Contents};
 use crate::config::{InputConfig, SRTConfig, SRTTimestampFormat};
-use std::collections::HashMap;
+use crate::searcher::InternalWordAnnotation;
 
 pub(super) trait WordListGenerator {
     fn create_word_list(&self, config: &InputConfig, buffer: &str) -> Contents;
@@ -15,7 +15,7 @@ impl WordListGenerator for PlainTextWordListGenerator {
                 .split_whitespace()
                 .map(|word| AnnotatedWord {
                     word: word.to_string(),
-                    fields: HashMap::new(),
+                    ..Default::default()
                 })
                 .collect(),
         }
@@ -32,20 +32,20 @@ impl WordListGenerator for SRTWordListGenerator {
         for sub in subs {
             for word in sub.text.split_whitespace() {
                 word_list.push({
-                    let mut fields = HashMap::new();
+                    let mut internal_annotations: Vec<InternalWordAnnotation> = vec![];
                     if config.srt_config.timestamp_linking {
-                        fields.insert(
-                            "_srt_url_suffix".to_string(),
+                        internal_annotations.push(InternalWordAnnotation::SRTUrlSuffix(
                             SRTWordListGenerator::build_srt_url_time_suffix(
                                 &sub.start_time,
                                 &config.srt_config,
                             ),
-                        );
+                        ));
                     }
 
                     AnnotatedWord {
                         word: word.to_string(),
-                        fields,
+                        internal_annotations,
+                        ..Default::default()
                     }
                 })
             }

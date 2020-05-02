@@ -186,6 +186,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     text,
                     highlight_ranges,
                     score,
+                    internal_annotations: Vec::default(),
                     fields: HashMap::default(),
                 }
             })
