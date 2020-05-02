@@ -11,7 +11,7 @@ pub use stemming_config::StemmingConfig;
 
 mod test;
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(deny_unknown_fields)]
 pub enum TitleBoost {
     Minimal,
@@ -69,12 +69,20 @@ pub struct InputConfig {
     pub srt_config: SRTConfig,
 }
 
+/**
+ * Configuration settings that either:
+ * - Alter how the index file is written to disk OR
+ * - Gets "burned into" the index file and is passed through to the Javascript
+ *   runtime, and thus can be overridden in JS.
+ */
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields, default)]
 pub struct OutputConfig {
     pub filename: String,
     pub debug: bool,
-    pub surrounding_word_count: u8,
+    pub excerpt_buffer: u8,
+    pub excerpts_per_result: u8,
+    pub displayed_results_count: u8,
 }
 
 impl Default for OutputConfig {
@@ -82,7 +90,9 @@ impl Default for OutputConfig {
         OutputConfig {
             filename: "output.st".to_string(),
             debug: false,
-            surrounding_word_count: 8,
+            excerpt_buffer: 8,
+            excerpts_per_result: 5,
+            displayed_results_count: 10,
         }
     }
 }

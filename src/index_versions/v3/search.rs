@@ -8,10 +8,6 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
-const EXCERPT_BUFFER: usize = 8;
-const EXCERPTS_PER_RESULT: usize = 5;
-const DISPLAYED_RESULTS_COUNT: usize = 10;
-
 #[derive(Clone, Debug, Eq)]
 struct IntermediateExcerpt {
     query: String,
@@ -105,13 +101,14 @@ impl From<Entry> for OutputEntry {
 
 struct EntryAndIntermediateExcerpts {
     entry: Entry,
-    title_boost: TitleBoost,
+    config: PassthroughConfig,
     intermediate_excerpts: Vec<IntermediateExcerpt>,
 }
 
 impl From<EntryAndIntermediateExcerpts> for OutputResult {
     fn from(data: EntryAndIntermediateExcerpts) -> Self {
         let entry = data.entry;
+        let excerpt_buffer = data.config.excerpt_buffer as usize;
         let split_contents: Vec<String> = entry
             .contents
             .split_whitespace()
@@ -135,7 +132,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             if let Some(most_recent) = ies_grouped_by_word_index.last_mut() {
                 if let Some(trailing_ie) = most_recent.first() {
                     if (ie.word_index as isize) - (trailing_ie.word_index as isize)
-                        < (EXCERPT_BUFFER as isize)
+                        < (excerpt_buffer as isize)
                     {
                         most_recent.push(ie);
                         continue;
@@ -153,13 +150,13 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     .first()
                     .unwrap()
                     .word_index
-                    .saturating_sub(EXCERPT_BUFFER);
+                    .saturating_sub(excerpt_buffer);
 
                 let maximum_word_index = std::cmp::min(
                     ies.last()
                         .unwrap()
                         .word_index
-                        .saturating_add(EXCERPT_BUFFER),
+                        .saturating_add(excerpt_buffer),
                     split_contents.len(),
                 );
 
@@ -216,7 +213,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             .collect();
 
         excerpts.sort_by_key(|e| -(e.score as i16));
-        excerpts.truncate(EXCERPTS_PER_RESULT);
+        excerpts.truncate(data.config.excerpts_per_result as usize);
 
         let split_title: Vec<&str> = entry.title.split_whitespace().collect();
         let title_highlight_ranges: Vec<HighlightRange> = data
@@ -235,7 +232,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         println!("{}", title_highlight_ranges.len());
 
         let title_boost_modifier = title_highlight_ranges.len()
-            * match data.title_boost {
+            * match data.config.title_boost {
                 TitleBoost::Minimal => 25,
                 TitleBoost::Moderate => 75,
                 TitleBoost::Large => 150,
@@ -296,7 +293,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
                 .map(|(entry_index, ies)| {
                     let data = EntryAndIntermediateExcerpts {
                         entry: index.entries[*entry_index].to_owned(),
-                        title_boost: index.config.title_boost,
+                        config: index.config.clone(),
                         intermediate_excerpts: ies.to_owned(),
                     };
                     OutputResult::from(data)
@@ -304,7 +301,7 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
                 .collect();
             output_results.sort_by_key(|or| or.entry.title.clone());
             output_results.sort_by_key(|or| -(or.score as i64));
-            output_results.truncate(DISPLAYED_RESULTS_COUNT);
+            output_results.truncate(index.config.displayed_results_count as usize);
 
             SearchOutput {
                 results: output_results,
