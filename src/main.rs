@@ -1,4 +1,4 @@
-extern crate stork;
+extern crate stork_search as stork;
 
 mod argparse;
 
