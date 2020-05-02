@@ -4,7 +4,7 @@ use super::word_list_generators::{
     HTMLWordListGenerator, PlainTextWordListGenerator, SRTWordListGenerator, WordListGenerator,
 };
 use crate::config::DataSource;
-use crate::config::{Config, Filetype};
+use crate::config::{Config, Filetype, StemmingConfig};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -15,13 +15,13 @@ use rust_stemmers::{Algorithm, Stemmer};
 
 pub(super) struct IntermediateEntry {
     pub(super) contents: Contents,
+    pub(super) stem_algorithm: Option<Algorithm>,
     pub(super) title: String,
     pub(super) url: String,
     pub(super) fields: Fields,
 }
 
 pub fn build(config: &Config) -> Index {
-    let en_stemmer = Stemmer::create(Algorithm::English);
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
     let mut containers: HashMap<String, Container> = HashMap::new();
 
@@ -45,6 +45,16 @@ pub fn build(config: &Config) -> Index {
             DataSource::URL(_url) => panic!("URL not available yet"),
         };
 
+        let current_stem_config = stork_file
+            .stemming_override
+            .clone()
+            .unwrap_or(config.stemming.clone());
+
+        let stem_algorithm: Option<Algorithm> = match current_stem_config {
+            StemmingConfig::Language(alg) => Some(alg.to_owned()),
+            StemmingConfig::None => None,
+        };
+
         fn returns_word_list_generator(filetype: &Filetype) -> Box<dyn WordListGenerator> {
             match filetype {
                 Filetype::PlainText => Box::new(PlainTextWordListGenerator {}),
@@ -58,6 +68,7 @@ pub fn build(config: &Config) -> Index {
 
         let entry = IntermediateEntry {
             contents,
+            stem_algorithm,
             title: stork_file.title.clone(),
             url: stork_file.url.clone(),
             fields: stork_file.fields.clone(),
@@ -71,13 +82,17 @@ pub fn build(config: &Config) -> Index {
     for entry in &intermediate_entries {
         let contents = &entry.contents;
 
-        for annotated_word in contents.word_list.iter() {
-            let normalized_word =
-                remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
-            let stem = en_stemmer.stem(&normalized_word).to_string();
-            let stem_vector = stems.entry(stem).or_insert_with(|| vec![]);
-            if !stem_vector.contains(&normalized_word) {
-                stem_vector.push(normalized_word);
+        if let Some(stem_algorithm) = entry.stem_algorithm {
+            for annotated_word in contents.word_list.iter() {
+                let normalized_word =
+                    remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
+                let stem = Stemmer::create(stem_algorithm)
+                    .stem(&normalized_word)
+                    .to_string();
+                let stem_vector = stems.entry(stem).or_insert_with(|| vec![]);
+                if !stem_vector.contains(&normalized_word) {
+                    stem_vector.push(normalized_word);
+                }
             }
         }
     }
@@ -142,16 +157,20 @@ pub fn build(config: &Config) -> Index {
 
                 // Step 2C: Fill _other containers'_ alias maps with the
                 // reverse-stems of this word
-                let stem = en_stemmer.stem(&normalized_word).to_string();
-                if let Some(reverse_stems_vector) = stems.get(&stem) {
-                    for reverse_stem in reverse_stems_vector {
-                        if reverse_stem != &normalized_word {
-                            let _alias_score = containers
-                                .entry(reverse_stem.clone())
-                                .or_insert_with(Container::new)
-                                .aliases
-                                .entry(normalized_word.clone())
-                                .or_insert(STEM_SCORE as u8);
+                if let Some(stem_algorithm) = entry.stem_algorithm {
+                    let stem = Stemmer::create(stem_algorithm)
+                        .stem(&normalized_word)
+                        .to_string();
+                    if let Some(reverse_stems_vector) = stems.get(&stem) {
+                        for reverse_stem in reverse_stems_vector {
+                            if reverse_stem != &normalized_word {
+                                let _alias_score = containers
+                                    .entry(reverse_stem.clone())
+                                    .or_insert_with(Container::new)
+                                    .aliases
+                                    .entry(normalized_word.clone())
+                                    .or_insert(STEM_SCORE as u8);
+                            }
                         }
                     }
                 }
