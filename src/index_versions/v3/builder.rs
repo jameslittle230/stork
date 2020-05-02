@@ -1,3 +1,4 @@
+use super::nudger::Nudger;
 use super::scores::*;
 use super::structs::*;
 use super::word_list_generators::{
@@ -25,6 +26,7 @@ pub fn build(config: &Config) -> Index {
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
     let mut containers: HashMap<String, Container> = HashMap::new();
 
+    println!("{}", Nudger::from(config).generate_formatted_output());
 
     // Step 1: Fill entries vector
     let base_directory = Path::new(&config.input.base_directory);
