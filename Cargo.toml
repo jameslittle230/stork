@@ -1,11 +1,16 @@
 [package]
-name = "stork"
-version = "0.6.0"
+name = "stork-search"
+version = "1.0.0"
 authors = ["James Little <littleguy23@gmail.com>"]
 edition = "2018"
-description = "Impossibly fast web search."
+documentation = "https://stork-search.net/docs"
+homepage = "https://stork-search.net"
+description = "Impossibly fast web search, made for static sites."
 repository = "https://github.com/jameslittle230/stork"
 license = "Apache-2.0"
+keywords = ["wasm", "webassembly", "search", "javascript"]
+categories = ["wasm"]
+exclude = ['/dist/', 'node_modules/', '/test/', '/test-assets/',]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
