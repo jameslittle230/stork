@@ -1,3 +1,4 @@
+pub mod common;
 pub mod config;
 pub mod index_analyzer;
 pub mod searcher;
@@ -8,11 +9,10 @@ mod index_versions;
 use config::*;
 use wasm_bindgen::prelude::*;
 
+use common::IndexFromFile;
 use index_versions::v3 as LatestVersion;
 use LatestVersion::builder;
 use LatestVersion::structs::Index;
-
-type IndexFromFile = [u8];
 
 #[wasm_bindgen]
 extern "C" {

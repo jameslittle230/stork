@@ -1,11 +1,8 @@
-use super::builder::IntermediateEntry;
 use super::scores::*;
+use crate::common::{Fields, InternalWordAnnotation};
 use crate::config::TitleBoost;
-use crate::searcher::InternalWordAnnotation;
-use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
 
 // extern crate htmlescape;
 // use htmlescape::encode_minimal;
@@ -13,7 +10,87 @@ use std::convert::{TryFrom, TryInto};
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
 pub type Score = u8;
-pub type Fields = HashMap<String, String>;
+
+/**
+ * A serialized Index, for all intents and purposes, is the whole contents of
+ * a Stork index file.
+ */
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub struct Index {
+    pub(super) config: PassthroughConfig,
+    pub(super) entries: Vec<Entry>,
+    pub(super) containers: HashMap<String, Container>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub(super) struct PassthroughConfig {
+    pub(super) url_prefix: String,
+    pub(super) title_boost: TitleBoost,
+    pub(super) excerpt_buffer: u8,
+    pub(super) excerpts_per_result: u8,
+    pub(super) displayed_results_count: u8,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub(super) struct Entry {
+    pub(super) contents: String,
+    pub(super) title: String,
+    pub(super) url: String,
+    pub(super) fields: Fields,
+}
+
+/**
+ * A Container holds:
+ *
+ * - a HashMap of EntryIndexes to SearchResults
+ * - a HashMap of AliasTargets to scores
+ *
+ * Each valid query should return a single Container. It is possible to derive
+ * all search results for a given query from a single container.
+ */
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub(super) struct Container {
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub(super) results: HashMap<EntryIndex, SearchResult>,
+
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub(super) aliases: HashMap<AliasTarget, Score>,
+}
+
+impl Container {
+    pub fn new() -> Container {
+        Container::default()
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub(super) struct SearchResult {
+    pub(super) excerpts: Vec<Excerpt>,
+    pub(super) score: Score,
+}
+
+impl SearchResult {
+    pub(super) fn new() -> SearchResult {
+        SearchResult {
+            excerpts: vec![],
+            score: MATCHED_WORD_SCORE,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+pub(super) struct Excerpt {
+    pub(super) word_index: usize,
+
+    #[serde(default, skip_serializing_if = "WordListSource::is_default")]
+    pub(super) source: WordListSource,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub(super) internal_annotations: Vec<InternalWordAnnotation>,
+
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub(super) fields: Fields,
+}
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum WordListSource {
@@ -54,109 +131,6 @@ impl Contents {
             .collect::<Vec<String>>()
             .join(" ")
         // encode_minimal(out.as_str())
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct Entry {
-    pub(super) contents: String,
-    pub(super) title: String,
-    pub(super) url: String,
-    pub(super) fields: Fields,
-}
-
-impl From<&IntermediateEntry> for Entry {
-    fn from(ie: &IntermediateEntry) -> Self {
-        Entry {
-            contents: ie.contents.get_full_text(),
-            title: ie.title.clone(),
-            url: ie.url.clone(),
-            fields: ie.fields.clone(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct SearchResult {
-    pub(super) excerpts: Vec<Excerpt>,
-    pub(super) score: Score,
-}
-
-impl SearchResult {
-    pub(super) fn new() -> SearchResult {
-        SearchResult {
-            excerpts: vec![],
-            score: MATCHED_WORD_SCORE,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub(super) struct Excerpt {
-    pub(super) word_index: usize,
-
-    #[serde(default, skip_serializing_if = "WordListSource::is_default")]
-    pub(super) source: WordListSource,
-
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub(super) internal_annotations: Vec<InternalWordAnnotation>,
-
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub(super) fields: Fields,
-}
-
-/**
- * A Container holds:
- *
- * - a HashMap of EntryIndexes to SearchResults
- * - a HashMap of AliasTargets to scores
- *
- * Each valid query should return a single Container. It is possible to derive
- * all search results for a given query from a single container.
- */
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub(super) struct Container {
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub(super) results: HashMap<EntryIndex, SearchResult>,
-
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub(super) aliases: HashMap<AliasTarget, Score>,
-}
-
-impl Container {
-    pub fn new() -> Container {
-        Container::default()
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub(super) struct PassthroughConfig {
-    pub(super) url_prefix: String,
-    pub(super) title_boost: TitleBoost,
-    pub(super) excerpt_buffer: u8,
-    pub(super) excerpts_per_result: u8,
-    pub(super) displayed_results_count: u8,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub struct Index {
-    pub(super) config: PassthroughConfig,
-    pub(super) entries: Vec<Entry>,
-    pub(super) containers: HashMap<String, Container>,
-}
-
-impl TryFrom<&IndexFromFile> for Index {
-    type Error = serde_cbor::error::Error;
-    fn try_from(file: &IndexFromFile) -> Result<Self, Self::Error> {
-        let (version_size_bytes, rest) = file.split_at(std::mem::size_of::<u64>());
-        let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());
-        let (_version_bytes, rest) = rest.split_at(version_size as usize);
-
-        let (index_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
-        let index_size = u64::from_be_bytes(index_size_bytes.try_into().unwrap());
-        let (index_bytes, _rest) = rest.split_at(index_size as usize);
-
-        serde_cbor::de::from_slice(index_bytes)
     }
 }
 

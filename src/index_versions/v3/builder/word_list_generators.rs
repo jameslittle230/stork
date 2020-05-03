@@ -1,6 +1,14 @@
-use super::structs::{AnnotatedWord, Contents};
-use crate::config::{InputConfig, SRTConfig, SRTTimestampFormat};
-use crate::searcher::InternalWordAnnotation;
+use super::super::structs::{AnnotatedWord, Contents};
+use crate::common::InternalWordAnnotation;
+use crate::config::{Filetype, InputConfig, SRTConfig, SRTTimestampFormat};
+
+pub(super) fn returns_word_list_generator(filetype: &Filetype) -> Box<dyn WordListGenerator> {
+    match filetype {
+        Filetype::PlainText => Box::new(PlainTextWordListGenerator {}),
+        Filetype::SRTSubtitle => Box::new(SRTWordListGenerator {}),
+        Filetype::HTML => Box::new(HTMLWordListGenerator {}),
+    }
+}
 
 pub(super) trait WordListGenerator {
     fn create_word_list(&self, config: &InputConfig, buffer: &str) -> Contents;
