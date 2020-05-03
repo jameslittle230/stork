@@ -19,7 +19,7 @@ Impossibly fast web search, made for static sites.
 
 USAGE:
     stork --build [config.toml]
-    stork --search [index.st] "[query]"
+    stork --search [./index.st] "[query]"
 "#;
 
 pub type ExitCode = i32;
@@ -28,16 +28,13 @@ pub const EXIT_FAILURE: ExitCode = 1;
 
 fn main() {
     let mut a = Argparse::new();
-    a.register("build", build_handler);
-    a.register("search", search_handler);
+    a.register("build", build_handler, 1);
+    a.register("search", search_handler, 2);
     a.register_help(HELP_TEXT);
     std::process::exit(a.exec(env::args().collect()));
 }
 
 fn build_handler(args: &[String]) {
-    let argslen = args.len() as u8;
-    assert!(argslen == 3, "Wrong number of arguments.");
-
     let start = Instant::now();
     let config = Config::from_file(std::path::PathBuf::from(&args[2]));
     let index = stork::build(&config);
@@ -64,9 +61,6 @@ fn build_handler(args: &[String]) {
 }
 
 fn search_handler(args: &[String]) {
-    let argslen = args.len() as u8;
-    assert!(argslen == 4, "Wrong number of arguments.");
-
     let start = Instant::now();
     let file = File::open(&args[2]).unwrap();
     let mut buf_reader = BufReader::new(file);

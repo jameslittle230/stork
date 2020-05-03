@@ -9,10 +9,12 @@ use crate::config::Config;
  * being ignored.
  */
 
+#[derive(Debug, PartialEq)]
 pub(super) struct Nudger {
     nudges: Vec<Nudge>,
 }
 
+#[derive(Debug, PartialEq)]
 enum Nudge {
     InputSurroundingWordCount,
 }
@@ -51,5 +53,48 @@ impl Nudger {
         }
 
         output
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::*;
+
+    #[test]
+    fn create_nudge() {
+        let intended = Nudger {
+            nudges: vec![Nudge::InputSurroundingWordCount],
+        };
+
+        let generated = Nudger::from(&Config {
+            input: InputConfig {
+                UNUSED_surrounding_word_count: Some(12),
+                ..Default::default()
+            },
+            output: OutputConfig::default(),
+        });
+
+        assert_eq!(intended, generated)
+    }
+
+    #[test]
+    fn default_config_creates_empty_nudge() {
+        let intended = Nudger { nudges: vec![] };
+        let generated = Nudger::from(&Config::default());
+        assert_eq!(intended, generated)
+    }
+
+    #[test]
+    fn nudge_description() {
+        let intended = "== Config Warnings ==\n`input.surrounding_word_count` is deprecated and has no effect. Please use output.excerpt_buffer instead."
+            .to_string();
+
+        let generated = Nudger {
+            nudges: vec![Nudge::InputSurroundingWordCount],
+        }
+        .generate_formatted_output();
+
+        assert_eq!(intended, generated)
     }
 }

@@ -1,26 +1,23 @@
-use super::nudger::Nudger;
 use super::scores::*;
 use super::structs::*;
-use super::word_list_generators::{
-    HTMLWordListGenerator, PlainTextWordListGenerator, SRTWordListGenerator, WordListGenerator,
-};
 use crate::config::DataSource;
-use crate::config::{Config, Filetype, StemmingConfig};
+use crate::config::{Config, StemmingConfig};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 
+pub mod word_list_generators;
+use word_list_generators::returns_word_list_generator;
+
+pub mod intermediate_entry;
+use intermediate_entry::IntermediateEntry;
+
+pub mod nudger;
+use nudger::Nudger;
+
 extern crate rust_stemmers;
 use rust_stemmers::{Algorithm, Stemmer};
-
-pub(super) struct IntermediateEntry {
-    pub(super) contents: Contents,
-    pub(super) stem_algorithm: Option<Algorithm>,
-    pub(super) title: String,
-    pub(super) url: String,
-    pub(super) fields: Fields,
-}
 
 pub fn build(config: &Config) -> Index {
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
@@ -56,14 +53,6 @@ pub fn build(config: &Config) -> Index {
             StemmingConfig::None => None,
         };
 
-        fn returns_word_list_generator(filetype: &Filetype) -> Box<dyn WordListGenerator> {
-            match filetype {
-                Filetype::PlainText => Box::new(PlainTextWordListGenerator {}),
-                Filetype::SRTSubtitle => Box::new(SRTWordListGenerator {}),
-                Filetype::HTML => Box::new(HTMLWordListGenerator {}),
-            }
-        }
-
         let contents: Contents =
             returns_word_list_generator(filetype).create_word_list(&config.input, &buffer);
 
@@ -90,7 +79,7 @@ pub fn build(config: &Config) -> Index {
                 let stem = Stemmer::create(stem_algorithm)
                     .stem(&normalized_word)
                     .to_string();
-                let stem_vector = stems.entry(stem).or_insert_with(|| vec![]);
+                let stem_vector = stems.entry(stem).or_insert_with(Vec::default);
                 if !stem_vector.contains(&normalized_word) {
                     stem_vector.push(normalized_word);
                 }
@@ -105,7 +94,7 @@ pub fn build(config: &Config) -> Index {
             .split_whitespace()
             .map(|w| AnnotatedWord {
                 word: w.to_string(),
-                fields: HashMap::default(),
+                ..Default::default()
             })
             .collect();
 
@@ -137,6 +126,7 @@ pub fn build(config: &Config) -> Index {
                 entry_result.excerpts.push(Excerpt {
                     word_index,
                     source,
+                    internal_annotations: annotated_word.internal_annotations.clone(),
                     fields: annotated_word.fields.clone(),
                 });
 

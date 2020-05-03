@@ -1,38 +1,71 @@
 use super::scores::*;
 use super::structs::*;
+use crate::common::IndexFromFile;
 use crate::config::TitleBoost;
 use crate::searcher::*;
 use crate::stopwords::STOPWORDS;
-use crate::IndexFromFile;
-use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
-#[derive(Clone, Debug, Eq)]
-struct IntermediateExcerpt {
-    query: String,
-    entry_index: EntryIndex,
-    score: Score,
-    source: WordListSource,
-    word_index: usize,
-    fields: Fields,
-}
+pub mod intermediate_excerpt;
+use intermediate_excerpt::IntermediateExcerpt;
 
-impl Ord for IntermediateExcerpt {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.score.cmp(&other.score)
-    }
-}
+pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
+    match Index::try_from(index) {
+        Err(_) => SearchOutput::default(),
+        Ok(index) => {
+            let normalized_query = query.to_lowercase();
+            let words_in_query: Vec<String> =
+                normalized_query.split(' ').map(|s| s.to_string()).collect();
 
-impl PartialOrd for IntermediateExcerpt {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
+            // Get the containers for each word in the query, and separate them
+            // into intermediate excerpts
+            let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
+                .iter()
+                .flat_map(|word| index.containers.get_key_value(word))
+                .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
+                .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
+                .flatten()
+                .collect();
 
-impl PartialEq for IntermediateExcerpt {
-    fn eq(&self, other: &Self) -> bool {
-        self.entry_index == other.entry_index
+            for mut ie in &mut intermediate_excerpts {
+                if STOPWORDS.contains(&ie.query.as_str()) {
+                    ie.score = STOPWORD_SCORE;
+                }
+            }
+
+            let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> =
+                HashMap::new();
+            for ie in intermediate_excerpts {
+                excerpts_by_index
+                    .entry(ie.entry_index)
+                    .or_insert_with(Vec::new)
+                    .push(ie)
+            }
+
+            let total_len = &excerpts_by_index.len();
+
+            let mut output_results: Vec<OutputResult> = excerpts_by_index
+                .iter()
+                .map(|(entry_index, ies)| {
+                    let data = EntryAndIntermediateExcerpts {
+                        entry: index.entries[*entry_index].to_owned(),
+                        config: index.config.clone(),
+                        intermediate_excerpts: ies.to_owned(),
+                    };
+                    OutputResult::from(data)
+                })
+                .collect();
+            output_results.sort_by_key(|or| or.entry.title.clone());
+            output_results.sort_by_key(|or| -(or.score as i64));
+            output_results.truncate(index.config.displayed_results_count as usize);
+
+            SearchOutput {
+                results: output_results,
+                total_hit_count: *total_len,
+                url_prefix: index.config.url_prefix,
+            }
+        }
     }
 }
 
@@ -62,6 +95,7 @@ impl ContainerWithQuery {
                     score: result.score,
                     source: excerpt.source,
                     word_index: excerpt.word_index,
+                    internal_annotations: excerpt.internal_annotations,
                     fields: excerpt.fields,
                 })
             }
@@ -76,6 +110,7 @@ impl ContainerWithQuery {
                             query: alias_target.to_string(),
                             entry_index,
                             score: *alias_score,
+                            internal_annotations: excerpt.internal_annotations,
                             source: excerpt.source,
                             word_index: excerpt.word_index,
                             fields: excerpt.fields,
@@ -165,10 +200,6 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 let mut highlight_ranges: Vec<HighlightRange> = ies
                     .iter()
                     .map(|ie| {
-                        println!(
-                            "{:?}",
-                            split_contents[minimum_word_index..ie.word_index].join(" ")
-                        );
                         let beginning = split_contents[minimum_word_index..ie.word_index]
                             .join(" ")
                             .len()
@@ -192,9 +223,16 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 
                 let score_modifier = highlighted_character_range - highlighted_characters_count;
 
-                let score =
-                    ies.iter().map(|ie| (ie.score as usize)).sum::<usize>() - score_modifier;
+                let score = ies
+                    .iter()
+                    .map(|ie| (ie.score as usize))
+                    .sum::<usize>()
+                    .saturating_sub(score_modifier);
 
+                // Since we're mapping from multiple IntermediateExcerpts to one
+                // Excerpt, we have to either combine or filter data. For
+                // `fields` and `internal_annotations`, I'm taking the data from
+                // the first intermediate excerpt in the vector.
                 let fields = {
                     if let Some(first) = ies.first() {
                         first.fields.clone()
@@ -203,9 +241,18 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     }
                 };
 
+                let internal_annotations = {
+                    if let Some(first) = ies.first() {
+                        first.internal_annotations.clone()
+                    } else {
+                        Vec::default()
+                    }
+                };
+
                 crate::searcher::Excerpt {
                     text,
                     highlight_ranges,
+                    internal_annotations,
                     score,
                     fields,
                 }
@@ -229,7 +276,6 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 }
             })
             .collect();
-        println!("{}", title_highlight_ranges.len());
 
         let title_boost_modifier = title_highlight_ranges.len()
             * match data.config.title_boost {
@@ -250,64 +296,6 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             excerpts,
             title_highlight_ranges,
             score,
-        }
-    }
-}
-
-pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
-    match Index::try_from(index) {
-        Err(_) => SearchOutput::default(),
-        Ok(index) => {
-            let normalized_query = query.to_lowercase();
-            let words_in_query: Vec<String> =
-                normalized_query.split(' ').map(|s| s.to_string()).collect();
-
-            // Get containers for each word in the query
-            let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
-                .iter()
-                .flat_map(|word| index.containers.get_key_value(word))
-                .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
-                .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
-                .flatten()
-                .collect();
-
-            for mut ie in &mut intermediate_excerpts {
-                if STOPWORDS.contains(&ie.query.as_str()) {
-                    ie.score = STOPWORD_SCORE;
-                }
-            }
-
-            let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> =
-                HashMap::new();
-            for ie in intermediate_excerpts {
-                excerpts_by_index
-                    .entry(ie.entry_index)
-                    .or_insert_with(|| vec![])
-                    .push(ie)
-            }
-
-            let total_len = &excerpts_by_index.len();
-
-            let mut output_results: Vec<OutputResult> = excerpts_by_index
-                .iter()
-                .map(|(entry_index, ies)| {
-                    let data = EntryAndIntermediateExcerpts {
-                        entry: index.entries[*entry_index].to_owned(),
-                        config: index.config.clone(),
-                        intermediate_excerpts: ies.to_owned(),
-                    };
-                    OutputResult::from(data)
-                })
-                .collect();
-            output_results.sort_by_key(|or| or.entry.title.clone());
-            output_results.sort_by_key(|or| -(or.score as i64));
-            output_results.truncate(index.config.displayed_results_count as usize);
-
-            SearchOutput {
-                results: output_results,
-                total_hit_count: *total_len,
-                url_prefix: index.config.url_prefix,
-            }
         }
     }
 }

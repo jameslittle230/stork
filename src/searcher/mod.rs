@@ -1,24 +1,14 @@
+use crate::common::{Fields, IndexFromFile, InternalWordAnnotation};
 use crate::index_analyzer::get_index_version;
 use crate::index_versions::v2;
 use crate::index_versions::v3;
-use crate::IndexFromFile;
 use serde::Serialize;
-use std::collections::HashMap;
-
-type Fields = HashMap<String, String>;
 
 #[derive(Serialize, Debug, Default)]
 pub struct SearchOutput {
     pub results: Vec<OutputResult>,
     pub total_hit_count: usize,
     pub url_prefix: String,
-}
-
-#[derive(Serialize, Clone, Debug)]
-pub struct OutputEntry {
-    pub url: String,
-    pub title: String,
-    pub fields: Fields,
 }
 
 /**
@@ -34,9 +24,10 @@ pub struct OutputResult {
 }
 
 #[derive(Serialize, Clone, Debug)]
-pub struct HighlightRange {
-    pub beginning: usize,
-    pub end: usize,
+pub struct OutputEntry {
+    pub url: String,
+    pub title: String,
+    pub fields: Fields,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -44,7 +35,14 @@ pub struct Excerpt {
     pub text: String,
     pub highlight_ranges: Vec<HighlightRange>,
     pub score: usize,
+    pub internal_annotations: Vec<InternalWordAnnotation>,
     pub fields: Fields,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct HighlightRange {
+    pub beginning: usize,
+    pub end: usize,
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
