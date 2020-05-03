@@ -23,3 +23,38 @@ impl From<&IntermediateEntry> for Entry {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::IntermediateEntry;
+    use crate::index_versions::v3::structs::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn convert_ie_to_entry() {
+        let mut fields = HashMap::new();
+
+        fields.insert("k1".to_string(), "v1".to_string());
+        fields.insert("k2".to_string(), "v2".to_string());
+
+        let intended = Entry {
+            contents: "".to_string(),
+            title: "My Title".to_string(),
+            url: "https://example.com".to_string(),
+            fields: fields.clone(),
+        };
+
+        let generated = Entry::from(&IntermediateEntry {
+            contents: Contents { word_list: vec![] },
+            stem_algorithm: None,
+            title: "My Title".to_string(),
+            url: "https://example.com".to_string(),
+            fields: fields.clone(),
+        });
+
+        assert_eq!(generated.contents, intended.contents);
+        assert_eq!(generated.title, intended.title);
+        assert_eq!(generated.url, intended.url);
+        assert_eq!(generated.fields, intended.fields);
+    }
+}

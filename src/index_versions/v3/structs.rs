@@ -4,9 +4,6 @@ use crate::config::TitleBoost;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-// extern crate htmlescape;
-// use htmlescape::encode_minimal;
-
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
 pub type Score = u8;
@@ -134,20 +131,56 @@ impl Contents {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use std::fs;
-//     use std::io::{BufReader, Read};
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::convert::TryFrom;
+    use std::fs;
+    use std::io::{BufReader, Read};
 
-//     #[test]
-//     fn can_parse_1_0_0_index() {
-//         let file = fs::File::open("./test-assets/federalist-min-1.0.0.st").unwrap();
-//         let mut buf_reader = BufReader::new(file);
-//         let mut index_bytes: Vec<u8> = Vec::new();
-//         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
-//         let index = Index::try_from(index_bytes.as_slice()).unwrap();
-//         assert_eq!(1, index.entries.len());
-//         assert_eq!(2477, index.containers.len());
-//     }
-// }
+    #[test]
+    fn can_parse_1_0_0_index() {
+        let file = fs::File::open("./test-assets/federalist-min-1.0.0.st").unwrap();
+        let mut buf_reader = BufReader::new(file);
+        let mut index_bytes: Vec<u8> = Vec::new();
+        let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
+        let index = Index::try_from(index_bytes.as_slice()).unwrap();
+        assert_eq!(1, index.entries.len());
+        assert_eq!(2477, index.containers.len());
+    }
+
+    #[test]
+    fn get_full_text() {
+        let intended = "This is-a set of words.".to_string();
+        let generated = Contents {
+            word_list: vec![
+                AnnotatedWord {
+                    word: "This".to_string(),
+                    ..Default::default()
+                },
+                AnnotatedWord {
+                    word: "is-a".to_string(),
+                    internal_annotations: vec![InternalWordAnnotation::SRTUrlSuffix(
+                        "a".to_string(),
+                    )],
+                    fields: HashMap::default(),
+                },
+                AnnotatedWord {
+                    word: "set".to_string(),
+                    ..Default::default()
+                },
+                AnnotatedWord {
+                    word: "of".to_string(),
+                    ..Default::default()
+                },
+                AnnotatedWord {
+                    word: "words.".to_string(),
+                    ..Default::default()
+                },
+            ],
+        }
+        .get_full_text();
+
+        assert_eq!(intended, generated);
+    }
+}
