@@ -43,6 +43,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn unknown_version_fails_with_error() {
+        let badstring = "bad index".as_bytes();
+        let _ = get_index_version(badstring);
+    }
+
+    #[test]
     fn can_get_version_of_0_5_3_index() {
         validate_version!("./test-assets/federalist-min-0.5.3.st", "stork-2");
     }
