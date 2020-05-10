@@ -11,8 +11,7 @@ impl Index {
         let write_version = super::VERSION_STRING.as_bytes();
 
         if config.debug {
-            self.write_debug(&mut bufwriter, &write_version);
-            0
+            self.write_debug(&mut bufwriter, &write_version)
         } else {
             self.write_release(&mut bufwriter, &write_version)
         }
@@ -33,7 +32,7 @@ impl Index {
         bytes_written
     }
 
-    fn write_debug(&self, bufwriter: &mut BufWriter<File>, write_version: &[u8]) {
+    fn write_debug(&self, bufwriter: &mut BufWriter<File>, write_version: &[u8]) -> usize {
         let index_serialized = serde_json::to_string_pretty(self).unwrap();
 
         let byte_vectors_to_write = [write_version, index_serialized.as_bytes()];
@@ -44,5 +43,9 @@ impl Index {
             let _ = bufwriter.write(vec);
             let _ = bufwriter.write(b"\n\n");
         }
+
+        // Return zero bytes written so that the frontend can alert the user
+        // when they write an index in debug mode
+        0
     }
 }

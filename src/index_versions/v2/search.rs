@@ -1,8 +1,7 @@
 use super::scores::*;
 use super::structs::*;
+use crate::common::{IndexFromFile, STOPWORDS};
 use crate::searcher::*;
-use crate::stopwords::STOPWORDS;
-use crate::IndexFromFile;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -210,7 +209,11 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
     }
 }
 
-pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
+pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
+    std::panic::catch_unwind(|| internal_search(index, query)).map_err(|_e| SearchError {})
+}
+
+pub fn internal_search(index: &IndexFromFile, query: &str) -> SearchOutput {
     let index = Index::from_file(index);
     let normalized_query = query.to_lowercase();
     let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();

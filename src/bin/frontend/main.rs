@@ -8,7 +8,6 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::time::Instant;
 use stork::config::Config;
-use stork::searcher::{search, SearchOutput};
 
 use num_format::{Locale, ToFormattedString};
 
@@ -35,12 +34,12 @@ fn main() {
 }
 
 fn build_handler(args: &[String]) {
-    let start = Instant::now();
+    let start_time = Instant::now();
     let config = Config::from_file(std::path::PathBuf::from(&args[2]));
     let index = stork::build(&config);
-    let build = Instant::now();
-    let bytes_written = stork::write_index(&config, index);
-    let end = Instant::now();
+    let build_time = Instant::now();
+    let bytes_written = stork::write(&config, index);
+    let end_time = Instant::now();
     println!(
         "{} bytes written. {}
     {:.3?}s from start to build
@@ -54,31 +53,40 @@ fn build_handler(args: &[String]) {
                 "(Maybe you're in debug mode.)"
             }
         },
-        build.duration_since(start).as_secs_f32(),
-        end.duration_since(build).as_secs_f32(),
-        end.duration_since(start).as_secs_f32()
+        build_time.duration_since(start_time).as_secs_f32(),
+        end_time.duration_since(build_time).as_secs_f32(),
+        end_time.duration_since(start_time).as_secs_f32()
     );
 }
 
 fn search_handler(args: &[String]) {
-    let start = Instant::now();
-    let file = File::open(&args[2]).unwrap();
+    let start_time = Instant::now();
+    let file = File::open(&args[2]).unwrap_or_else(|err| {
+        eprintln!("Could not read file {}: {}", &args[2], err);
+        std::process::exit(EXIT_FAILURE);
+    });
+
     let mut buf_reader = BufReader::new(file);
     let mut index_bytes: Vec<u8> = Vec::new();
     let bytes_read = buf_reader.read_to_end(&mut index_bytes);
-    let read = Instant::now();
-    let results: SearchOutput = search(&index_bytes, &args[3]);
-    let end = Instant::now();
-    println!("{}", serde_json::to_string_pretty(&results).unwrap());
+    let read_time = Instant::now();
+    let results = stork::search(&index_bytes, args[3].clone());
+    let end_time = Instant::now();
 
-    println!(
-        "read {} bytes.
-    {:.3?}s to read index file
-    {:.3?}s to get search results
-    {:.3?}s total",
-        bytes_read.unwrap().to_formatted_string(&Locale::en),
-        read.duration_since(start).as_secs_f32(),
-        end.duration_since(read).as_secs_f32(),
-        end.duration_since(start).as_secs_f32()
-    );
+    match results {
+        Ok(output) => {
+            println!("{}", serde_json::to_string_pretty(&output).unwrap());
+
+            eprintln!(
+                "read {} bytes.\n\t{:.3?}s to read index file\n\t{:.3?}s to get search results\n\t{:.3?}s total",
+                bytes_read.unwrap().to_formatted_string(&Locale::en),
+                read_time.duration_since(start_time).as_secs_f32(),
+                end_time.duration_since(read_time).as_secs_f32(),
+                end_time.duration_since(start_time).as_secs_f32()
+            );
+        },
+        Err(_e) => {
+            eprintln!("Error performing search.")
+        }
+    }
 }

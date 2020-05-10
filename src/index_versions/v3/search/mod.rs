@@ -1,18 +1,17 @@
 use super::scores::*;
 use super::structs::*;
-use crate::common::IndexFromFile;
-use crate::config::TitleBoost;
 use crate::searcher::*;
-use crate::stopwords::STOPWORDS;
+use crate::common::{IndexFromFile, STOPWORDS};
+use crate::config::TitleBoost;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
 pub mod intermediate_excerpt;
 use intermediate_excerpt::IntermediateExcerpt;
 
-pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
+pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
     match Index::try_from(index) {
-        Err(_) => SearchOutput::default(),
+        Err(_) => Err(SearchError {}),
         Ok(index) => {
             let normalized_query = query.to_lowercase();
             let words_in_query: Vec<String> =
@@ -60,11 +59,11 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
             output_results.sort_by_key(|or| -(or.score as i64));
             output_results.truncate(index.config.displayed_results_count as usize);
 
-            SearchOutput {
+            Ok(SearchOutput {
                 results: output_results,
                 total_hit_count: *total_len,
                 url_prefix: index.config.url_prefix,
-            }
+            })
         }
     }
 }

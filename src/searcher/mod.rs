@@ -1,7 +1,8 @@
+pub mod index_analyzer;
+
 use crate::common::{Fields, IndexFromFile, InternalWordAnnotation};
-use crate::index_analyzer::get_index_version;
-use crate::index_versions::v2;
-use crate::index_versions::v3;
+use crate::index_versions::{v2, v3};
+use index_analyzer::{parse_index_version, IndexVersion};
 use serde::Serialize;
 
 #[derive(Serialize, Debug, Default)]
@@ -45,16 +46,17 @@ pub struct HighlightRange {
     pub end: usize,
 }
 
-pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
-    if let Ok(version) = get_index_version(index) {
-        let search_function = match version.as_str() {
-            v2::VERSION_STRING => v2::search::search,
-            v3::VERSION_STRING => v3::search::search,
-            _ => panic!("Unknown index version"),
-        };
+pub struct SearchError {}
 
+pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
+    if let Ok(version) = parse_index_version(index) {
+        let search_function = match version {
+            IndexVersion::V2 => v2::search::search,
+            IndexVersion::V3 => v3::search::search,
+        };
+        
         search_function(index, query)
     } else {
-        SearchOutput::default()
+        Err(SearchError {})
     }
 }
