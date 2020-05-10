@@ -47,10 +47,10 @@ pub(super) struct Entry {
  */
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct Container {
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) results: HashMap<EntryIndex, SearchResult>,
 
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) aliases: HashMap<AliasTarget, Score>,
 }
 
@@ -79,13 +79,13 @@ impl SearchResult {
 pub(super) struct Excerpt {
     pub(super) word_index: usize,
 
-    #[serde(default, skip_serializing_if = "WordListSource::is_default")]
+    // #[serde(default, skip_serializing_if = "WordListSource::is_default")]
     pub(super) source: WordListSource,
 
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    // #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(super) internal_annotations: Vec<InternalWordAnnotation>,
 
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) fields: Fields,
 }
 
@@ -101,12 +101,12 @@ impl Default for WordListSource {
     }
 }
 
-impl WordListSource {
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    fn is_default(&self) -> bool {
-        self == &WordListSource::default()
-    }
-}
+// impl WordListSource {
+//     #[allow(clippy::trivially_copy_pass_by_ref)]
+//     fn is_default(&self) -> bool {
+//         self == &WordListSource::default()
+//     }
+// }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct AnnotatedWord {

@@ -19,7 +19,7 @@ crate-type = ["cdylib", "rlib"]
 toml = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 bincode = "1.2.1"
-serde_cbor = "0.11.1"
+rmp-serde = "0.14.3"
 serde_json = "1.0"
 console_error_panic_hook = "0.1.6"
 num-format = "0.4.0"

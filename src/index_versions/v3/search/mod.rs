@@ -11,7 +11,7 @@ use intermediate_excerpt::IntermediateExcerpt;
 
 pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
     match Index::try_from(index) {
-        Err(e) => Err(SearchError::IndexParseError(e)),
+        Err(_e) => Err(SearchError::IndexParseError),
         Ok(index) => {
             let normalized_query = query.to_lowercase();
             let words_in_query: Vec<String> =
