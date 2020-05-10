@@ -30,7 +30,7 @@ pub fn wasm_search(index: &IndexFromFile, query: String) -> String {
 
     match search_result {
         Ok(string) => string,
-        Err(e) => format!("{{error: '{}'}}", e).to_string(),
+        Err(e) => format!("{{error: '{}'}}", e),
     }
 }
 
