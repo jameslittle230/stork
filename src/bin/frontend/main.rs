@@ -41,11 +41,9 @@ fn build_handler(args: &[String]) {
     let bytes_written = stork::write(&config, index);
     let end_time = Instant::now();
     println!(
-        "{} bytes written. {}
-    {:.3?}s from start to build
-    {:.3?}s to write file
-    {:.3?}s total",
+        "Index built, {} bytes written to {}. {}\n\t{:.3?}s to build index\n\t{:.3?}s to write file\n\t{:.3?}s total",
         bytes_written.to_formatted_string(&Locale::en),
+        config.output.filename,
         {
             if bytes_written != 0 {
                 ""
@@ -78,8 +76,10 @@ fn search_handler(args: &[String]) {
             println!("{}", serde_json::to_string_pretty(&output).unwrap());
 
             eprintln!(
-                "read {} bytes.\n\t{:.3?}s to read index file\n\t{:.3?}s to get search results\n\t{:.3?}s total",
+                "{} search results.\nRead {} bytes from {}\n\t{:.3?}s to read index file\n\t{:.3?}s to get search results\n\t{:.3?}s total",
+                output.total_hit_count,
                 bytes_read.unwrap().to_formatted_string(&Locale::en),
+                &args[2],
                 read_time.duration_since(start_time).as_secs_f32(),
                 end_time.duration_since(read_time).as_secs_f32(),
                 end_time.duration_since(start_time).as_secs_f32()
