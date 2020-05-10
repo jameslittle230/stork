@@ -3,10 +3,10 @@ pub mod index_analyzer;
 use crate::common::{Fields, IndexFromFile, InternalWordAnnotation};
 use crate::index_versions::{v2, v3};
 use index_analyzer::{parse_index_version, IndexVersion, VersionParseError};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Serialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq)]
 pub struct SearchOutput {
     pub results: Vec<OutputResult>,
     pub total_hit_count: usize,
@@ -17,7 +17,7 @@ pub struct SearchOutput {
  * Correlates an OutputEntry with a vector of excerpts. Represents a single
  * document that contains search results.
  */
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct OutputResult {
     pub entry: OutputEntry,
     pub excerpts: Vec<Excerpt>,
@@ -25,14 +25,14 @@ pub struct OutputResult {
     pub score: usize,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct OutputEntry {
     pub url: String,
     pub title: String,
     pub fields: Fields,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Excerpt {
     pub text: String,
     pub highlight_ranges: Vec<HighlightRange>,
@@ -41,12 +41,13 @@ pub struct Excerpt {
     pub fields: Fields,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct HighlightRange {
     pub beginning: usize,
     pub end: usize,
 }
 
+#[derive(Debug)]
 pub enum SearchError {
     /// If version can't be parsed when reading the index
     VersionParseError(VersionParseError),
