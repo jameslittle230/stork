@@ -35,13 +35,18 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
-    "build:wasm": "wasm-pack build --target web",
+    "dev": "yarn build:wasm:dev && yarn build:test-index && yarn build:js:dev",
+
+    "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev",
+    "build:wasm:prod": "wasm-pack build --target web --out-name stork",
+    "build:test-index:federalist": "cargo run -- --build test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist",
     "build:test-index": "cargo run -- --build test/3b1b-config/3b1b.toml && cargo run -- --build test/3b1b-config/3b1b-debug.toml && mkdir -p dist && cp test/*.st dist",
     "build:js": "echo 'You probably meant build:js:dev or build:js:prod'",
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
-    "build:prod": "yarn install && yarn build:wasm && yarn build:test-index && yarn build:js:prod",
-    "build:dev": "yarn build:wasm && yarn build:test-index && yarn build:js:dev",
+    
+    "build:prod": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
+    
     "lint": "yarn eslint js/*",
     "serve": "yarn http-server ./dist -o -p 8025 -s -c-1"
   }

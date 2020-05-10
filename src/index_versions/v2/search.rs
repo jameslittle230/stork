@@ -1,8 +1,7 @@
 use super::scores::*;
 use super::structs::*;
+use crate::common::{IndexFromFile, STOPWORDS};
 use crate::searcher::*;
-use crate::stopwords::STOPWORDS;
-use crate::IndexFromFile;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -210,7 +209,12 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
     }
 }
 
-pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
+pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
+    std::panic::catch_unwind(|| internal_search(index, query))
+        .map_err(|_e| SearchError::InternalCrash)
+}
+
+pub fn internal_search(index: &IndexFromFile, query: &str) -> SearchOutput {
     let index = Index::from_file(index);
     let normalized_query = query.to_lowercase();
     let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
@@ -258,5 +262,29 @@ pub fn search(index: &IndexFromFile, query: &str) -> SearchOutput {
         results: output_results,
         total_hit_count: *total_len,
         url_prefix: String::default(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::searcher::index_analyzer::{parse_index_version, IndexVersion};
+    use std::fs;
+    use std::io::{BufReader, Read};
+    #[test]
+    fn e2e_v2_search_works() {
+        let file = fs::File::open("./test-assets/federalist-min-0.6.0.st").unwrap();
+        let mut buf_reader = BufReader::new(file);
+        let mut index_bytes: Vec<u8> = Vec::new();
+        let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
+
+        let generated = search(index_bytes.as_slice(), "liber old world").unwrap();
+        let expected = serde_json::from_str("{\"results\":[{\"entry\":{\"url\":\"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1\",\"title\":\"Introduction\",\"fields\":{}},\"excerpts\":[{\"text\":\"in many respects the most interesting in the world. It has been frequently remarked that it\",\"highlight_ranges\":[{\"beginning\":45,\"end\":50}],\"score\":128,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"despotic power and hostile to the principles of liberty. An over-scrupulous jealousy of danger to the\",\"highlight_ranges\":[{\"beginning\":48,\"end\":55}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"of love, and that the noble enthusiasm of liberty is apt to be infected with a\",\"highlight_ranges\":[{\"beginning\":42,\"end\":49}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"of government is essential to the security of liberty; that, in the contemplation of a sound\",\"highlight_ranges\":[{\"beginning\":46,\"end\":53}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"that this is the safest course for your liberty, your dignity, and your happiness. I affect\",\"highlight_ranges\":[{\"beginning\":40,\"end\":47}],\"score\":125,\"internal_annotations\":[],\"fields\":{}}],\"title_highlight_ranges\":[],\"score\":128}],\"total_hit_count\":1,\"url_prefix\":\"\"}").unwrap();
+
+        assert_eq!(
+            parse_index_version(index_bytes.as_slice()).unwrap(),
+            IndexVersion::V2
+        );
+        assert_eq!(generated, expected, "{:?}", generated);
     }
 }

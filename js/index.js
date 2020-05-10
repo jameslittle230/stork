@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 
 import init, {
-  search,
+  wasm_search,
   get_index_version as getIndexVersion
 } from "../pkg/stork";
 
@@ -18,6 +18,7 @@ const wasmUrl = prod
 
 const wasmQueue = new WasmQueue();
 const entities = {};
+
 init(wasmUrl).then(() => {
   wasmQueue.loaded = true;
   wasmQueue.handleWasmLoad();
@@ -109,7 +110,7 @@ async function resolveSearch(index, query) {
     return null;
   }
   try {
-    return JSON.parse(search(index, query));
+    return JSON.parse(wasm_search(index, query));
   } catch (e) {
     // analytics.log(e)
   }
@@ -158,7 +159,7 @@ function performSearch(name) {
       const urlPrefix = results.url_prefix || "";
       entities[name].results.map(r => {
         const urlSuffix = r.excerpts[0]
-          ? r.excerpts[0].fields["_srt_url_suffix"] || ""
+          ? r.excerpts[0].internal_annotations[0]["a"] || ""
           : "";
         r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix}`;
       });

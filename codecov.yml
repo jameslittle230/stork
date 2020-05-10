@@ -6,4 +6,3 @@ coverage:
 comment:
   layout: "diff"
   behavior: default
-  require_changes: no
