@@ -4,18 +4,18 @@ use std::convert::TryInto;
 use std::error::Error;
 use std::fmt;
 
-pub fn parse_index_version(index: &IndexFromFile) -> Result<IndexVersion, IndexParseError> {
+pub fn parse_index_version(index: &IndexFromFile) -> Result<IndexVersion, VersionParseError> {
     let (version_size_bytes, rest) = index.split_at(std::mem::size_of::<u64>());
     let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap_or_default());
     if version_size > 32 {
-        return Err(IndexParseError::BadVersionSize(
+        return Err(VersionParseError::BadVersionSize(
             version_size,
             VersionSizeProblem::Long,
         ));
     }
 
     if version_size < 1 {
-        return Err(IndexParseError::BadVersionSize(
+        return Err(VersionParseError::BadVersionSize(
             version_size,
             VersionSizeProblem::Short,
         ));
@@ -25,11 +25,11 @@ pub fn parse_index_version(index: &IndexFromFile) -> Result<IndexVersion, IndexP
     let version = String::from_utf8(version_bytes.to_vec());
 
     match version {
-        Err(e) => Err(IndexParseError::VersionStringUtf8Error(e)),
+        Err(e) => Err(VersionParseError::VersionStringUtf8Error(e)),
         Ok(version) => match version.as_str() {
             v2::VERSION_STRING => Ok(IndexVersion::V2),
             v3::VERSION_STRING => Ok(IndexVersion::V3),
-            _ => Err(IndexParseError::UnknownVersionString(version)),
+            _ => Err(VersionParseError::UnknownVersionString(version)),
         },
     }
 }
@@ -58,16 +58,16 @@ pub enum VersionSizeProblem {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum IndexParseError {
+pub enum VersionParseError {
     FileTooShort,
     BadVersionSize(u64, VersionSizeProblem),
     VersionStringUtf8Error(std::string::FromUtf8Error),
     UnknownVersionString(String),
 }
 
-impl Error for IndexParseError {
+impl Error for VersionParseError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        if let IndexParseError::VersionStringUtf8Error(from_utf8_error) = self {
+        if let VersionParseError::VersionStringUtf8Error(from_utf8_error) = self {
             Some(from_utf8_error)
         } else {
             None
@@ -75,14 +75,14 @@ impl Error for IndexParseError {
     }
 }
 
-impl fmt::Display for IndexParseError {
+impl fmt::Display for VersionParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc: String = match self {
-            IndexParseError::FileTooShort => {
+            VersionParseError::FileTooShort => {
                 "Index file too short; could not find a version string.".to_string()
             }
 
-            IndexParseError::BadVersionSize(size, problem) => format!(
+            VersionParseError::BadVersionSize(size, problem) => format!(
                 "Version size `{}` is too {}; this isn't a valid index file.",
                 size,
                 {
@@ -93,16 +93,16 @@ impl fmt::Display for IndexParseError {
                     }
                 }
             ),
-            IndexParseError::VersionStringUtf8Error(e) => format!(
+            VersionParseError::VersionStringUtf8Error(e) => format!(
                 "Could not parse version string as valid UTF8, got:\n{:?}",
                 e.as_bytes()
             ),
-            IndexParseError::UnknownVersionString(string) => {
+            VersionParseError::UnknownVersionString(string) => {
                 format!("Unknown index version `{}` found", string)
             }
         };
 
-        write!(f, "Could not parse index: {}", desc)
+        write!(f, "{}", desc)
     }
 }
 
@@ -128,7 +128,7 @@ mod tests {
         let badstring = "bad index".as_bytes();
         let err = parse_index_version(badstring).unwrap_err();
         assert!(
-            err == IndexParseError::BadVersionSize(7089057378828444773, VersionSizeProblem::Long),
+            err == VersionParseError::BadVersionSize(7089057378828444773, VersionSizeProblem::Long),
             "Bad error type, found {:?}",
             err
         );

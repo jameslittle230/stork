@@ -25,11 +25,11 @@ extern "C" {
 pub fn wasm_search(index: &IndexFromFile, query: String) -> String {
     console_error_panic_hook::set_once();
     let search_result = search(index, query)
-        .and_then(|output| serde_json::to_string(&output).map_err(|_e| SearchError {}));
+        .and_then(|output| serde_json::to_string(&output).map_err(|_e| SearchError::JSONSerializationError));
 
     match search_result {
         Ok(string) => string,
-        Err(_e) => "{error: 'Could not perform search.'}".to_string(),
+        Err(e) => format!("{{error: '{}'}}", e).to_string(),
     }
 }
 

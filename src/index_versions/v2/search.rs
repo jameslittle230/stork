@@ -210,7 +210,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 }
 
 pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
-    std::panic::catch_unwind(|| internal_search(index, query)).map_err(|_e| SearchError {})
+    std::panic::catch_unwind(|| internal_search(index, query)).map_err(|_e| SearchError::InternalCrash)
 }
 
 pub fn internal_search(index: &IndexFromFile, query: &str) -> SearchOutput {

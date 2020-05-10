@@ -84,9 +84,7 @@ fn search_handler(args: &[String]) {
                 end_time.duration_since(read_time).as_secs_f32(),
                 end_time.duration_since(start_time).as_secs_f32()
             );
-        },
-        Err(_e) => {
-            eprintln!("Error performing search.")
         }
+        Err(e) => eprintln!("Error performing search: {}", e),
     }
 }
