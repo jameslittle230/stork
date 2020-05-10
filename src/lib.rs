@@ -24,8 +24,9 @@ extern "C" {
 #[wasm_bindgen]
 pub fn wasm_search(index: &IndexFromFile, query: String) -> String {
     console_error_panic_hook::set_once();
-    let search_result = search(index, query)
-        .and_then(|output| serde_json::to_string(&output).map_err(|_e| SearchError::JSONSerializationError));
+    let search_result = search(index, query).and_then(|output| {
+        serde_json::to_string(&output).map_err(|_e| SearchError::JSONSerializationError)
+    });
 
     match search_result {
         Ok(string) => string,
@@ -52,8 +53,4 @@ pub fn search(
 
 pub fn build(config: &Config) -> Index {
     builder::build(config)
-}
-
-pub fn write(config: &Config, index: Index) -> usize {
-    index.write(config)
 }

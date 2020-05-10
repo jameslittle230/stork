@@ -38,7 +38,7 @@ fn build_handler(args: &[String]) {
     let config = Config::from_file(std::path::PathBuf::from(&args[2]));
     let index = stork::build(&config);
     let build_time = Instant::now();
-    let bytes_written = stork::write(&config, index);
+    let bytes_written = index.write(&config);
     let end_time = Instant::now();
     println!(
         "Index built, {} bytes written to {}. {}\n\t{:.3?}s to build index\n\t{:.3?}s to write file\n\t{:.3?}s total",

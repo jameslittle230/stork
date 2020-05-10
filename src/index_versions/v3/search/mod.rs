@@ -1,8 +1,8 @@
 use super::scores::*;
 use super::structs::*;
-use crate::searcher::*;
 use crate::common::{IndexFromFile, STOPWORDS};
 use crate::config::TitleBoost;
+use crate::searcher::*;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
