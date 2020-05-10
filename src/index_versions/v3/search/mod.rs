@@ -305,7 +305,7 @@ mod tests {
     use std::fs;
     use std::io::{BufReader, Read};
     #[test]
-    fn e2e_search_works() {
+    fn e2e_v3_search_works() {
         let file = fs::File::open("./test-assets/federalist-min-1.0.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
