@@ -20,7 +20,7 @@ times = []
 for i in range(10):
     completed_process = subprocess.run(
         ["cargo", "run", "--", "--search", "./dist/federalist.st", "liber old world"], capture_output=True)
-    time_string = completed_process.stdout.splitlines(
+    time_string = completed_process.stderr.splitlines(
     )[-1].decode('utf-8').split(' ')[-2].split('s')[0]
     times.append(float(time_string))
 
