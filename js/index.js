@@ -158,10 +158,19 @@ function performSearch(name) {
       // Mutate the result URL, like we do when there's a url prefix or suffix
       const urlPrefix = results.url_prefix || "";
       entities[name].results.map(r => {
-        const urlSuffix = r.excerpts[0]
-          ? r.excerpts[0].internal_annotations[0]["a"] || ""
-          : "";
-        r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix}`;
+        const urlSuffix = () => {
+          if (r.excerpts[0]) {
+            if (r.excerpts[0].internal_annotations) {
+              if (r.excerpts[0].internal_annotations[0]) {
+                if (r.excerpts[0].internal_annotations[0]["a"]) {
+                  return r.excerpts[0].internal_annotations[0]["a"];
+                }
+              }
+            }
+          }
+          return "";
+        };
+        r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix()}`;
       });
 
       updateDom(name);

@@ -33,13 +33,37 @@
     <div class="search-wrap">
       <div class="stork-wrapper">
         <p class="subtitle">Local index</p>
-        <input data-stork="threeblue" placeholder="liberty" class="stork-input"></input>
+        <input data-stork="federalist" placeholder="liberty" class="stork-input"></input>
+        <div data-stork="federalist-output" class="stork-output"></div>
+      </div>
+      
+      <div class="stork-wrapper">
+        <p class="subtitle">Uploaded Index</p>
+        <input data-stork="federalist-prod" placeholder="liberty" class="stork-input"></input>
+        <div data-stork="federalist-prod-output" class="stork-output"></div>
+      </div>
+
+      <div class="stork-wrapper">
+        <p class="subtitle">3Blue1Brown</p>
+        <input data-stork="threeblue" placeholder="derivative" class="stork-input"></input>
         <div data-stork="threeblue-output" class="stork-output"></div>
       </div>
     </div>
 
     <script src="/stork.js"></script>
     <script>
+      stork.register("federalist", "/federalist.st", {
+        showProgress: true,
+        showScores: true,
+        printIndexInfo: true
+      });
+      
+      stork.register("federalist-prod", "https://files.stork-search.net/federalist.st", {
+        showProgress: true,
+        showScores: false,
+        printIndexInfo: true
+      });
+      
       stork.register("threeblue", "/3b1b.st", {
         showProgress: true,
         showScores: true,
