@@ -146,6 +146,6 @@ mod tests {
 
     #[test]
     fn can_get_version_of_1_0_0_index() {
-        validate_version!("./test-assets/federalist-min-1.0.0.st", IndexVersion::V3);
+        validate_version!("./test-assets/federalist-min-0.7.0.st", IndexVersion::V3);
     }
 }
