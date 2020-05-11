@@ -20,7 +20,7 @@ impl Index {
     fn write_release(&self, bufwriter: &mut BufWriter<File>, write_version: &[u8]) -> usize {
         let mut bytes_written: usize = 0;
 
-        let index_bytes = serde_cbor::ser::to_vec_packed(self).unwrap();
+        let index_bytes = rmp_serde::to_vec(self).unwrap();
 
         let byte_vectors_to_write = [write_version, index_bytes.as_slice()];
 
