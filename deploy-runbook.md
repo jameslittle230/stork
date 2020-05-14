@@ -4,7 +4,7 @@
 1. Bump the version in package.json and Cargo.toml
 1. Commit the version bump to master and push
 1. Make sure `master` passes
-1. Prepare documentation, changelog, stats and roadmap on stork-site
+1. Prepare documentation and stats on stork-site
 
 ## Build
 1. Run `$ yarn build:prod`
