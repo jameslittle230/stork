@@ -2,8 +2,9 @@
 
 An impossibly fast web search solution.
 
-![Codecov](https://img.shields.io/codecov/c/gh/jameslittle230/stork)
-![Travis (.com)](https://img.shields.io/travis/com/jameslittle230/stork)
+[![Crates.io](https://img.shields.io/crates/v/stork-search)](https://crates.io/crates/stork-search)
+[![Codecov](https://img.shields.io/codecov/c/gh/jameslittle230/stork)](https://codecov.io/gh/jameslittle230/stork)
+[![Travis (.com)](https://img.shields.io/travis/com/jameslittle230/stork)](https://travis-ci.com/github/jameslittle230/stork)
 
 Stork is two things. First, it's an indexer: it turns your loosely-structured content and builds a search index from that content. Second, it's a Javascript + WebAssembly frontend for that index; Stork will download the index, search through it, and display the best results immediately to your user, as they type. The precomputed index and WebAssembly frontend module make the entire Stork engine very good, and _very_ fast.
 
