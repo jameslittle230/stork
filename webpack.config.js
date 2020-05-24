@@ -5,14 +5,16 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const dist = path.resolve(__dirname, "dist");
 
 module.exports = {
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"]
+  },
   entry: {
     index: "./js/index.js"
   },
   output: {
     path: dist,
     filename: "stork.js",
-    library: "stork",
-    chunkFilename: "storkmodule-[id].js"
+    library: "stork"
   },
   plugins: [
     new CleanWebpackPlugin(),
@@ -39,12 +41,14 @@ module.exports = {
   ],
   module: {
     rules: [
-      {
-        enforce: "pre",
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loader: "eslint-loader"
-      },
+      { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+      { test: /\.js$/, loader: "source-map-loader" },
+      // {
+      //   enforce: "pre",
+      //   test: /\.js$/,
+      //   exclude: /node_modules/,
+      //   loader: "eslint-loader"
+      // },
       {
         test: /\.js$/,
         loader: require.resolve("@open-wc/webpack-import-meta-loader"),

@@ -36,7 +36,6 @@
   },
   "scripts": {
     "dev": "yarn build:wasm:dev && yarn build:test-index && yarn build:js:dev",
-
     "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev",
     "build:wasm:prod": "wasm-pack build --target web --out-name stork",
     "build:test-index:federalist": "cargo run -- --build test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist",
@@ -44,10 +43,13 @@
     "build:js": "echo 'You probably meant build:js:dev or build:js:prod'",
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
-    
     "build:prod": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
-    
     "lint": "yarn eslint js/*",
     "serve": "yarn http-server ./dist -o -p 8025 -s -c-1"
+  },
+  "dependencies": {
+    "awesome-typescript-loader": "^5.2.1",
+    "source-map-loader": "^0.2.4",
+    "typescript": "^3.9.3"
   }
 }
