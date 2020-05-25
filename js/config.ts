@@ -1,5 +1,3 @@
-import { assert } from "./util";
-
 export interface Configuration {
   showProgress: boolean;
   printIndexInfo: boolean;

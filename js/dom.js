@@ -1,5 +1,3 @@
-declare var document;
-
 export function create(name, attributes) {
   const elem = document.createElement(name);
   if (attributes.classNames) {

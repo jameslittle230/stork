@@ -31,7 +31,12 @@ module.exports = {
           flatten: true
         },
         {
-          from: path.resolve(__dirname, "test", "*.st"),
+          from: path.resolve(__dirname, "test", "3b1b.st"),
+          to: ".",
+          flatten: true
+        },
+        {
+          from: path.resolve(__dirname, "test", "federalist.st"),
           to: ".",
           flatten: true
         }
@@ -41,7 +46,7 @@ module.exports = {
   ],
   module: {
     rules: [
-      { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+      { test: /\.ts?$/, loader: "awesome-typescript-loader" },
       { test: /\.js$/, loader: "source-map-loader" },
       // {
       //   enforce: "pre",
