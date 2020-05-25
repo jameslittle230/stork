@@ -13,7 +13,7 @@ const defaultConfig: Readonly<Configuration> = {
 };
 
 function assertValidConfigurationKey(
-  key: any
+  key: string
 ): asserts key is keyof Configuration {
   if (!(key in defaultConfig)) {
     throw new Error();
@@ -26,7 +26,7 @@ export function calculateOverriddenConfig(
 ): Configuration {
   const output: Configuration = defaultConfig;
 
-  Object.keys(overrides).forEach((key: any) => {
+  Object.keys(overrides).forEach((key: string) => {
     try {
       assertValidConfigurationKey(key);
     } catch (error) {

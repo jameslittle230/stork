@@ -20,10 +20,12 @@
   "homepage": "https://stork-search.net",
   "devDependencies": {
     "@open-wc/webpack-import-meta-loader": "^0.4.1",
+    "@typescript-eslint/eslint-plugin": "^3.0.0",
+    "@typescript-eslint/parser": "^3.0.0",
     "@wasm-tool/wasm-pack-plugin": "^1.2.0",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.1.1",
-    "eslint": "^6.1.0",
+    "eslint": "^7.1.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
     "eslint-loader": "^3.0.3",
