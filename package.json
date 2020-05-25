@@ -25,7 +25,7 @@
     "@wasm-tool/wasm-pack-plugin": "^1.2.0",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.1.1",
-    "eslint": "^7.1.0",
+    "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
     "eslint-loader": "^3.0.3",
@@ -52,6 +52,11 @@
   "dependencies": {
     "awesome-typescript-loader": "^5.2.1",
     "source-map-loader": "^0.2.4",
-    "typescript": "^3.9.3"
-  }
+    "typescript": "~3.7.0"
+  },
+  "//": [
+    "typescript-estree only supports typescript <3.8.0 as of 2020-05-25. Upgrade the version if possible:",
+    "https://www.npmjs.com/package/typescript",
+    "https://github.com/typescript-eslint/typescript-eslint/issues/1436"
+  ]
 }
