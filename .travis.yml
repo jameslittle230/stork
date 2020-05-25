@@ -14,7 +14,6 @@ jobs:
     - yarn install
     script:
     - yarn eslint js/*
-    - yarn build:js:prod
 
   - language: rust
     rust: stable
