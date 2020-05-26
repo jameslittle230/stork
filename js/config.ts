@@ -10,29 +10,17 @@ const defaultConfig: Readonly<Configuration> = {
   showScores: false
 };
 
-function assertValidConfigurationKey(
-  key: string
-): asserts key is keyof Configuration {
-  if (!(key in defaultConfig)) {
-    throw new Error();
-  }
-}
-
 export function calculateOverriddenConfig(
-  original: Configuration,
   overrides: Partial<Configuration>
 ): Configuration {
   const output: Configuration = defaultConfig;
 
-  Object.keys(overrides).forEach((key: string) => {
-    try {
-      assertValidConfigurationKey(key);
-    } catch (error) {
-      return;
+  for (const key of Object.keys(defaultConfig) as Array<keyof Configuration>) {
+    if (overrides[key]) {
+      const overrideVal = overrides[key] as boolean;
+      output[key] = overrideVal;
     }
-
-    output[key] = overrides[key] || output[key];
-  });
+  }
 
   return output;
 }

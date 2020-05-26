@@ -71,7 +71,8 @@
   border-bottom: 1px solid hsla(0, 0%, 90%, 1);
 }
 
-.stork-result:hover {
+.stork-result:hover,
+.stork-result.selected {
   background: rgb(151, 226, 245);
 }
 

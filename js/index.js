@@ -5,10 +5,10 @@ import init, {
   get_index_version as getIndexVersion
 } from "../pkg/stork";
 
-import { create, add, clear, setText } from "./dom";
 import WasmQueue from "./wasmqueue";
+import { Entity } from "./entity";
+import { loadIndexFromUrl } from "./indexLoader";
 
-import { generateScoresListItem, generateListItem } from "./pencil";
 import { defaultConfig, calculateOverriddenConfig } from "./config";
 
 const prod = process.env.NODE_ENV === "production";
@@ -23,87 +23,6 @@ init(wasmUrl).then(() => {
   wasmQueue.loaded = true;
   wasmQueue.handleWasmLoad();
 });
-
-function updateDom(name) {
-  if (!name) {
-    throw new Error("No name in updateDom call");
-  }
-
-  const entity = entities[name];
-
-  if (entity.config.showProgress && entity.progress < 1) {
-    if (!entity.elements.progress) {
-      entity.elements.progress = create("div", {
-        classNames: ["stork-loader"]
-      });
-
-      add(entity.elements.progress, "afterend", entity.elements.input);
-    }
-
-    entity.elements.progress.style.width = `${entity.progress * 100}%`;
-  } else if (entity.elements.progress) {
-    entity.elements.progress.style.width = `${entity.progress * 100}%`;
-    entity.elements.progress.style.opacity = 0;
-  }
-
-  let message = "";
-
-  if (entity.progress < 1) {
-    message = "Loading...";
-  } else if (entity.query && entity.query.length < 3) {
-    message = "...";
-  } else if (entity.results) {
-    const l = entity.hitCount;
-    if (l === 0) {
-      message = "No files found.";
-    } else if (l === 1) {
-      message = "1 file found.";
-    } else {
-      message = `${l} files found.`;
-    }
-  }
-
-  if (!entity.elements.message) {
-    entity.elements.message = create("div", {
-      classNames: ["stork-message"]
-    });
-    add(entity.elements.message, "afterBegin", entity.elements.output);
-  }
-
-  setText(entity.elements.message, message);
-
-  if (entity.results) {
-    if (entity.results.length > 0) {
-      if (!entity.elements.list) {
-        entity.elements.list = create("ul", {
-          classNames: ["stork-results"]
-        });
-        add(entity.elements.list, "beforeEnd", entity.elements.output);
-      }
-
-      clear(entity.elements.list);
-
-      entity.results.forEach(result => {
-        const listItem = entity.config.showScores
-          ? generateScoresListItem(result)
-          : generateListItem(result);
-        entity.elements.list.insertAdjacentHTML("beforeEnd", listItem);
-      });
-    } else if (entity.elements.list) {
-      entity.elements.output.removeChild(entity.elements.list);
-      entity.elements.list = null;
-    }
-  }
-
-  if (!entity.query || entity.query.length === 0) {
-    entity.elements.message = null;
-    entity.elements.list = null;
-    clear(entity.elements.output);
-    entity.elements.output.classList.remove("stork-output-visible");
-  } else {
-    entity.elements.output.classList.add("stork-output-visible");
-  }
-}
 
 async function resolveSearch(index, query) {
   if (!wasmQueue.loaded) {
@@ -127,7 +46,50 @@ function handleInputEvent(event) {
     performSearch(name);
   }
 
-  updateDom(name);
+  entities[name].render();
+}
+
+/**
+ * Handle non-input keypresses for the input field, e.g. arrow keys.
+ * (keypress event doesn't work here)
+ */
+function handleKeyDownEvent(event) {
+  console.log(event);
+  const LEFT = 37;
+  const UP = 38;
+  const RIGHT = 39;
+  const DOWN = 40;
+  const RETURN = 13;
+
+  const name = event.target.getAttribute("data-stork");
+  const entity = entities[name];
+
+  const resultNodeArray = Array.from(
+    entity.elements.list ? entity.elements.list.childNodes : []
+  ).filter(n => n.className == "stork-result");
+
+  switch (event.keyCode) {
+    case DOWN:
+      entity.changeHighlightedResult(+1);
+      break;
+
+    case UP:
+      entity.changeHighlightedResult(-1);
+      break;
+
+    case RETURN:
+      Array.from(resultNodeArray[entity.highlightedResult].childNodes)
+        .filter(n => n.href)[0] // get the `a` element
+        .click();
+
+      break;
+
+    default:
+      return;
+  }
+
+  console.log(entities[name]);
+  entities[name].render();
 }
 
 function performSearch(name) {
@@ -173,27 +135,26 @@ function performSearch(name) {
         r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix()}`;
       });
 
-      updateDom(name);
+      entities[name].render();
     });
   } else {
     entities[name].results = [];
-    updateDom(name);
+    entities[name].render();
   }
 }
 
-function handleDownloadProgress(event, name) {
-  const loadedPercentage = event.loaded / event.total;
-  entities[name].progress = loadedPercentage;
-  if (entities[name].config.showProgress) {
-    updateDom(name);
+function handleDownloadProgress(percentage, entity) {
+  entity.progress = percentage;
+  if (entity.config.showProgress) {
+    entity.render();
   }
 }
 
-function handleLoadedIndex(event, name) {
+function handleLoadedIndex(event, entity) {
   const { response } = event.target;
-  entities[name].progress = 1;
-  entities[name].index = new Uint8Array(response);
-  entities[name].indexSize = response.byteLength;
+  entity.progress = 1;
+  entity.index = new Uint8Array(response);
+  entity.indexSize = response.byteLength;
 
   wasmQueue.runAfterWasmLoaded(() => {
     Object.keys(entities).forEach(key => {
@@ -201,66 +162,38 @@ function handleLoadedIndex(event, name) {
     });
   });
 
-  wasmQueue.runAfterWasmLoaded(() => {
-    if (entities[name].config.printIndexInfo) {
+  if (entity.config.printIndexInfo) {
+    wasmQueue.runAfterWasmLoaded(() => {
       // eslint-disable-next-line no-console
       console.log({
-        name,
-        sizeInBytes: entities[name].indexSize,
-        indexVersion: getIndexVersion(entities[name].index)
+        name: entity.name,
+        sizeInBytes: entity.indexSize,
+        indexVersion: getIndexVersion(entity.index)
       });
-    }
-  });
-}
-
-function loadIndexFromUrl(name, url, callbacks) {
-  const r = new XMLHttpRequest();
-  r.addEventListener("load", e => {
-    if (callbacks.load) {
-      callbacks.load(e, name);
-    }
-  });
-  r.addEventListener("progress", e => {
-    if (callbacks.progress) {
-      callbacks.progress(e, name);
-    }
-  });
-  r.responseType = "arraybuffer";
-  r.open("GET", url);
-  r.send();
+    });
+  }
 }
 
 export function register(name, url, config = {}) {
-  const configOverride = calculateOverriddenConfig(defaultConfig, config);
+  // assert that name is a string, url is a string, and config is a Partial<Configuration>
 
-  entities[name] = { config: configOverride, elements: {} };
+  let entity = new Entity(name, url, config);
+  entities[name] = entity;
 
-  loadIndexFromUrl(name, url, {
-    load: (event, indexName) => {
-      handleLoadedIndex(event, indexName);
-    },
+  loadIndexFromUrl(entity, url, {
+    load: handleLoadedIndex,
     progress: handleDownloadProgress
   });
 
-  entities[name].elements.input = document.querySelector(
-    `input[data-stork=${name}]`
-  );
-  entities[name].elements.output = document.querySelector(
-    `[data-stork=${name}-output]`
-  );
-
-  [
-    { value: entities[name].elements.input, name: "input element" },
-    { value: entities[name].elements.output, name: "output element" }
-  ].forEach(element => {
-    if (!element.value) {
-      throw new Error(
-        `Could not register search box "${name}": ${element.name} not found.`
-      );
-    }
-  });
-
   entities[name].elements.input.addEventListener("input", handleInputEvent);
+  entities[name].elements.input.addEventListener(
+    /**
+     * Handle non-input keypresses for the input field, e.g. arrow keys.
+     * (keypress event doesn't work here)
+     */
+    "keydown",
+    handleKeyDownEvent
+  );
 }
 
 export default {

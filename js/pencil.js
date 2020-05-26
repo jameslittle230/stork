@@ -25,46 +25,26 @@ function highlight(text, highlight_ranges) {
   return text;
 }
 
-export function generateListItem(r) {
+export function generateListItem(options) {
   return `
-<li class="stork-result">
-    <a href="${r.entry.url}">
-        <p class="stork-title">${highlight(
-          r.entry.title,
-          r.title_highlight_ranges
-        )}</p>
-        ${r.excerpts
-          .map(
-            e => `<p class="stork-excerpt">
-          ...${highlight(e.text, e.highlight_ranges)}...
-          </p>`
-          )
-          .join("")}
-    </a>
-</li>`;
-}
-
-export function generateScoresListItem(r) {
-  return `
-<li class="stork-result">
-    <a href="${r.entry.url}">
-      <div style="display: flex; justify-content: space-between">
-        <p class="stork-title">${highlight(
-          r.entry.title,
-          r.title_highlight_ranges
-        )}</p>
-        <code><b>${r.score}</b></code>
-      </div>
-        ${r.excerpts
-          .map(
-            e => `<div style="display: flex; justify-content: space-between">
-              <p class="stork-excerpt">
-                ...${highlight(e.text, e.highlight_ranges)}...
-              </p>
-              <code>${e.score}</code>
-            </div>`
-          )
-          .join("")}
-    </a>
+<li class="stork-result${options.selected ? " selected" : ""}">
+  <a href="${options.result.entry.url}">
+    <div style="display: flex; justify-content: space-between">
+      <p class="stork-title">${highlight(
+        options.result.entry.title,
+        options.result.title_highlight_ranges
+      )}</p>
+      ${options.showScores ? `<code><b>${options.result.score}</b></code>` : ""}
+    </div>
+      ${options.result.excerpts
+        .map(
+          e => `<div style="display: flex; justify-content: space-between"><p class="stork-excerpt">
+        ...${highlight(e.text, e.highlight_ranges)}...
+        </p>
+        ${options.showScores ? `<code>${e.score}</code>` : ""}
+        </div>`
+        )
+        .join("")}
+  </a>
 </li>`;
 }
