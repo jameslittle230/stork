@@ -5,6 +5,7 @@ node_modules
 /target
 /pkg
 /wasm-pack.log
+coverage
 
 scripts/*_exe.sh
 test/federalist/*.txt

@@ -4,7 +4,7 @@ export interface Configuration {
   showScores: boolean;
 }
 
-const defaultConfig: Readonly<Configuration> = {
+export const defaultConfig: Readonly<Configuration> = {
   showProgress: true,
   printIndexInfo: false,
   showScores: false
@@ -16,7 +16,7 @@ export function calculateOverriddenConfig(
   const output: Configuration = defaultConfig;
 
   for (const key of Object.keys(defaultConfig) as Array<keyof Configuration>) {
-    if (overrides[key]) {
+    if (overrides[key] !== undefined) {
       const overrideVal = overrides[key] as boolean;
       output[key] = overrideVal;
     }

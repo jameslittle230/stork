@@ -8,8 +8,8 @@ import init, {
 import WasmQueue from "./wasmqueue";
 import { Entity } from "./entity";
 import { loadIndexFromUrl } from "./indexLoader";
-
-import { defaultConfig, calculateOverriddenConfig } from "./config";
+import { assert } from "./util";
+import { defaultConfig } from "./config";
 
 const prod = process.env.NODE_ENV === "production";
 const wasmUrl = prod
@@ -174,8 +174,33 @@ function handleLoadedIndex(event, entity) {
   }
 }
 
+function difference(arr1, arr2) {
+  const set1 = new Set(arr1);
+  const set2 = new Set(arr2);
+  const diff = new Set([...set1].filter(x => !set2.has(x)));
+  return diff;
+}
+
 export function register(name, url, config = {}) {
-  // assert that name is a string, url is a string, and config is a Partial<Configuration>
+  if (typeof name !== "string") {
+    throw new Error("Index registration name must be a string.");
+  }
+
+  if (typeof url !== "string") {
+    throw new Error("URL must be a string.");
+  }
+
+  let configKeyDiff = difference(
+    Object.keys(config),
+    Object.keys(defaultConfig)
+  );
+  if (configKeyDiff.size > 0) {
+    throw new Error(
+      `Invalid key${
+        configKeyDiff > 1 ? "s" : ""
+      } in config object: ${JSON.stringify(Array.from(configKeyDiff))}`
+    );
+  }
 
   let entity = new Entity(name, url, config);
   entities[name] = entity;
