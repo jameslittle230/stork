@@ -16,7 +16,7 @@ export function calculateOverriddenConfig(
   const output: Configuration = defaultConfig;
 
   for (const key of Object.keys(defaultConfig) as Array<keyof Configuration>) {
-    if (overrides[key]) {
+    if (overrides[key] !== undefined) {
       const overrideVal = overrides[key] as boolean;
       output[key] = overrideVal;
     }

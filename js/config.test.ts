@@ -7,7 +7,7 @@ test("correctly overrides default config", () => {
     showScores: true
   };
 
-  const generated = calculateOverriddenConfig(defaultConfig, {
+  const generated = calculateOverriddenConfig({
     showScores: true
   });
 
