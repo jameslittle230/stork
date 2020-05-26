@@ -10,14 +10,6 @@ const defaultConfig: Readonly<Configuration> = {
   showScores: false
 };
 
-function assertValidConfigurationKey(
-  key: string
-): asserts key is keyof Configuration {
-  if (!(key in defaultConfig)) {
-    throw new Error();
-  }
-}
-
 export function calculateOverriddenConfig(
   overrides: Partial<Configuration>
 ): Configuration {
