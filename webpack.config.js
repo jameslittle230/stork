@@ -16,6 +16,7 @@ module.exports = {
     filename: "stork.js",
     library: "stork"
   },
+  devtool: "inline-source-map",
   plugins: [
     new CleanWebpackPlugin(),
     new CopyPlugin(
@@ -48,12 +49,6 @@ module.exports = {
     rules: [
       { test: /\.ts?$/, loader: "awesome-typescript-loader" },
       { test: /\.js$/, loader: "source-map-loader" },
-      // {
-      //   enforce: "pre",
-      //   test: /\.js$/,
-      //   exclude: /node_modules/,
-      //   loader: "eslint-loader"
-      // },
       {
         test: /\.js$/,
         loader: require.resolve("@open-wc/webpack-import-meta-loader"),
