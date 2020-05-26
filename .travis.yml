@@ -14,6 +14,9 @@ jobs:
     - yarn install
     script:
     - yarn eslint js/*
+    - yarn test --coverage
+    after_success: |
+      bash <(curl -s https://codecov.io/bash) -cF javascript
 
   - language: rust
     rust: stable
