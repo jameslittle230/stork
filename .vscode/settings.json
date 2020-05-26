@@ -1,9 +1,10 @@
 {
-    "search.exclude": {
-        "archive": true
-    },
-    "files.watcherExclude": {
-        "archive": true
-    },
-    "python.pythonPath": "/usr/local/bin/python3"
+  "search.exclude": {
+    "archive": true
+  },
+  "files.watcherExclude": {
+    "archive": true
+  },
+  "typescript.suggest.completeFunctionCalls": true,
+  "javascript.implicitProjectConfig.checkJs": true
 }
