@@ -4,7 +4,7 @@ export interface Configuration {
   showScores: boolean;
 }
 
-const defaultConfig: Readonly<Configuration> = {
+export const defaultConfig: Readonly<Configuration> = {
   showProgress: true,
   printIndexInfo: false,
   showScores: false
