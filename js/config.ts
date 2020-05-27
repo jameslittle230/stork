@@ -2,6 +2,7 @@ export interface Configuration {
   showProgress: boolean;
   printIndexInfo: boolean;
   showScores: boolean;
+  onQueryUpdate?: (query: string, results: unknown) => void;
 }
 
 export const defaultConfig: Readonly<Configuration> = {
