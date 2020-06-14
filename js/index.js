@@ -60,13 +60,16 @@ function handleKeyDownEvent(event) {
   const DOWN = 40;
   const RETURN = 13;
   const SPACE = 32;
-
-  if (![LEFT, UP, RIGHT, DOWN, RETURN].includes(event.keyCode)) {
-    return;
-  }
+  const ESC = 27;
 
   const name = event.target.getAttribute("data-stork");
   const entity = entities[name];
+
+  if (![LEFT, UP, RIGHT, DOWN, RETURN, ESC].includes(event.keyCode)) {
+    console.log(entity.resultsVisible);
+    entity.setResultsVisible(true);
+    return;
+  }
 
   const resultNodeArray = Array.from(
     entity.elements.list ? entity.elements.list.childNodes : []
@@ -86,6 +89,8 @@ function handleKeyDownEvent(event) {
         .filter(n => n.href)[0] // get the `a` element
         .click();
 
+    case ESC:
+      entity.setResultsVisible(false);
       break;
 
     default:

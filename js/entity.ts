@@ -40,6 +40,7 @@ export class Entity {
   progress = 0;
   hitCount = 0;
   query = "";
+  resultsVisible = false;
   hoverSelectEnabled = true;
 
   // render options
@@ -84,6 +85,15 @@ export class Entity {
     }
 
     return null;
+  }
+
+  setResultsVisible(val: boolean): void {
+    const prev = this.resultsVisible;
+    this.resultsVisible = val;
+
+    if (val !== prev) {
+      this.render();
+    }
   }
 
   changeHighlightedResult(options: {
@@ -189,7 +199,7 @@ export class Entity {
     setText(this.elements.message, message);
 
     // Render results
-    if (this.results?.length > 0) {
+    if (this.results?.length > 0 && this.resultsVisible) {
       // Create list if it doesn't exist
       if (!this.elements.list) {
         this.elements.list = create("ul", {
@@ -236,7 +246,7 @@ export class Entity {
     }
 
     // Remove output's contents if there's no query
-    if (!this.query || this.query.length === 0) {
+    if (!this.query || this.query.length === 0 || !this.resultsVisible) {
       delete this.elements.message;
       delete this.elements.list;
       clear(this.elements.output);
