@@ -24,3 +24,13 @@ export function setText(elem, text) {
     elem.appendChild(textNode);
   }
 }
+
+export function existsBeyondContainerBounds(elem, container) {
+  var elemBoundingBox = elem.getBoundingClientRect();
+  var containerBoundingBox = container.getBoundingClientRect();
+
+  return (
+    elemBoundingBox.bottom > containerBoundingBox.bottom ||
+    elemBoundingBox.top < containerBoundingBox.top
+  );
+}
