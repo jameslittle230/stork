@@ -1,6 +1,12 @@
 import { Configuration, calculateOverriddenConfig } from "./config";
 import { assert, htmlToElement } from "./util";
-import { create, add, clear, setText } from "./dom";
+import {
+  create,
+  add,
+  clear,
+  setText,
+  existsBeyondContainerBounds
+} from "./dom";
 import { generateListItem } from "./pencil";
 
 interface Result {
@@ -16,6 +22,14 @@ interface ElementMap {
   message?: Element;
 }
 
+interface RenderOptions {
+  shouldScrollTo: boolean;
+}
+
+const defaultRenderOptions: RenderOptions = {
+  shouldScrollTo: false
+};
+
 export class Entity {
   name: string;
   url: string;
@@ -26,6 +40,8 @@ export class Entity {
   progress = 0;
   hitCount = 0;
   query = "";
+  resultsVisible = false;
+  hoverSelectEnabled = true;
 
   // render options
   scrollAnchorPoint: "start" | "end" = "end";
@@ -71,17 +87,79 @@ export class Entity {
     return null;
   }
 
-  changeHighlightedResult(delta: number): number {
+  setResultsVisible(val: boolean): void {
+    const prev = this.resultsVisible;
+    this.resultsVisible = val;
+
+    if (val !== prev) {
+      this.render();
+    }
+  }
+
+  changeHighlightedResult(options: {
+    by: number | null;
+    to: number | null;
+  }): number {
     const previousValue = this.highlightedResult;
 
-    const intendedIdx = this.highlightedResult + delta;
+    const intendedIdx = (() => {
+      if (typeof options.to === "number") {
+        return options.to;
+      } else if (typeof options.by === "number") {
+        return this.highlightedResult + options.by;
+      } else {
+        return 0;
+      }
+    })();
+
+    options.to !== null
+      ? options.to
+      : this.highlightedResult + (options.by || 0);
+
     const resolvedIdx = Math.max(
       0,
       Math.min(this.results.length - 1, intendedIdx)
     );
-    this.highlightedResult = resolvedIdx;
 
+    this.highlightedResult = resolvedIdx;
     this.scrollAnchorPoint = previousValue < resolvedIdx ? "end" : "start";
+
+    let targetForScrollTo = null;
+
+    for (let i = 0; i < this.results.length; i++) {
+      const element = this.elements.list?.children[i];
+      if (!element) {
+        continue;
+      }
+
+      const highlightedClassName = "selected";
+
+      if (i == resolvedIdx) {
+        element.classList.add(highlightedClassName);
+        targetForScrollTo = element;
+      } else {
+        element.classList.remove(highlightedClassName);
+      }
+    }
+
+    // using options.by as a proxy for keyboard selection
+    if (typeof options.by === "number") {
+      this.hoverSelectEnabled = false;
+      if (targetForScrollTo) {
+        if (
+          existsBeyondContainerBounds(
+            targetForScrollTo as HTMLElement,
+            this.elements.list
+          )
+        ) {
+          (targetForScrollTo as HTMLElement).scrollIntoView({
+            behavior: "smooth",
+            block: this.scrollAnchorPoint,
+            inline: "nearest"
+          });
+        }
+      }
+    }
 
     return resolvedIdx;
   }
@@ -121,7 +199,7 @@ export class Entity {
     setText(this.elements.message, message);
 
     // Render results
-    if (this.results?.length > 0) {
+    if (this.results?.length > 0 && this.resultsVisible) {
       // Create list if it doesn't exist
       if (!this.elements.list) {
         this.elements.list = create("ul", {
@@ -131,9 +209,11 @@ export class Entity {
       }
 
       clear(this.elements.list);
+      this.elements.list?.addEventListener("mousemove", event => {
+        this.hoverSelectEnabled = true;
+      });
 
       // Render each result
-      let targetForScrollTo: ChildNode | null = null;
       for (let i = 0; i < this.results.length; i++) {
         const result = this.results[i];
         const generateOptions = {
@@ -146,22 +226,19 @@ export class Entity {
           generateListItem(generateOptions)
         );
 
-        if (this.elements.list && elementToInsert) {
-          const insertedElement = this.elements.list.appendChild(
+        if (elementToInsert) {
+          const insertedElement = this.elements.list?.appendChild(
             elementToInsert
           );
-          if (i === this.highlightedResult) {
-            targetForScrollTo = insertedElement;
-          }
-        }
-      }
 
-      if (targetForScrollTo) {
-        (targetForScrollTo as HTMLElement).scrollIntoView({
-          behavior: "smooth",
-          block: this.scrollAnchorPoint,
-          inline: "nearest"
-        });
+          insertedElement?.addEventListener("mousemove", event => {
+            if (this.hoverSelectEnabled) {
+              if (i !== this.highlightedResult) {
+                this.changeHighlightedResult({ by: null, to: i });
+              }
+            }
+          });
+        }
       }
     } else if (this.elements.list) {
       this.elements.output.removeChild(this.elements.list);
@@ -169,7 +246,7 @@ export class Entity {
     }
 
     // Remove output's contents if there's no query
-    if (!this.query || this.query.length === 0) {
+    if (!this.query || this.query.length === 0 || !this.resultsVisible) {
       delete this.elements.message;
       delete this.elements.list;
       clear(this.elements.output);

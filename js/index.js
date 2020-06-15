@@ -54,15 +54,22 @@ function handleInputEvent(event) {
  * (keypress event doesn't work here)
  */
 function handleKeyDownEvent(event) {
-  console.log(event);
   const LEFT = 37;
   const UP = 38;
   const RIGHT = 39;
   const DOWN = 40;
   const RETURN = 13;
+  const SPACE = 32;
+  const ESC = 27;
 
   const name = event.target.getAttribute("data-stork");
   const entity = entities[name];
+
+  if (![LEFT, UP, RIGHT, DOWN, RETURN, ESC].includes(event.keyCode)) {
+    console.log(entity.resultsVisible);
+    entity.setResultsVisible(true);
+    return;
+  }
 
   const resultNodeArray = Array.from(
     entity.elements.list ? entity.elements.list.childNodes : []
@@ -70,11 +77,11 @@ function handleKeyDownEvent(event) {
 
   switch (event.keyCode) {
     case DOWN:
-      entity.changeHighlightedResult(+1);
+      entity.changeHighlightedResult({ by: +1 });
       break;
 
     case UP:
-      entity.changeHighlightedResult(-1);
+      entity.changeHighlightedResult({ by: -1 });
       break;
 
     case RETURN:
@@ -82,14 +89,13 @@ function handleKeyDownEvent(event) {
         .filter(n => n.href)[0] // get the `a` element
         .click();
 
+    case ESC:
+      entity.setResultsVisible(false);
       break;
 
     default:
       return;
   }
-
-  console.log(entities[name]);
-  entities[name].render();
 }
 
 function performSearch(name) {
@@ -116,6 +122,7 @@ function performSearch(name) {
 
       entities[name].results = results.results;
       entities[name].hitCount = results.total_hit_count;
+      entities[name].highlightedResult = 0;
 
       // Mutate the result URL, like we do when there's a url prefix or suffix
       const urlPrefix = results.url_prefix || "";
