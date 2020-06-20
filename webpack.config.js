@@ -47,7 +47,7 @@ module.exports = {
   ],
   module: {
     rules: [
-      { test: /\.ts?$/, loader: "awesome-typescript-loader" },
+      { test: /\.ts?$/, loader: "ts-loader" },
       { test: /\.js$/, loader: "source-map-loader" },
       {
         test: /\.js$/,
