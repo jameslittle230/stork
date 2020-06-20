@@ -33,7 +33,6 @@
     "eslint-loader": "^3.0.3",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-prettier": "^3.1.2",
-    "http-server": "^0.12.1",
     "jest": "^26.0.1",
     "prettier": "^2.0.1",
     "source-map-loader": "^0.2.4",
@@ -47,14 +46,14 @@
     "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev",
     "build:wasm:prod": "wasm-pack build --target web --out-name stork",
     "build:test-index:federalist": "cargo run -- --build test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist",
-    "build:test-index": "cargo run -- --build test/3b1b-config/3b1b.toml && cargo run -- --build test/3b1b-config/3b1b-debug.toml && mkdir -p dist && cp test/*.st dist",
+    "build:test-index:threeblue":  "cargo run -- --build test/3b1b-config/3b1b.toml && mkdir -p dist && cp test/*.st dist",
     "build:js": "echo 'You probably meant build:js:dev or build:js:prod'",
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
     "build:prod": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
     "lint": "yarn eslint js/*",
     "test": "jest",
-    "serve": "yarn http-server ./dist -o -p 8025 -s -c-1"
+    "serve": "python3 -m http.server --directory ./dist 8025"
   },
   "//": [
     "typescript-estree only supports typescript <3.8.0 as of 2020-05-25. Upgrade the version if possible:",
