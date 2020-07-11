@@ -9,7 +9,6 @@ const wasmQueue = loadWasm();
 const entityManager = new EntityManager(wasmQueue);
 
 export function register(name, url, config = {}) {
-  console.log(name);
   if (typeof name !== "string") {
     throw new Error("Index registration name must be a string.");
   }

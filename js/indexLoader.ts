@@ -31,7 +31,6 @@ export function loadIndexFromUrl(
   });
 
   if (callbacks.progress) {
-    console.log(entity);
     callbacks.progress(FAKE_PROGRESS_BUMP_ON_START, entity);
   }
 
