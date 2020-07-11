@@ -8,11 +8,8 @@ import {
   existsBeyondContainerBounds
 } from "./dom";
 import { generateListItem } from "./pencil";
-
-interface Result {
-  entry: unknown;
-  excerpts: Array<unknown>;
-}
+import { Result, SearchData, resolveSearch } from "./searchData";
+import WasmQueue from "./wasmQueue";
 
 interface ElementMap {
   input: Element;
@@ -22,19 +19,16 @@ interface ElementMap {
   message?: Element;
 }
 
-interface RenderOptions {
-  shouldScrollTo: boolean;
-}
-
-const defaultRenderOptions: RenderOptions = {
-  shouldScrollTo: false
-};
-
 export class Entity {
+  // immutable
   name: string;
   url: string;
   config: Configuration;
   elements: ElementMap;
+  index: Uint8Array;
+  wasmQueue: WasmQueue;
+
+  // mutable
   results: Array<Result> = [];
   highlightedResult = 0;
   progress = 0;
@@ -96,10 +90,12 @@ export class Entity {
     }
   }
 
-  changeHighlightedResult(options: {
-    by: number | null;
-    to: number | null;
-  }): number {
+  changeHighlightedResult(
+    options: Partial<{
+      by: number | null;
+      to: number | null;
+    }>
+  ): number {
     const previousValue = this.highlightedResult;
 
     const intendedIdx = (() => {
@@ -164,9 +160,31 @@ export class Entity {
     return resolvedIdx;
   }
 
+  injestSearchData(data: SearchData): void {
+    this.results = data.results;
+    this.hitCount = data.total_hit_count;
+    this.highlightedResult = 0;
+
+    // Mutate the result URL, like we do when there's a url prefix or suffix
+    const urlPrefix = data.url_prefix || "";
+    this.results.map(r => {
+      const urlSuffix = r.excerpts[0]?.internal_annotations[0]?.["a"] || "";
+      r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix}`;
+    });
+
+    this.render();
+  }
+
+  setDownloadProgress(percentage: number): void {
+    this.progress = percentage;
+    if (this.config.showProgress) {
+      this.render();
+    }
+  }
+
   /**
    * This method is inherently all side effects since it's manipulating the DOM,
-   * but the _only_ side effect should be manipulating the dom, there should be
+   * but the _only_ side effect should be manipulating the DOM, there should be
    * no other changes to the entity class.
    */
   render(): void {
@@ -209,7 +227,7 @@ export class Entity {
       }
 
       clear(this.elements.list);
-      this.elements.list?.addEventListener("mousemove", event => {
+      this.elements.list?.addEventListener("mousemove", () => {
         this.hoverSelectEnabled = true;
       });
 
@@ -231,7 +249,7 @@ export class Entity {
             elementToInsert
           );
 
-          insertedElement?.addEventListener("mousemove", event => {
+          insertedElement?.addEventListener("mousemove", () => {
             if (this.hoverSelectEnabled) {
               if (i !== this.highlightedResult) {
                 this.changeHighlightedResult({ by: null, to: i });
@@ -253,6 +271,89 @@ export class Entity {
       this.elements.output.classList.remove("stork-output-visible");
     } else {
       this.elements.output.classList.add("stork-output-visible");
+    }
+  }
+
+  handleInputEvent(event: Event): void {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const query = event.srcElement?.value;
+
+    this.query = query;
+
+    if (this.index) {
+      // eslint-disable-next-line no-use-before-define
+      this.performSearch();
+    }
+
+    this.render();
+  }
+
+  handleKeyDownEvent(event: KeyboardEvent): void {
+    const LEFT = 37;
+    const UP = 38;
+    const RIGHT = 39;
+    const DOWN = 40;
+    const RETURN = 13;
+    // const SPACE = 32;
+    const ESC = 27;
+
+    if (![LEFT, UP, RIGHT, DOWN, RETURN, ESC].includes(event.keyCode)) {
+      this.setResultsVisible(true);
+      return;
+    }
+
+    const resultNodeArray = Array.from(
+      this.elements.list?.childNodes || []
+    ).filter((n: HTMLElement) => n.className == "stork-result");
+
+    switch (event.keyCode) {
+      case DOWN:
+        this.changeHighlightedResult({ by: +1 });
+        break;
+
+      case UP:
+        this.changeHighlightedResult({ by: -1 });
+        break;
+
+      case RETURN:
+        (Array.from(resultNodeArray[this.highlightedResult].childNodes).filter(
+          (n: HTMLElement) => (n as HTMLAnchorElement).href
+        )[0] as HTMLAnchorElement).click();
+        break;
+
+      case ESC:
+        this.setResultsVisible(false);
+        break;
+
+      default:
+        return;
+    }
+  }
+
+  performSearch(): void {
+    if (!this.wasmQueue.loaded) {
+      return;
+    }
+
+    if (this.elements.input.nodeValue) {
+      this.query = this.elements.input.nodeValue;
+    }
+
+    const { query } = this;
+    if (query && query.length >= 3) {
+      resolveSearch(this.index, query).then((data: SearchData) => {
+        if (!data) return;
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(data);
+        }
+
+        this.injestSearchData(data);
+      });
+    } else {
+      this.results = [];
+      this.render();
     }
   }
 }

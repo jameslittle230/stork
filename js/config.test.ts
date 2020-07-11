@@ -1,4 +1,4 @@
-import { defaultConfig, calculateOverriddenConfig } from "./config";
+import { calculateOverriddenConfig } from "./config";
 
 test("correctly overrides default config", () => {
   const expected = {
