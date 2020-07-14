@@ -56,6 +56,13 @@
   color: rgba(0, 0, 0, 0.8);
 }
 
+.stork-attribution {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.8em;
+  color: rgba(0, 0, 0, 0.8);
+}
+
 .stork-results {
   margin: 0;
   padding: 0;
@@ -64,6 +71,7 @@
   max-height: 25rem;
   overflow-y: scroll;
   border-top: 1px solid hsla(0, 0%, 80%, 1);
+  border-bottom: 1px solid hsla(0, 0%, 80%, 1);
 }
 
 .stork-result {

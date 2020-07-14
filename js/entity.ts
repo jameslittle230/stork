@@ -17,6 +17,7 @@ interface ElementMap {
   progress?: HTMLElement;
   list?: Element;
   message?: Element;
+  attribution?: Element;
 }
 
 export class Entity {
@@ -258,6 +259,17 @@ export class Entity {
           });
         }
       }
+
+      if (!this.elements.attribution) {
+        this.elements.attribution = create("div", {
+          classNames: ["stork-attribution"]
+        });
+        if (this.elements.attribution) {
+          this.elements.attribution.innerHTML =
+            'Powered by <a href="https://stork-search.net">Stork</a>';
+        }
+        add(this.elements.attribution, "beforeEnd", this.elements.output);
+      }
     } else if (this.elements.list) {
       this.elements.output.removeChild(this.elements.list);
       delete this.elements.list;
@@ -266,6 +278,7 @@ export class Entity {
     // Remove output's contents if there's no query
     if (!this.query || this.query.length === 0 || !this.resultsVisible) {
       delete this.elements.message;
+      delete this.elements.attribution;
       delete this.elements.list;
       clear(this.elements.output);
       this.elements.output.classList.remove("stork-output-visible");
