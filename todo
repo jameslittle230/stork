@@ -1,0 +1,3 @@
+- [ ] Figure out why showScores = false is being overridden when one of the registered indexes has showScores = true
+- [ ] Bring progress bar back
+- [ ] Re-explore unit testing (now that I have a more modularized render method)

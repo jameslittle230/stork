@@ -1,86 +1,70 @@
 import { Configuration, calculateOverriddenConfig } from "./config";
-import { assert, htmlToElement } from "./util";
-import {
-  create,
-  add,
-  clear,
-  setText,
-  existsBeyondContainerBounds
-} from "./dom";
-import { generateListItem } from "./pencil";
 import { Result, SearchData, resolveSearch } from "./searchData";
 import WasmQueue from "./wasmQueue";
-
-interface ElementMap {
-  input: Element;
-  output: Element;
-  progress?: HTMLElement;
-  list?: Element;
-  message?: Element;
-  attribution?: Element;
-  closeButton?: Element;
-}
+import { EntityDom, RenderState } from "./entityDom";
 
 export class Entity {
-  // immutable
-  name: string;
-  url: string;
-  config: Configuration;
-  elements: ElementMap;
-  index: Uint8Array;
-  wasmQueue: WasmQueue;
+  readonly name: string;
+  readonly url: string;
+  readonly config: Configuration;
+  readonly wasmQueue: WasmQueue;
+  readonly domManager: EntityDom;
 
-  // mutable
+  index: Uint8Array;
   results: Array<Result> = [];
   highlightedResult = 0;
   progress = 0;
-  hitCount = 0;
-  query = "";
+  totalResultCount = 0;
+  // query = "";
   resultsVisible = false;
   hoverSelectEnabled = true;
 
-  // render options
-  scrollAnchorPoint: "start" | "end" = "end";
-
-  constructor(name: string, url: string, configIn: Partial<Configuration>) {
+  constructor(
+    name: string,
+    url: string,
+    configIn: Partial<Configuration>,
+    wasmQueue: WasmQueue
+  ) {
     this.name = name;
     this.url = url;
     this.config = calculateOverriddenConfig(configIn);
+    console.log(31, this.name, this.config);
+    this.wasmQueue = wasmQueue;
 
-    const input = document.querySelector(`input[data-stork=${name}]`);
-    const output = document.querySelector(`[data-stork=${name}-output]`);
-
-    assert(
-      input !== null,
-      `Could not register search box "${name}": input element not found`
-    );
-    assert(
-      output !== null,
-      `Could not register search box "${name}": input element not found`
-    );
-
-    this.elements = {
-      input: input,
-      output: output
-    };
+    this.domManager = new EntityDom(name, this);
   }
 
   private getCurrentMessage(): string | null {
+    const query = this.domManager.getQuery();
     if (this.progress < 1) {
       return "Loading...";
-    } else if (this.query && this.query.length < 3) {
-      return "...";
+    } else if (query.length < 3) {
+      return "Filtering...";
     } else if (this.results) {
-      if (this.hitCount === 0) {
+      if (this.totalResultCount === 0) {
         return "No files found.";
-      } else if (this.hitCount === 1) {
+      } else if (this.totalResultCount === 1) {
         return "1 file found.";
       } else {
-        return `${this.hitCount} files found.`;
+        return `${this.totalResultCount} files found.`;
       }
     }
 
     return null;
+  }
+
+  private generateRenderConfig(): RenderState {
+    console.log(56, "showscores", this.config.showScores, this)
+    return {
+      results: this.results,
+      resultsVisible: true,
+      showScores: this.config.showScores,
+      message: this.getCurrentMessage()
+    };
+  }
+
+  private render() {
+    this.domManager.render(this.generateRenderConfig());
   }
 
   setResultsVisible(val: boolean): void {
@@ -92,79 +76,9 @@ export class Entity {
     }
   }
 
-  changeHighlightedResult(
-    options: Partial<{
-      by: number | null;
-      to: number | null;
-    }>
-  ): number {
-    const previousValue = this.highlightedResult;
-
-    const intendedIdx = (() => {
-      if (typeof options.to === "number") {
-        return options.to;
-      } else if (typeof options.by === "number") {
-        return this.highlightedResult + options.by;
-      } else {
-        return 0;
-      }
-    })();
-
-    options.to !== null
-      ? options.to
-      : this.highlightedResult + (options.by || 0);
-
-    const resolvedIdx = Math.max(
-      0,
-      Math.min(this.results.length - 1, intendedIdx)
-    );
-
-    this.highlightedResult = resolvedIdx;
-    this.scrollAnchorPoint = previousValue < resolvedIdx ? "end" : "start";
-
-    let targetForScrollTo = null;
-
-    for (let i = 0; i < this.results.length; i++) {
-      const element = this.elements.list?.children[i];
-      if (!element) {
-        continue;
-      }
-
-      const highlightedClassName = "selected";
-
-      if (i == resolvedIdx) {
-        element.classList.add(highlightedClassName);
-        targetForScrollTo = element;
-      } else {
-        element.classList.remove(highlightedClassName);
-      }
-    }
-
-    // using options.by as a proxy for keyboard selection
-    if (typeof options.by === "number") {
-      this.hoverSelectEnabled = false;
-      if (targetForScrollTo) {
-        if (
-          existsBeyondContainerBounds(
-            targetForScrollTo as HTMLElement,
-            this.elements.list
-          )
-        ) {
-          (targetForScrollTo as HTMLElement).scrollIntoView({
-            behavior: "smooth",
-            block: this.scrollAnchorPoint,
-            inline: "nearest"
-          });
-        }
-      }
-    }
-
-    return resolvedIdx;
-  }
-
   injestSearchData(data: SearchData): void {
     this.results = data.results;
-    this.hitCount = data.total_hit_count;
+    this.totalResultCount = data.total_hit_count;
     this.highlightedResult = 0;
 
     // Mutate the result URL, like we do when there's a url prefix or suffix
@@ -184,197 +98,12 @@ export class Entity {
     }
   }
 
-  /**
-   * This method is inherently all side effects since it's manipulating the DOM,
-   * but the _only_ side effect should be manipulating the DOM, there should be
-   * no other changes to the entity class.
-   */
-  render(): void {
-    // Render progress element if index is downloading
-    if (this.config.showProgress && this.progress < 1) {
-      if (!this.elements.progress) {
-        this.elements.progress = create("div", {
-          classNames: ["stork-loader"]
-        });
-
-        add(this.elements.progress, "afterend", this.elements.input);
-      }
-
-      if (this.elements.progress) {
-        this.elements.progress.style.width = `${this.progress * 100}%`;
-      }
-    } else if (this.elements.progress) {
-      this.elements.progress.style.width = `${this.progress * 100}%`;
-      this.elements.progress.style.opacity = "0";
-    }
-
-    // Render message
-    const message = this.getCurrentMessage();
-    if (!this.elements.message) {
-      this.elements.message = create("div", {
-        classNames: ["stork-message"]
-      });
-      add(this.elements.message, "afterBegin", this.elements.output);
-    }
-    setText(this.elements.message, message);
-
-    // Render results
-    if (this.results?.length > 0 && this.resultsVisible) {
-      // Create list if it doesn't exist
-      if (!this.elements.list) {
-        this.elements.list = create("ul", {
-          classNames: ["stork-results"]
-        });
-        add(this.elements.list, "beforeEnd", this.elements.output);
-      }
-
-      clear(this.elements.list);
-      this.elements.list?.addEventListener("mousemove", () => {
-        this.hoverSelectEnabled = true;
-      });
-
-      // Render each result
-      for (let i = 0; i < this.results.length; i++) {
-        const result = this.results[i];
-        const generateOptions = {
-          result: result,
-          selected: i === this.highlightedResult,
-          showScores: this.config.showScores
-        };
-
-        const elementToInsert = htmlToElement(
-          generateListItem(generateOptions)
-        );
-
-        if (elementToInsert) {
-          const insertedElement = this.elements.list?.appendChild(
-            elementToInsert
-          );
-
-          insertedElement?.addEventListener("mousemove", () => {
-            if (this.hoverSelectEnabled) {
-              if (i !== this.highlightedResult) {
-                this.changeHighlightedResult({ by: null, to: i });
-              }
-            }
-          });
-        }
-      }
-
-      if (!this.elements.attribution) {
-        this.elements.attribution = create("div", {
-          classNames: ["stork-attribution"]
-        });
-        assert(this.elements.attribution);
-        this.elements.attribution.innerHTML =
-          'Powered by <a href="https://stork-search.net">Stork</a>';
-      }
-
-      // Removing and re-adding ensures it's always at the end.
-      this.elements.attribution?.remove();
-      add(this.elements.attribution, "beforeEnd", this.elements.output);
-    } else if (this.elements.list) {
-      this.elements.attribution?.remove();
-      this.elements.output.removeChild(this.elements.list);
-      delete this.elements.list;
-    }
-
-    this.elements.output.classList.add("stork-output-visible");
-
-    if (this.query?.length > 0) {
-      if (!this.elements.closeButton) {
-        this.elements.closeButton = create("button", {
-          classNames: ["stork-close-button"]
-        });
-        setText(this.elements.closeButton, "×");
-        this.elements.closeButton?.addEventListener("click", () => {
-          console.log(this);
-          this.setResultsVisible(false);
-        });
-      }
-
-      add(this.elements.closeButton, "afterEnd", this.elements.input);
-    } else if (this.query?.length === 0 || !this.resultsVisible) {
-      clear(this.elements.output); // removes message, attribution, and list
-      delete this.elements.message;
-      delete this.elements.attribution;
-      delete this.elements.list;
-
-      this.elements.closeButton?.remove();
-      delete this.elements.closeButton;
-
-      this.elements.output.classList.remove("stork-output-visible");
-    }
-  }
-
-  handleInputEvent(event: Event): void {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const query = event.srcElement?.value;
-
-    this.query = query;
-
-    if (this.index) {
-      // eslint-disable-next-line no-use-before-define
-      this.performSearch();
-    }
-
-    this.render();
-  }
-
-  handleKeyDownEvent(event: KeyboardEvent): void {
-    const LEFT = 37;
-    const UP = 38;
-    const RIGHT = 39;
-    const DOWN = 40;
-    const RETURN = 13;
-    // const SPACE = 32;
-    const ESC = 27;
-
-    if (![LEFT, UP, RIGHT, DOWN, RETURN, ESC].includes(event.keyCode)) {
-      this.setResultsVisible(true);
-      return;
-    }
-
-    const resultNodeArray = Array.from(
-      this.elements.list?.childNodes || []
-    ).filter((n: HTMLElement) => n.className == "stork-result");
-
-    switch (event.keyCode) {
-      case DOWN:
-        this.changeHighlightedResult({ by: +1 });
-        break;
-
-      case UP:
-        this.changeHighlightedResult({ by: -1 });
-        break;
-
-      case RETURN:
-        (Array.from(resultNodeArray[this.highlightedResult].childNodes).filter(
-          (n: HTMLElement) => (n as HTMLAnchorElement).href
-        )[0] as HTMLAnchorElement).click();
-        break;
-
-      case ESC:
-        this.setResultsVisible(false);
-        break;
-
-      default:
-        return;
-    }
-  }
-
-  performSearch(): void {
+  performSearch(query: string): void {
     if (!this.wasmQueue.loaded) {
       return;
     }
 
-    if (this.elements.input.nodeValue) {
-      this.query = this.elements.input.nodeValue;
-    }
-
-    const { query } = this;
-    if (query && query.length >= 3) {
+    if (query.length >= 3) {
       resolveSearch(this.index, query).then((data: SearchData) => {
         if (!data) return;
 
