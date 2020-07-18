@@ -18,6 +18,7 @@ interface ElementMap {
   list?: Element;
   message?: Element;
   attribution?: Element;
+  closeButton?: Element;
 }
 
 export class Entity {
@@ -264,26 +265,45 @@ export class Entity {
         this.elements.attribution = create("div", {
           classNames: ["stork-attribution"]
         });
-        if (this.elements.attribution) {
-          this.elements.attribution.innerHTML =
-            'Powered by <a href="https://stork-search.net">Stork</a>';
-        }
-        add(this.elements.attribution, "beforeEnd", this.elements.output);
+        assert(this.elements.attribution);
+        this.elements.attribution.innerHTML =
+          'Powered by <a href="https://stork-search.net">Stork</a>';
       }
+
+      // Removing and re-adding ensures it's always at the end.
+      this.elements.attribution?.remove();
+      add(this.elements.attribution, "beforeEnd", this.elements.output);
     } else if (this.elements.list) {
+      this.elements.attribution?.remove();
       this.elements.output.removeChild(this.elements.list);
       delete this.elements.list;
     }
 
-    // Remove output's contents if there's no query
-    if (!this.query || this.query.length === 0 || !this.resultsVisible) {
+    this.elements.output.classList.add("stork-output-visible");
+
+    if (this.query?.length > 0) {
+      if (!this.elements.closeButton) {
+        this.elements.closeButton = create("button", {
+          classNames: ["stork-close-button"]
+        });
+        setText(this.elements.closeButton, "×");
+        this.elements.closeButton?.addEventListener("click", () => {
+          console.log(this);
+          this.setResultsVisible(false);
+        });
+      }
+
+      add(this.elements.closeButton, "afterEnd", this.elements.input);
+    } else if (this.query?.length === 0 || !this.resultsVisible) {
+      clear(this.elements.output); // removes message, attribution, and list
       delete this.elements.message;
       delete this.elements.attribution;
       delete this.elements.list;
-      clear(this.elements.output);
+
+      this.elements.closeButton?.remove();
+      delete this.elements.closeButton;
+
       this.elements.output.classList.remove("stork-output-visible");
-    } else {
-      this.elements.output.classList.add("stork-output-visible");
     }
   }
 

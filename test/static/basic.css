@@ -109,3 +109,27 @@
 .stork-highlight {
   background-color: yellow;
 }
+
+.stork-close-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin: 0.3em;
+  height: 1.4rem;
+  width: 1.5rem;
+  padding: 0px;
+  font-size: 1.1rem;
+  background: hsla(0, 0%, 0%, 0.2);
+  border: none;
+  border-radius: 15%;
+  line-height: 1;
+}
+
+.stork-close-button:hover {
+  background: hsla(0, 0%, 0%, 0.3);
+  cursor: pointer;
+}
+
+.stork-close-button:active {
+  background: hsla(0, 0%, 0%, 0.4);
+}
