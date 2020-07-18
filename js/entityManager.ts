@@ -44,7 +44,7 @@ export class EntityManager {
     url: string,
     config: Partial<Configuration>
   ): void {
-    console.log(47, name, config)
+    console.log(47, name, config);
     const entity = new Entity(name, url, config, this.wasmQueue);
     this.entities[name] = entity;
 

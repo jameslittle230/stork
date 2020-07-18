@@ -32,6 +32,5 @@ export function resultToListItem(
         .join("")}
   </a>
 </li>`;
-// @TODO: Make sure this is an API I can use in supported browsers
   return template.content.firstElementChild;
 }

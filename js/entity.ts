@@ -54,7 +54,7 @@ export class Entity {
   }
 
   private generateRenderConfig(): RenderState {
-    console.log(56, "showscores", this.config.showScores, this)
+    console.log(56, "showscores", this.config.showScores, this);
     return {
       results: this.results,
       resultsVisible: true,
