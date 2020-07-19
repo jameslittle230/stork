@@ -1,4 +1,4 @@
-import { wasm_search } from "../pkg/stork";
+import { wasm_search } from "stork-search";
 
 export interface HighlightRange {
   beginning: number;

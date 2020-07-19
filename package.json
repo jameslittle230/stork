@@ -1,5 +1,5 @@
 {
-  "name": "stork-search",
+  "name": "stork",
   "version": "0.7.2",
   "description": "Impossibly fast web search, made for static sites.",
   "main": "index.js",
@@ -59,5 +59,8 @@
     "typescript-estree only supports typescript <3.8.0 as of 2020-05-25. Upgrade the version if possible:",
     "https://www.npmjs.com/package/typescript",
     "https://github.com/typescript-eslint/typescript-eslint/issues/1436"
-  ]
+  ],
+  "dependencies": {
+    "stork-search": "./pkg"
+  }
 }

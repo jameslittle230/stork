@@ -3,6 +3,8 @@ import { defaultConfig } from "./config";
 import WasmQueue from "./wasmQueue";
 jest.mock("./wasmQueue");
 jest.mock("./entityDom");
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+jest.mock("stork-search", () => {}, { virtual: true });
 
 // const mockRender = jest.fn();
 // jest.mock("./entityDom", () => {

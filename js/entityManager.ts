@@ -1,7 +1,7 @@
 import { Entity } from "./entity";
 import { Configuration, calculateOverriddenConfig } from "./config";
 import { loadIndexFromUrl } from "./indexLoader";
-import { get_index_version as getIndexVersion } from "../pkg/stork";
+import { get_index_version as getIndexVersion } from "stork-search";
 import WasmQueue from "./wasmQueue";
 
 export class EntityManager {
