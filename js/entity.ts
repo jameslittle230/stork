@@ -37,7 +37,7 @@ export class Entity {
     const query = this.domManager.getQuery();
     if (this.progress < 1) {
       return "Loading...";
-    } else if (query.length < 3) {
+    } else if (query?.length < 3) {
       return "Filtering...";
     } else if (this.results) {
       if (this.totalResultCount === 0) {
@@ -65,15 +65,6 @@ export class Entity {
 
   private render() {
     this.domManager.render(this.generateRenderConfig());
-  }
-
-  setResultsVisible(val: boolean): void {
-    const prev = this.resultsVisible;
-    this.resultsVisible = val;
-
-    if (val !== prev) {
-      this.render();
-    }
   }
 
   injestSearchData(data: SearchData): void {

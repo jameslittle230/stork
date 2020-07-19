@@ -37,7 +37,7 @@
     "source-map-loader": "^0.2.4",
     "ts-jest": "^26.0.0",
     "ts-loader": "^7.0.5",
-    "typescript": "~3.7.0",
+    "typescript": "~3.8.0",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10"
   },
