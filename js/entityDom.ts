@@ -43,7 +43,6 @@ export class EntityDom {
   readonly elements: ElementMap;
   readonly entity: Entity;
 
-  results: Array<Result>;
   highlightedResult: number | null;
   hoverSelectEnabled: boolean;
 
@@ -260,11 +259,9 @@ export class EntityDom {
       case RETURN:
         if (typeof this.highlightedResult != null) {
           assert(typeof this.highlightedResult === "number");
-          (Array.from(
-            resultNodeArray[this.highlightedResult].childNodes
-          ).filter(
-            (n: HTMLElement) => (n as HTMLAnchorElement).href
-          )[0] as HTMLAnchorElement).click();
+          window.location.assign(
+            this.entity.results[this.highlightedResult].entry.url
+          );
         }
         break;
 
