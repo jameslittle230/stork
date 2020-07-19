@@ -45,6 +45,7 @@ export class EntityDom {
 
   highlightedResult: number | null;
   hoverSelectEnabled: boolean;
+  lastRenderState: RenderState;
 
   scrollAnchorPoint: "start" | "end" = "end";
 
@@ -121,6 +122,7 @@ export class EntityDom {
   render(state: RenderState): void {
     const query = (this.elements.input as HTMLInputElement).value;
     this.clearDom();
+    this.lastRenderState = state;
 
     if (state.showProgress && state.progress && state.progress < 1) {
       add(this.elements.progress, "afterend", this.elements.input);
@@ -266,6 +268,9 @@ export class EntityDom {
         break;
 
       case ESC:
+        if (!this.lastRenderState.resultsVisible) {
+          this.elements.input.value = "";
+        }
         this.render(hiddenInterfaceRenderState);
         break;
 
