@@ -87,10 +87,6 @@ export class EntityDom {
       this.handleInputEvent(e as InputEvent);
     });
 
-    /**
-     * Handle non-input keypresses for the input field, e.g. arrow keys.
-     * (keypress event doesn't work here)
-     */
     this.elements.input.addEventListener("keydown", e => {
       this.handleKeyDownEvent(e as KeyboardEvent);
     });
@@ -104,6 +100,8 @@ export class EntityDom {
       'Powered by <a href="https://stork-search.net">Stork</a>';
 
     setText(this.elements.closeButton, "×");
+
+    add(this.elements.progress, "afterend", this.elements.input);
 
     this.elements.closeButton?.addEventListener("click", () => {
       this.elements.input.value = "";
@@ -125,7 +123,6 @@ export class EntityDom {
     this.lastRenderState = state;
 
     if (state.showProgress && state.progress && state.progress < 1) {
-      add(this.elements.progress, "afterend", this.elements.input);
       this.elements.progress.style.width = `${state.progress * 100}%`;
     } else if (state.showProgress) {
       this.elements.progress.style.width = `100%`;
@@ -230,10 +227,6 @@ export class EntityDom {
     const DOWN = 40;
     const RETURN = 13;
     const ESC = 27;
-
-    const resultNodeArray = Array.from(
-      this.elements.list?.childNodes || []
-    ).filter((n: HTMLElement) => n.className == "stork-result");
 
     switch (event.keyCode) {
       case DOWN: {
