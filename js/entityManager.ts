@@ -1,11 +1,11 @@
 import { Entity } from "./entity";
-import { Configuration } from "./config";
+import { Configuration, calculateOverriddenConfig } from "./config";
 import { loadIndexFromUrl } from "./indexLoader";
 import { get_index_version as getIndexVersion } from "../pkg/stork";
 import WasmQueue from "./wasmQueue";
 
 export class EntityManager {
-  entities: Record<string, Entity> = {};
+  entities: Array<Entity> = [];
   wasmQueue: WasmQueue;
 
   constructor(wasmQueue: WasmQueue) {
@@ -44,9 +44,16 @@ export class EntityManager {
     url: string,
     config: Partial<Configuration>
   ): void {
-    console.log(47, name, config);
-    const entity = new Entity(name, url, config, this.wasmQueue);
-    this.entities[name] = entity;
+    const fullConfig = calculateOverriddenConfig(config);
+    const entity = new Entity(name, url, fullConfig, this.wasmQueue);
+    if (this.entities.length < 1) {
+      this.entities.push(entity);
+    }
+
+    console.log(
+      57,
+      this.entities.map(e => e.config)
+    );
 
     loadIndexFromUrl(entity, url, {
       load: e => this.handleLoadedIndex(entity, e),

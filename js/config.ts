@@ -13,7 +13,7 @@ export const defaultConfig: Readonly<Configuration> = {
 export function calculateOverriddenConfig(
   overrides: Partial<Configuration>
 ): Configuration {
-  const output: Configuration = defaultConfig;
+  const output: Configuration = Object.assign({}, defaultConfig);
 
   for (const key of Object.keys(defaultConfig) as Array<keyof Configuration>) {
     if (overrides[key] !== undefined) {

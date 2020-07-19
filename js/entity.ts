@@ -1,4 +1,4 @@
-import { Configuration, calculateOverriddenConfig } from "./config";
+import { Configuration } from "./config";
 import { Result, SearchData, resolveSearch } from "./searchData";
 import WasmQueue from "./wasmQueue";
 import { EntityDom, RenderState } from "./entityDom";
@@ -22,13 +22,12 @@ export class Entity {
   constructor(
     name: string,
     url: string,
-    configIn: Partial<Configuration>,
+    config: Configuration,
     wasmQueue: WasmQueue
   ) {
     this.name = name;
     this.url = url;
-    this.config = calculateOverriddenConfig(configIn);
-    console.log(31, this.name, this.config);
+    this.config = config;
     this.wasmQueue = wasmQueue;
 
     this.domManager = new EntityDom(name, this);
@@ -54,7 +53,6 @@ export class Entity {
   }
 
   private generateRenderConfig(): RenderState {
-    console.log(56, "showscores", this.config.showScores, this);
     return {
       results: this.results,
       resultsVisible: true,
