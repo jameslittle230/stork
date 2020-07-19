@@ -14,7 +14,7 @@ jobs:
     - sudo apt-get update
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - sudo apt-get install cargo
-    - cargo install wasm-pack
+    - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
     - /home/travis/.cargo/bin/wasm-pack build --target web
     before_script:
     - yarn install
