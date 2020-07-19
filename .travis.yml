@@ -12,7 +12,7 @@ jobs:
     node_js: 12
     before_install:
     - sudo apt-get update
-    - sudo apt-get install cargo
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     - cargo install wasm-pack
     - /home/travis/.cargo/bin/wasm-pack build --target web
     before_script:
