@@ -10,6 +10,9 @@ jobs:
   include:
   - language: node_js
     node_js: 12
+    before_install:
+    - cargo install wasm-pack
+    - wasm-pack build --target web
     before_script:
     - yarn install
     script:
