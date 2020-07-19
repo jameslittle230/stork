@@ -26,7 +26,18 @@ export interface RenderState {
   resultsVisible: boolean;
   showScores: boolean;
   message: string | null;
+  showProgress: boolean;
+  progress: number | null;
 }
+
+const hiddenInterfaceRenderState: RenderState = {
+  results: [],
+  resultsVisible: false,
+  showScores: false,
+  message: null,
+  showProgress: false,
+  progress: 1
+};
 
 export class EntityDom {
   readonly elements: ElementMap;
@@ -97,12 +108,7 @@ export class EntityDom {
     this.elements.closeButton?.addEventListener("click", () => {
       this.elements.input.value = "";
       this.elements.input.focus();
-      this.render({
-        results: [],
-        resultsVisible: false,
-        showScores: false,
-        message: ""
-      });
+      this.render(hiddenInterfaceRenderState);
     });
   }
 
@@ -116,6 +122,14 @@ export class EntityDom {
   render(state: RenderState): void {
     const query = (this.elements.input as HTMLInputElement).value;
     this.clearDom();
+
+    if (state.showProgress && state.progress && state.progress < 1) {
+      add(this.elements.progress, "afterend", this.elements.input);
+      this.elements.progress.style.width = `${state.progress * 100}%`;
+    } else if (state.showProgress) {
+      this.elements.progress.style.width = `100%`;
+      this.elements.progress.style.opacity = "0";
+    }
 
     if (this.getQuery().length > 0 && state.resultsVisible) {
       this.elements.output.classList.add("stork-output-visible");
@@ -255,12 +269,7 @@ export class EntityDom {
         break;
 
       case ESC:
-        this.render({
-          results: [],
-          resultsVisible: false,
-          showScores: false,
-          message: ""
-        });
+        this.render(hiddenInterfaceRenderState);
         break;
 
       default:

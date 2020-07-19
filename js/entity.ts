@@ -59,7 +59,9 @@ export class Entity {
       results: this.results,
       resultsVisible: true,
       showScores: this.config.showScores,
-      message: this.getCurrentMessage()
+      message: this.getCurrentMessage(),
+      showProgress: this.config.showProgress,
+      progress: this.progress
     };
   }
 
