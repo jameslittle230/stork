@@ -8,15 +8,12 @@ addons:
             - libssl-dev
 jobs:
   include:
-  - language: node_js
-    node_js: 12
+  - language: rust
+    rust: stable
     before_install:
-    - sudo apt-get update
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - sudo apt-get install cargo
-    - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh 
-    - /home/travis/.cargo/bin/wasm-pack build --target web
+    - cargo install wasm-pack
     before_script:
+    - wasm-pack build --target web
     - yarn install
     script:
     - yarn eslint js/*
