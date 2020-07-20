@@ -11,6 +11,7 @@ jobs:
   - language: rust
     rust: stable
     before_install:
+    - sudo apt-get install nodejs
     - cargo install wasm-pack
     before_script:
     - wasm-pack build --target web
