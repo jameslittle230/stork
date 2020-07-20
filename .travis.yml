@@ -12,6 +12,7 @@ jobs:
     rust: stable
     before_install:
     - sudo apt-get install nodejs
+    - sudo apt-get install yarn
     - cargo install wasm-pack
     before_script:
     - wasm-pack build --target web
