@@ -10,10 +10,10 @@ jobs:
   include:
   - language: rust
     rust: stable
-    node_js: "13"
     before_install:
     - sudo apt-get install nodejs
     - sudo apt-get install yarn
+    - nvm install 13
     - cargo install wasm-pack
     before_script:
     - wasm-pack build --target web
