@@ -10,6 +10,7 @@ jobs:
   include:
   - language: rust
     rust: stable
+    node_js: "13"
     before_install:
     - sudo apt-get install nodejs
     - sudo apt-get install yarn
