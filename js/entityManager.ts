@@ -1,11 +1,11 @@
 import { Entity } from "./entity";
-import { Configuration } from "./config";
+import { Configuration, calculateOverriddenConfig } from "./config";
 import { loadIndexFromUrl } from "./indexLoader";
-import { get_index_version as getIndexVersion } from "../pkg/stork";
+import { get_index_version as getIndexVersion } from "stork-search";
 import WasmQueue from "./wasmQueue";
 
 export class EntityManager {
-  entities: Record<string, Entity> = {};
+  entities: Array<Entity> = [];
   wasmQueue: WasmQueue;
 
   constructor(wasmQueue: WasmQueue) {
@@ -24,7 +24,7 @@ export class EntityManager {
     entity.index = new Uint8Array(response);
 
     this.wasmQueue.runAfterWasmLoaded(() => {
-      entity.performSearch();
+      entity.performSearch(entity.domManager.getQuery());
     });
 
     if (entity.config.printIndexInfo) {
@@ -44,27 +44,22 @@ export class EntityManager {
     url: string,
     config: Partial<Configuration>
   ): void {
-    const entity = new Entity(name, url, config);
-    this.entities[name] = entity;
-    entity.wasmQueue = this.wasmQueue;
+    const fullConfig = calculateOverriddenConfig(config);
+    const entity = new Entity(name, url, fullConfig, this.wasmQueue);
+    if (this.entities.length < 1) {
+      this.entities.push(entity);
+    }
+
+    console.log(
+      57,
+      this.entities.map(e => e.config)
+    );
 
     loadIndexFromUrl(entity, url, {
       load: e => this.handleLoadedIndex(entity, e),
       progress: (progress, entity) => {
         entity.setDownloadProgress(progress);
       }
-    });
-
-    entity.elements.input.addEventListener("input", e => {
-      entity.handleInputEvent(e);
-    });
-
-    /**
-     * Handle non-input keypresses for the input field, e.g. arrow keys.
-     * (keypress event doesn't work here)
-     */
-    entity.elements.input.addEventListener("keydown", e => {
-      entity.handleKeyDownEvent(e as KeyboardEvent);
     });
   }
 }

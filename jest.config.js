@@ -1,6 +1,10 @@
 module.exports = {
   preset: "ts-jest",
-  testEnvironment: "node",
-  modulePathIgnorePatterns: ["<rootDir>/target/*", "<rootDir>/pkg/*"],
-  collectCoverageFrom: ["js/**/*.{js,ts}"]
+  transform: {
+    "^.+\\.jsx?$": "<rootDir>/node_modules/ts-jest/dist/index.js"
+  },
+  testEnvironment: "<rootDir>/js/test-environment.js",
+  modulePathIgnorePatterns: ["<rootDir>/target/*"],
+  collectCoverage: true,
+  collectCoverageFrom: ["js/**/*.ts"]
 };

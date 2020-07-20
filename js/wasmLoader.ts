@@ -1,4 +1,4 @@
-import init from "../pkg/stork";
+import init from "stork-search";
 import WasmQueue from "./wasmQueue";
 
 const prod = process.env.NODE_ENV === "production";

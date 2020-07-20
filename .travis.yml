@@ -8,9 +8,15 @@ addons:
             - libssl-dev
 jobs:
   include:
-  - language: node_js
-    node_js: 12
+  - language: rust
+    rust: stable
+    before_install:
+    - sudo apt-get install nodejs
+    - sudo apt-get install yarn
+    - nvm install 13
+    - cargo install wasm-pack
     before_script:
+    - wasm-pack build --target web
     - yarn install
     script:
     - yarn eslint js/*
