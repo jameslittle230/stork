@@ -6,13 +6,6 @@ jest.mock("./entityDom");
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 jest.mock("stork-search", () => {}, { virtual: true });
 
-// const mockRender = jest.fn();
-// jest.mock("./entityDom", () => {
-//   return jest.fn().mockImplementation(() => {
-//     return { render: mockRender };
-//     // Now we can track calls to playSoundFile
-//   });
-// });
 
 test("Can successfully generate an entity", () => {
   const entity = new Entity(
