@@ -4,30 +4,27 @@ import WasmQueue from "./wasmQueue";
 import { EntityDom } from "./entityDom";
 import { JSDOM } from "jsdom";
 
+import { mockHtmlElement } from "./__mocks__/dom";
+
 jest.mock("./wasmQueue");
 jest.mock("./dom");
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 jest.mock("stork-search", () => {}, { virtual: true });
 
-const mockHtmlElement = {
-  addEventListener: jest.fn(),
-  insertAdjacentElement: jest.fn(),
-  innerHTML: ""
-};
-
 const dom = new JSDOM();
 global.document = dom.window.document;
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 global.window = dom.window;
 global.document.querySelector = jest
   .fn()
-  .mockImplementation(queryString => mockHtmlElement);
+  .mockImplementation(() => mockHtmlElement);
 
 describe("entitydom", () => {
-  var entity;
-  var entityDom: EntityDom;
+  let entity;
+  let entityDom: EntityDom;
   // Applies only to tests in this describe block
   beforeEach(() => {
     entity = new Entity(
@@ -43,7 +40,22 @@ describe("entitydom", () => {
     expect(entityDom).not.toBeNull();
   });
 
-  // test('San Juan <3 plantains', () => {
-  //   expect(isValidCityFoodPair('San Juan', 'Mofongo')).toBe(true);
-  // });
+  test("entityDom can render well", () => {
+    entityDom.render({
+      results: [
+        {
+          entry: { fields: {}, title: "title", url: "https://jameslittle.me" },
+          excerpts: [],
+          score: 10,
+          title_highlight_ranges: []
+        }
+      ],
+      resultsVisible: true,
+      showProgress: true,
+      showScores: true,
+      progress: 0.5,
+      message: "sup"
+    });
+    expect(true).not.toBeNull();
+  });
 });

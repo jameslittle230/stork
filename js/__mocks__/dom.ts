@@ -1,7 +1,17 @@
-const mockHtmlElement = {
+export const mockHtmlElement = {
   addEventListener: jest.fn(),
   insertAdjacentElement: jest.fn(),
-  innerHTML: ""
+  remove: jest.fn(),
+  appendChild: jest.fn(),
+  classList: {
+    remove: jest.fn(),
+    add: jest.fn()
+  },
+  style: {
+    width: ""
+  },
+  innerHTML: "innerhtml",
+  value: "value"
 };
 
 export const create = jest.fn(

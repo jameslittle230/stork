@@ -53,7 +53,7 @@
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
     "build:prod": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
-    "lint": "yarn eslint js/*",
+    "lint": "yarn eslint **/*.ts",
     "test": "jest",
     "serve": "python3 -m http.server --directory ./dist 8025"
   },

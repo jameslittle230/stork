@@ -6,7 +6,6 @@ jest.mock("./entityDom");
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 jest.mock("stork-search", () => {}, { virtual: true });
 
-
 test("Can successfully generate an entity", () => {
   const entity = new Entity(
     "test",
