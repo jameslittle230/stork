@@ -19,7 +19,7 @@ jobs:
     - wasm-pack build --target web
     - yarn install
     script:
-    - yarn eslint js/*
+    - yarn lint
     - yarn test --coverage
     after_success: |
       bash <(curl -s https://codecov.io/bash) -cF javascript
@@ -79,6 +79,6 @@ notifications:
     on_success: always
     on_failure: always
     secure: MOlZP9MD4pMtxBCiG1j0j50cgxHGV7MUJtOf6z+DpWc+WJbKRAJKNlsHWMY2lZ/NICzziDJTtZX7TSPPLfAnG9NkIZZWeD6Q2MsLvBZXvXKHP75jFZJpseQageKQ8sfCoSie4Eao5ZQ+I018bXJOef0VupjbDLVeZhTSKPVYWeCzKyDSYLpVbaC+hq1am1Ad20+ixuA9STn2tha6ymOy90D36EP31CFl/AG+MgPUCQJHVQEhp87U7HcOrdxJdXlFOEGYxnzGzOkS/HaA9WrTsUDOnM8hWeEGuogQQSMWd0Vlyv0J3Sna4t/d7VZXRwpxZwkgnqFyQtks4ck68KyzxswHhHhBvf6TCZA6oRTUYLG6ec6X+CHsTpTePmSgv237Hh4iEXv7viEmGUdEr9TUAGwVyxu/Sh0vN7ZdSkQ4qRZ6dlmmTCIElpgmYYayPuwd5aIKQqx9bxcHZm41X8VDc27pvOrp4blvIs/LlAP8zo+FWxTMOkVeYJipd+XXvcCHkvr1fjACPDnB1GNKkY8KROk3ynLjd6mNa7GZacAV1BBFZr6u4qu7fI4ciGPRkaP7B0FpBZI1N0Mw6PHabXofN7EiuX+ak7CPox4TESEhEoC2IB1Dy9J7EaxvAyT7RsRvw/l8M4UODFOS7dVC2PL/0FRHyEU4Fq1KUNkTn6wa1p8=
-    template:     
+    template:
       - "%{result}: Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of `@%{branch}`. Finished in %{duration}"
   email: false
