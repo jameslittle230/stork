@@ -134,7 +134,10 @@ export class EntityDom {
       add(this.elements.message, "beforeend", this.elements.output);
     }
 
-    this.elements.message.textContent = state.message;
+    if (state.message) {
+      setText(this.elements.message, state.message);
+    }
+    // this.elements.message.textContent = state.message;
     if (state.results?.length > 0 && state.resultsVisible) {
       add(this.elements.list, "beforeend", this.elements.output);
 
@@ -145,12 +148,14 @@ export class EntityDom {
           showScores: state.showScores
         };
 
-        const insertedElement = this.elements.list?.appendChild(
-          resultToListItem(result, generateOptions) ||
-            document.createElement("li")
-        );
+        const listItem = resultToListItem(result, generateOptions);
+        add(listItem as HTMLElement, "beforeend", this.elements.list);
+        // const insertedElement = this.elements.list?.appendChild(
+        //   resultToListItem(result, generateOptions) ||
+        //     document.createElement("li")
+        // );
 
-        insertedElement?.addEventListener("mousemove", () => {
+        listItem.addEventListener("mousemove", () => {
           if (this.hoverSelectEnabled) {
             if (i !== this.highlightedResult) {
               this.changeHighlightedResult({ to: i, shouldScrollTo: false });

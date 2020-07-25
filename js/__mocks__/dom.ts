@@ -1,26 +1,69 @@
-export const mockHtmlElement = {
-  addEventListener: jest.fn(),
-  insertAdjacentElement: jest.fn(),
-  remove: jest.fn(),
-  appendChild: jest.fn(),
+export interface MockHtmlElement {
+  name: string;
+  addEventListener: jest.MockedFunction<VoidFunction>;
+  insertAdjacentElement: jest.MockedFunction<VoidFunction>;
+  remove: jest.MockedFunction<VoidFunction>;
+  appendChild: jest.MockedFunction<VoidFunction>;
   classList: {
-    remove: jest.fn(),
-    add: jest.fn()
-  },
+    entries: Array<string>;
+    remove: jest.MockedFunction<VoidFunction>;
+    add: jest.MockedFunction<VoidFunction>;
+  };
   style: {
-    width: ""
-  },
-  innerHTML: "innerhtml",
-  value: "value"
+    width: string;
+  };
+  innerHTML: string;
+  value: string;
+  children: Array<MockHtmlElement>;
+}
+
+export const createMockHtmlElement = function (): MockHtmlElement {
+  return {
+    name: "",
+    addEventListener: jest.fn(),
+    insertAdjacentElement: jest.fn(),
+    remove: jest.fn(),
+    appendChild: jest.fn(),
+    classList: {
+      entries: [],
+      remove: jest.fn(),
+      add: jest.fn()
+    },
+    style: {
+      width: ""
+    },
+    innerHTML: "innerHTML",
+    value: "value",
+    children: []
+  };
 };
 
 export const create = jest.fn(
-  (name: string, attributes: Record<string, Array<string>>) => mockHtmlElement
+  (name: string, attributes: Record<string, Array<string>>) => {
+    const output = createMockHtmlElement();
+    output.name = name;
+    attributes.classNames.forEach(className => {
+      output.classList.entries.push(className);
+    });
+    return output;
+  }
 );
 
-export const add = jest.fn();
-export const clear = jest.fn();
-export const setText = jest.fn();
+export const add = jest.fn(
+  (child: MockHtmlElement, where: string, parent: MockHtmlElement) => {
+    console.log(`Adding ${child.classList.entries} to some parent`);
+    parent.children.push(child);
+  }
+);
+
+export const clear = jest.fn((element: MockHtmlElement) => {
+  element.children = [];
+});
+
+export const setText = jest.fn((element: MockHtmlElement, text: string) => {
+  element.innerHTML = text;
+});
+
 export const existsBeyondContainerBounds = jest.fn(
   (elem: HTMLElement, container: HTMLElement) => true
 );
