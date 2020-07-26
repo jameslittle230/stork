@@ -51,8 +51,7 @@ module.exports = {
       { test: /\.js$/, loader: "source-map-loader" },
       {
         test: /\.js$/,
-        loader: require.resolve("@open-wc/webpack-import-meta-loader"),
-        exclude: /(node_modules|bower_components)/
+        loader: require.resolve("@open-wc/webpack-import-meta-loader")
       }
     ]
   }
