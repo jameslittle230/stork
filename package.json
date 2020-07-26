@@ -42,7 +42,7 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
-    "dev": "yarn build:wasm:dev && yarn build:test-index && yarn build:js:dev",
+    "dev": "yarn build:wasm:dev && yarn build:test-index:federalist && yarn build:js:dev",
     "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev",
     "build:wasm:prod": "wasm-pack build --target web --out-name stork",
     "build:test-index:federalist": "cargo run -- --build test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist",
