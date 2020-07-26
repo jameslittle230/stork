@@ -9,7 +9,7 @@ export interface ListItemDisplayOptions {
 export function resultToListItem(
   result: Result,
   options: ListItemDisplayOptions
-): ChildNode | null {
+): ChildNode {
   const template = document.createElement("template");
   template.innerHTML = `
 <li class="stork-result${options.selected ? " selected" : ""}">
@@ -32,5 +32,5 @@ export function resultToListItem(
         .join("")}
   </a>
 </li>`;
-  return template.content.firstElementChild;
+  return template.content.firstElementChild as ChildNode;
 }

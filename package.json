@@ -21,6 +21,7 @@
   "devDependencies": {
     "@open-wc/webpack-import-meta-loader": "^0.4.1",
     "@types/jest": "^25.2.3",
+    "@types/jsdom": "^16.2.3",
     "@typescript-eslint/eslint-plugin": "^3.0.0",
     "@typescript-eslint/parser": "^3.0.0",
     "@wasm-tool/wasm-pack-plugin": "^1.2.0",
@@ -33,6 +34,7 @@
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "^26.0.1",
+    "jsdom": "^16.3.0",
     "prettier": "^2.0.1",
     "source-map-loader": "^0.2.4",
     "ts-jest": "^26.0.0",
@@ -51,7 +53,7 @@
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
     "build:prod": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
-    "lint": "yarn eslint js/*",
+    "lint": "yarn eslint **/*.ts",
     "test": "jest",
     "serve": "python3 -m http.server --directory ./dist 8025"
   },
