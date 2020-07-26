@@ -32,5 +32,5 @@ export function resultToListItem(
         .join("")}
   </a>
 </li>`;
-  return template.content.firstElementChild!;
+  return template.content.firstElementChild as ChildNode;
 }

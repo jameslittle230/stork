@@ -50,11 +50,6 @@ export class EntityManager {
       this.entities.push(entity);
     }
 
-    console.log(
-      57,
-      this.entities.map(e => e.config)
-    );
-
     loadIndexFromUrl(entity, url, {
       load: e => this.handleLoadedIndex(entity, e),
       progress: (progress, entity) => {

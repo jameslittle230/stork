@@ -3,6 +3,7 @@ export interface MockHtmlElement {
   addEventListener: jest.MockedFunction<VoidFunction>;
   insertAdjacentElement: jest.MockedFunction<VoidFunction>;
   remove: jest.MockedFunction<VoidFunction>;
+  scrollIntoView: jest.MockedFunction<VoidFunction>;
   appendChild: jest.MockedFunction<VoidFunction>;
   classList: {
     entries: Array<string>;
@@ -24,6 +25,7 @@ export const createMockHtmlElement = function (): MockHtmlElement {
     insertAdjacentElement: jest.fn(),
     remove: jest.fn(),
     appendChild: jest.fn(),
+    scrollIntoView: jest.fn(),
     classList: {
       entries: [],
       remove: jest.fn(),
@@ -51,7 +53,6 @@ export const create = jest.fn(
 
 export const add = jest.fn(
   (child: MockHtmlElement, where: string, parent: MockHtmlElement) => {
-    console.log(`Adding ${child.classList.entries} to some parent`);
     parent.children.push(child);
   }
 );
