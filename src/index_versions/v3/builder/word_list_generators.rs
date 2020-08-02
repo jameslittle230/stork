@@ -1,6 +1,7 @@
 use super::super::structs::{AnnotatedWord, Contents};
 use crate::common::InternalWordAnnotation;
 use crate::config::{Filetype, InputConfig, SRTConfig, SRTTimestampFormat};
+use scraper::{Html, Selector};
 
 pub(super) fn returns_word_list_generator(filetype: &Filetype) -> Box<dyn WordListGenerator> {
     match filetype {
@@ -81,7 +82,45 @@ impl SRTWordListGenerator {
 pub(super) struct HTMLWordListGenerator {}
 
 impl WordListGenerator for HTMLWordListGenerator {
-    fn create_word_list(&self, _config: &InputConfig, _buffer: &str) -> Contents {
-        Contents { word_list: vec![] }
+    fn create_word_list(&self, _config: &InputConfig, buffer: &str) -> Contents {
+        let document = Html::parse_document(buffer);
+        let main_selector = Selector::parse("main").unwrap();
+        let main_contents = document.select(&main_selector).next().unwrap();
+        let text = main_contents
+            .text()
+            .collect::<Vec<_>>()
+            .iter()
+            .map(|word| AnnotatedWord {
+                word: word.to_string(),
+                ..Default::default()
+            })
+            .collect();
+
+        Contents { word_list: text }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn my_test() {
+        let expected = "This is some text";
+        let computed: String = (HTMLWordListGenerator {})
+            .create_word_list(
+                &InputConfig::default(),
+                r#"
+                <html>
+                    <head></head>
+                    <body><h1>This is a title</h1><main><p>This is some text</p></main></body>
+                </html>"#,
+            )
+            .word_list
+            .iter()
+            .map(|aw| aw.word.clone())
+            .collect::<Vec<String>>()
+            .join(" ");
+
+        assert!(expected == computed);
     }
 }

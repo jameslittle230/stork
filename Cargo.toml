@@ -26,6 +26,7 @@ num-format = "0.4.0"
 rust-stemmers = "1.2.0"
 srtparse = "0.2.0"
 htmlescape = "0.3.1"
+scraper = "0.12.0"
 
 [dependencies.wasm-bindgen]
 version = "^0.2"
