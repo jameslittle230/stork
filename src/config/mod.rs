@@ -63,6 +63,7 @@ pub struct InputConfig {
     pub url_prefix: String,
     pub title_boost: TitleBoost,
     pub stemming: StemmingConfig,
+    pub html_selector: Option<String>,
     pub files: Vec<File>,
     pub srt_config: SRTConfig,
 }

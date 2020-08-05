@@ -82,9 +82,10 @@ impl SRTWordListGenerator {
 pub(super) struct HTMLWordListGenerator {}
 
 impl WordListGenerator for HTMLWordListGenerator {
-    fn create_word_list(&self, _config: &InputConfig, buffer: &str) -> Contents {
+    fn create_word_list(&self, config: &InputConfig, buffer: &str) -> Contents {
         let document = Html::parse_document(buffer);
-        let main_selector = Selector::parse("main").unwrap();
+        let main_selector_string = (config.html_selector.clone()).unwrap_or("main".to_string());
+        let main_selector = Selector::parse(main_selector_string.as_str()).unwrap();
         let main_contents = document.select(&main_selector).next().unwrap();
         let text = main_contents
             .text()
@@ -104,7 +105,7 @@ impl WordListGenerator for HTMLWordListGenerator {
 mod tests {
     use super::*;
     #[test]
-    fn my_test() {
+    fn test_basic_html_content_extraction() {
         let expected = "This is some text";
         let computed: String = (HTMLWordListGenerator {})
             .create_word_list(
@@ -113,6 +114,36 @@ mod tests {
                 <html>
                     <head></head>
                     <body><h1>This is a title</h1><main><p>This is some text</p></main></body>
+                </html>"#,
+            )
+            .word_list
+            .iter()
+            .map(|aw| aw.word.clone())
+            .collect::<Vec<String>>()
+            .join(" ");
+
+        assert!(expected == computed);
+    }
+
+    #[test]
+    fn test_html_content_extraction_with_custom_selector() {
+        let expected = "This content should be indexed";
+        let computed: String = (HTMLWordListGenerator {})
+            .create_word_list(
+                &InputConfig {
+                    html_selector: Some(".yes".to_string()),
+                    ..Default::default()
+                },
+                r#"
+                <html>
+                    <head></head>
+                    <body>
+                        <h1>This is a title</h1>
+                        <main>
+                            <section class="no"><p>Stork should not recognize this text</p></section>
+                            <section class="yes"><p>This content should be indexed</p></section>
+                        </main>
+                    </body>
                 </html>"#,
             )
             .word_list
