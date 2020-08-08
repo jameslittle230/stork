@@ -84,7 +84,8 @@ pub(super) struct HTMLWordListGenerator {}
 impl WordListGenerator for HTMLWordListGenerator {
     fn create_word_list(&self, config: &InputConfig, buffer: &str) -> Contents {
         let document = Html::parse_document(buffer);
-        let main_selector_string = (config.html_selector.clone()).unwrap_or("main".to_string());
+        let main_selector_string =
+            (config.html_selector.clone()).unwrap_or_else(|| "main".to_string());
         let main_selector = Selector::parse(main_selector_string.as_str()).unwrap();
         let main_contents = document.select(&main_selector).next().unwrap();
         let text = main_contents
