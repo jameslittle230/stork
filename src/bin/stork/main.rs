@@ -11,25 +11,30 @@ use stork::config::Config;
 
 use num_format::{Locale, ToFormattedString};
 
-const HELP_TEXT: &str = r#"
-Stork 0.7.2  --  by James Little
+pub type ExitCode = i32;
+pub const EXIT_SUCCESS: ExitCode = 0;
+pub const EXIT_FAILURE: ExitCode = 1;
+
+fn help_text() -> String {
+    return format!(
+        r#"
+Stork {}  --  by James Little
 https://stork-search.net
 Impossibly fast web search, made for static sites.
 
 USAGE:
     stork --build [config.toml]
     stork --search [./index.st] "[query]"
-"#;
-
-pub type ExitCode = i32;
-pub const EXIT_SUCCESS: ExitCode = 0;
-pub const EXIT_FAILURE: ExitCode = 1;
+"#,
+        env!("CARGO_PKG_VERSION")
+    );
+}
 
 fn main() {
     let mut a = Argparse::new();
     a.register("build", build_handler, 1);
     a.register("search", search_handler, 2);
-    a.register_help(HELP_TEXT);
+    a.register_help(&help_text());
     std::process::exit(a.exec(env::args().collect()));
 }
 
