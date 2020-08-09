@@ -46,7 +46,7 @@ pub(super) struct Entry {
  * all search results for a given query from a single container.
  */
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub(super) struct Container {
+pub struct Container {
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(super) results: HashMap<EntryIndex, SearchResult>,
 
