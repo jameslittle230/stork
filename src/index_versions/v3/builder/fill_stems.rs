@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use super::{remove_surrounding_punctuation, IntermediateEntry};
 use rust_stemmers::Stemmer;
-use super::{IntermediateEntry, remove_surrounding_punctuation};
+use std::collections::HashMap;
 
 pub fn fill_stems(
-    intermediate_entries: &Vec<IntermediateEntry>,
+    intermediate_entries: &[IntermediateEntry],
     stems: &mut HashMap<String, Vec<String>>,
 ) {
     for entry in intermediate_entries {

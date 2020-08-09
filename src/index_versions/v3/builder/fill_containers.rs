@@ -7,7 +7,7 @@ use rust_stemmers::Stemmer;
 use std::collections::HashMap;
 
 pub fn fill_containers(
-    intermediate_entries: &Vec<IntermediateEntry>,
+    intermediate_entries: &[IntermediateEntry],
     stems: &HashMap<String, Vec<String>>,
     containers: &mut HashMap<String, Container>,
 ) {
@@ -64,14 +64,14 @@ pub fn fill_containers(
 
 fn fill_container_results_map(
     containers: &mut HashMap<String, Container>,
-    normalized_word: &String,
+    normalized_word: &str,
     word_index: usize,
     entry_index: usize,
     annotated_word: &AnnotatedWord,
     source: WordListSource,
 ) {
     let results_map = &mut containers
-        .entry(normalized_word.clone())
+        .entry(normalized_word.to_string())
         .or_insert_with(Container::new)
         .results;
 
@@ -89,7 +89,7 @@ fn fill_container_results_map(
 
 fn fill_other_containers_alias_maps_with_prefixes(
     containers: &mut HashMap<String, Container>,
-    normalized_word: &String,
+    normalized_word: &str,
 ) {
     let chars: Vec<char> = normalized_word.chars().collect();
     for n in 3..chars.len() {
@@ -101,7 +101,7 @@ fn fill_other_containers_alias_maps_with_prefixes(
             .aliases;
 
         let _alias_score = alises_map
-            .entry(normalized_word.clone())
+            .entry(normalized_word.to_string())
             .or_insert(PREFIX_SCORE - (chars.len() - n) as u8);
     }
 }
@@ -110,7 +110,7 @@ fn fill_other_containers_alias_maps_with_reverse_stems(
     entry: &IntermediateEntry,
     stems: &HashMap<String, Vec<String>>,
     containers: &mut HashMap<String, Container>,
-    normalized_word: &String,
+    normalized_word: &str,
 ) {
     if let Some(stem_algorithm) = entry.stem_algorithm {
         let stem = Stemmer::create(stem_algorithm)
@@ -123,7 +123,7 @@ fn fill_other_containers_alias_maps_with_reverse_stems(
                         .entry(reverse_stem.clone())
                         .or_insert_with(Container::new)
                         .aliases
-                        .entry(normalized_word.clone())
+                        .entry(normalized_word.to_string())
                         .or_insert(STEM_SCORE as u8);
                 }
             }

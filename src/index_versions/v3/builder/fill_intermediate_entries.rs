@@ -1,5 +1,5 @@
 use super::word_list_generators::returns_word_list_generator;
-use super::{Contents, IntermediateEntry, IndexGenerationError};
+use super::{Contents, IndexGenerationError, IntermediateEntry};
 use crate::config::{Config, DataSource, StemmingConfig};
 use rust_stemmers::Algorithm;
 use std::fs::File;
