@@ -53,8 +53,10 @@ pub fn build(config: &Config) -> Index {
             StemmingConfig::None => None,
         };
 
-        let contents: Contents =
-            returns_word_list_generator(filetype).create_word_list(&config.input, &buffer);
+        let mut per_file_input_config = config.input.clone();
+        per_file_input_config.html_selector = stork_file.html_selector_override.clone();
+        let contents: Contents = returns_word_list_generator(filetype)
+            .create_word_list(&per_file_input_config, buffer.as_str());
 
         let entry = IntermediateEntry {
             contents,
