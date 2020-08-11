@@ -72,7 +72,7 @@ pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
         per_file_input_config.html_selector = stork_file.html_selector_override.clone();
         let contents: Contents = returns_word_list_generator(filetype)
             .create_word_list(&per_file_input_config, buffer.as_str())
-            .map_err(|e| IndexGenerationError::WordListGenerationError(e))?;
+            .map_err(IndexGenerationError::WordListGenerationError)?;
 
         let entry = IntermediateEntry {
             contents,
