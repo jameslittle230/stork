@@ -11,8 +11,8 @@ use searcher::SearchError;
 
 use index_versions::v3 as LatestVersion;
 use LatestVersion::builder;
+use LatestVersion::builder::IndexGenerationError;
 use LatestVersion::structs::Index;
-use LatestVersion::builder::word_list_generators::WordListGenerationError;
 
 use wasm_bindgen::prelude::*;
 
@@ -52,6 +52,6 @@ pub fn search(
     searcher::search(index, query.as_str())
 }
 
-pub fn build(config: &Config) -> Result<Index, WordListGenerationError> {
+pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     builder::build(config)
 }

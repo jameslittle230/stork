@@ -7,12 +7,17 @@ use std::fmt;
 pub enum WordListGenerationError {
     InvalidSRT,
     InvalidHTML,
-    InvalidHTMLSelector,
+    SelectorNotPresent,
 }
 
 impl fmt::Display for WordListGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let desc: String = "Whoopsie doopsie".to_string();
+        let desc: String = match self {
+            WordListGenerationError::InvalidHTML => "Invalid HTML",
+            WordListGenerationError::InvalidSRT => "Invalid SRT",
+            WordListGenerationError::SelectorNotPresent => "HTML selector not present in contents",
+        }
+        .to_string();
         write!(f, "{}", desc)
     }
 }
@@ -119,7 +124,7 @@ impl WordListGenerator for HTMLWordListGenerator {
         let selector_contents = document
             .select(&selector)
             .next()
-            .ok_or_else(|| WordListGenerationError::InvalidHTMLSelector)?;
+            .ok_or_else(|| WordListGenerationError::SelectorNotPresent)?;
         let text = selector_contents
             .text()
             .collect::<Vec<_>>()
@@ -189,7 +194,7 @@ mod tests {
 
         assert!(expected == computed);
     }
-    
+
     #[test]
     #[ignore = "Not implemented yet"]
     fn test_html_content_extraction_with_multiple_selector_matches() {

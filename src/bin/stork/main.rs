@@ -36,11 +36,11 @@ fn main() {
 fn build_handler(args: &[String]) {
     let start_time = Instant::now();
     let config = Config::from_file(std::path::PathBuf::from(&args[2]));
-    let index = stork::build(&config).unwrap_or_else(|_e| {
-        eprintln!("Could not generate index.");
+    let index = stork::build(&config).unwrap_or_else(|e| {
+        eprintln!("Could not generate index: {}", e.to_string());
         std::process::exit(EXIT_FAILURE);
     });
-    
+
     let build_time = Instant::now();
     let bytes_written = index.write(&config);
     let end_time = Instant::now();

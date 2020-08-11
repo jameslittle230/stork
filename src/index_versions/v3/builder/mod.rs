@@ -3,12 +3,13 @@ use super::structs::*;
 use crate::config::DataSource;
 use crate::config::{Config, StemmingConfig};
 use std::collections::HashMap;
+use std::fmt;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 
 pub mod word_list_generators;
-use word_list_generators::{WordListGenerationError, returns_word_list_generator};
+use word_list_generators::{returns_word_list_generator, WordListGenerationError};
 
 pub mod intermediate_entry;
 use intermediate_entry::IntermediateEntry;
@@ -19,32 +20,21 @@ use nudger::Nudger;
 extern crate rust_stemmers;
 use rust_stemmers::{Algorithm, Stemmer};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::File;
-    use crate::config::*;
-    #[test]
-    fn test_not_present_html_selector_fails_gracefully() {
-        let config = Config {
-            input: InputConfig {
-                files: vec![File {
-                    source: DataSource::Contents("".to_string()),
-                    title: "Title".to_string(),
-                    filetype: Some(Filetype::HTML),
-                    html_selector_override: Some(".article".to_string()),
-                    ..Default::default()
-                }],
-                ..Default::default()
-            },
-            ..Default::default()
+pub enum IndexGenerationError {
+    WordListGenerationError(WordListGenerationError),
+}
+
+impl fmt::Display for IndexGenerationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let desc: String = match self {
+            IndexGenerationError::WordListGenerationError(e) => e.to_string(),
         };
 
-        build(&config).expect_err("Config didn't error when it should have!");
+        write!(f, "{}", desc)
     }
 }
 
-pub fn build(config: &Config) -> Result<Index, WordListGenerationError> {
+pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
     let mut containers: HashMap<String, Container> = HashMap::new();
 
@@ -81,7 +71,8 @@ pub fn build(config: &Config) -> Result<Index, WordListGenerationError> {
         let mut per_file_input_config = config.input.clone();
         per_file_input_config.html_selector = stork_file.html_selector_override.clone();
         let contents: Contents = returns_word_list_generator(filetype)
-            .create_word_list(&per_file_input_config, buffer.as_str())?;
+            .create_word_list(&per_file_input_config, buffer.as_str())
+            .map_err(|e| IndexGenerationError::WordListGenerationError(e))?;
 
         let entry = IntermediateEntry {
             contents,
@@ -225,4 +216,29 @@ fn remove_surrounding_punctuation(input: &str) -> String {
     }
 
     chars.into_iter().collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::File;
+    use crate::config::*;
+    #[test]
+    fn test_not_present_html_selector_fails_gracefully() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    source: DataSource::Contents("".to_string()),
+                    title: "Title".to_string(),
+                    filetype: Some(Filetype::HTML),
+                    html_selector_override: Some(".article".to_string()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        build(&config).expect_err("Config didn't error when it should have!");
+    }
 }
