@@ -8,7 +8,7 @@ use std::io::{BufReader, Read};
 use std::path::Path;
 
 pub mod word_list_generators;
-use word_list_generators::returns_word_list_generator;
+use word_list_generators::{WordListGenerationError, returns_word_list_generator};
 
 pub mod intermediate_entry;
 use intermediate_entry::IntermediateEntry;
@@ -19,7 +19,32 @@ use nudger::Nudger;
 extern crate rust_stemmers;
 use rust_stemmers::{Algorithm, Stemmer};
 
-pub fn build(config: &Config) -> Index {
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::File;
+    use crate::config::*;
+    #[test]
+    fn test_not_present_html_selector_fails_gracefully() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    source: DataSource::Contents("".to_string()),
+                    title: "Title".to_string(),
+                    filetype: Some(Filetype::HTML),
+                    html_selector_override: Some(".article".to_string()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        build(&config).expect_err("Config didn't error when it should have!");
+    }
+}
+
+pub fn build(config: &Config) -> Result<Index, WordListGenerationError> {
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
     let mut containers: HashMap<String, Container> = HashMap::new();
 
@@ -56,7 +81,7 @@ pub fn build(config: &Config) -> Index {
         let mut per_file_input_config = config.input.clone();
         per_file_input_config.html_selector = stork_file.html_selector_override.clone();
         let contents: Contents = returns_word_list_generator(filetype)
-            .create_word_list(&per_file_input_config, buffer.as_str());
+            .create_word_list(&per_file_input_config, buffer.as_str())?;
 
         let entry = IntermediateEntry {
             contents,
@@ -181,11 +206,11 @@ pub fn build(config: &Config) -> Index {
         displayed_results_count: config.output.displayed_results_count,
     };
 
-    Index {
+    Ok(Index {
         entries,
         containers,
         config,
-    }
+    })
 }
 
 fn remove_surrounding_punctuation(input: &str) -> String {
