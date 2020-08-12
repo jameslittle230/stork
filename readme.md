@@ -1,6 +1,6 @@
 # Stork
 
-An impossibly fast web search solution.
+Impossibly fast web search, made for static sites.
 
 [![Crates.io](https://img.shields.io/crates/v/stork-search)](https://crates.io/crates/stork-search)
 [![Codecov](https://img.shields.io/codecov/c/gh/jameslittle230/stork)](https://codecov.io/gh/jameslittle230/stork)
