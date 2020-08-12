@@ -6,16 +6,16 @@ use std::fmt;
 
 pub enum WordListGenerationError {
     InvalidSRT,
-    InvalidHTML,
     SelectorNotPresent,
 }
 
 impl fmt::Display for WordListGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc: String = match self {
-            WordListGenerationError::InvalidHTML => "Invalid HTML",
-            WordListGenerationError::InvalidSRT => "Invalid SRT",
-            WordListGenerationError::SelectorNotPresent => "HTML selector not present in contents",
+            WordListGenerationError::InvalidSRT => "SRT file could not be parsed",
+            WordListGenerationError::SelectorNotPresent => {
+                "HTML selector is not present in the document"
+            }
         }
         .to_string();
         write!(f, "{}", desc)
