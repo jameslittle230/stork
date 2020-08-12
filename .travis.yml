@@ -3,9 +3,9 @@ language: rust
 dist: bionic
 cache: cargo
 addons:
-    apt:
-        packages:
-            - libssl-dev
+  apt:
+    packages:
+    - libssl-dev
 jobs:
   include:
   - language: rust
@@ -41,9 +41,6 @@ jobs:
     after_success: |
       cargo tarpaulin --out Xml
       bash <(curl -s https://codecov.io/bash)
-
-
-
   - language: rust
     rust: beta
     env: RUST_BACKTRACE=1
@@ -53,9 +50,6 @@ jobs:
     - wasm-pack build --target web
     script:
     - cargo test --verbose
-
-
-
   - language: rust
     rust: nightly
     env: RUST_BACKTRACE=1
@@ -65,20 +59,14 @@ jobs:
     - wasm-pack build --target web
     script:
     - cargo test --verbose
-
-
-
   fast_finish: true
   allow_failures:
-    - rust: nightly
-
-
-
+  - rust: nightly
 notifications:
   slack:
     on_success: always
     on_failure: always
-    secure: MOlZP9MD4pMtxBCiG1j0j50cgxHGV7MUJtOf6z+DpWc+WJbKRAJKNlsHWMY2lZ/NICzziDJTtZX7TSPPLfAnG9NkIZZWeD6Q2MsLvBZXvXKHP75jFZJpseQageKQ8sfCoSie4Eao5ZQ+I018bXJOef0VupjbDLVeZhTSKPVYWeCzKyDSYLpVbaC+hq1am1Ad20+ixuA9STn2tha6ymOy90D36EP31CFl/AG+MgPUCQJHVQEhp87U7HcOrdxJdXlFOEGYxnzGzOkS/HaA9WrTsUDOnM8hWeEGuogQQSMWd0Vlyv0J3Sna4t/d7VZXRwpxZwkgnqFyQtks4ck68KyzxswHhHhBvf6TCZA6oRTUYLG6ec6X+CHsTpTePmSgv237Hh4iEXv7viEmGUdEr9TUAGwVyxu/Sh0vN7ZdSkQ4qRZ6dlmmTCIElpgmYYayPuwd5aIKQqx9bxcHZm41X8VDc27pvOrp4blvIs/LlAP8zo+FWxTMOkVeYJipd+XXvcCHkvr1fjACPDnB1GNKkY8KROk3ynLjd6mNa7GZacAV1BBFZr6u4qu7fI4ciGPRkaP7B0FpBZI1N0Mw6PHabXofN7EiuX+ak7CPox4TESEhEoC2IB1Dy9J7EaxvAyT7RsRvw/l8M4UODFOS7dVC2PL/0FRHyEU4Fq1KUNkTn6wa1p8=
     template:
       - "%{result}: Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of `@%{branch}`. Finished in %{duration}"
+    secure: eRblAo8Xhago02wD6w/4quaC8PtDwZF/TXINWzs97jeRb+cPu3/huokYFXsX0KLuXFeBylVyXowirY4TM///M8vEn+i1TYdv0iVySKttvym6Oha3NkbDuNH9ZIgIxkKk9z8KnfuUEi6eXVHMC+xMje3gOp699CHfo6zo2hKnSeahLjFM4scdbHt1qPGQeaSHvsgFSF+AVxtO74LuTN0NpmA+sdY4UTikdt7Zejr3PJ5ma3SvtNHeWNiCh+IBxp7MKJZnkevM6R6LCsIBEq5NayOWesp+HwShn4yO2mffpAUFJioNJ9z2DUcN4rkRS8bVJbNBYR3hrorOU02jmUqM50sJk1P5iq5s2ov4VkyKgvLg24ODZTzBxZPEcwSBPO8ew19YylVOUrtwwp5jkCZkg0j67E66EBoOF6ifdf88TeetHhNuKv4m/3GRC28oILB5bvyTpHWfD6XT3Yt6/bpr072piMTlNct5gGoJ0+sUeQFX0xojXMyN+Z8aC0nPdgw+e+FTVl1ZWQ4QDrYmTabqfQ1pis+By5Nhm2QWLhPI8l5eWnOqfhwhI46IV18s73YyezQClHGBJHtExjVzq3bi/G+kdT6NX59xQs3IXHfQkiQH57GCD2jc6gN05vUjciYO14Y7v76xpcKkKq9xuG8Oy3biOvYIFNOzAaUMPyTkJKs=
   email: false
