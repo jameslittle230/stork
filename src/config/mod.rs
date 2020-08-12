@@ -9,6 +9,9 @@ pub use file::Filetype;
 pub mod stemming_config;
 pub use stemming_config::StemmingConfig;
 
+pub mod frontmatter_config;
+pub use frontmatter_config::FrontmatterConfig;
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(deny_unknown_fields)]
 pub enum TitleBoost {
@@ -64,6 +67,7 @@ pub struct InputConfig {
     pub title_boost: TitleBoost,
     pub stemming: StemmingConfig,
     pub html_selector: Option<String>,
+    pub frontmatter_handling: FrontmatterConfig,
     pub files: Vec<File>,
     pub srt_config: SRTConfig,
 }

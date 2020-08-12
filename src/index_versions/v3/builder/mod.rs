@@ -21,6 +21,8 @@ use intermediate_entry::IntermediateEntry;
 pub mod nudger;
 use nudger::Nudger;
 
+pub mod frontmatter;
+
 extern crate rust_stemmers;
 
 pub enum IndexGenerationError {
