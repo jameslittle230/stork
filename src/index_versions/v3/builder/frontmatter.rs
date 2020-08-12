@@ -5,7 +5,7 @@ use crate::common::Fields;
 use crate::config::{FrontmatterConfig, InputConfig};
 use std::collections::HashMap;
 
-pub fn parse_frontmatter(config: &InputConfig, buffer: &String) -> (Fields, Box<String>) {
+pub fn parse_frontmatter(config: &InputConfig, buffer: &str) -> (Fields, Box<String>) {
     let default_output = (HashMap::new(), Box::new(buffer.to_string()));
     match config.frontmatter_handling {
         FrontmatterConfig::Ignore => default_output,
@@ -24,11 +24,11 @@ pub fn parse_frontmatter(config: &InputConfig, buffer: &String) -> (Fields, Box<
                             .into_iter()
                             .map(|(k, v)| {
                                 (
-                                    k.into_string().unwrap_or("".to_string()),
-                                    v.clone().into_string().unwrap_or(
+                                    k.into_string().unwrap_or_else(|| "".to_string()),
+                                    v.clone().into_string().unwrap_or_else(|| {
                                         v.into_i64()
-                                            .map_or("default".to_string(), |i| i.to_string()),
-                                    ),
+                                            .map_or("default".to_string(), |i| i.to_string())
+                                    }),
                                 )
                             })
                             .collect();
