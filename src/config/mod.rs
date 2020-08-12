@@ -53,7 +53,7 @@ impl Default for Config {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
 pub struct InputConfig {
@@ -63,6 +63,7 @@ pub struct InputConfig {
     pub url_prefix: String,
     pub title_boost: TitleBoost,
     pub stemming: StemmingConfig,
+    pub html_selector: Option<String>,
     pub files: Vec<File>,
     pub srt_config: SRTConfig,
 }
@@ -95,7 +96,7 @@ impl Default for OutputConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SRTConfig {
     pub timestamp_linking: bool,
     pub timestamp_template_string: String,
@@ -112,7 +113,7 @@ impl Default for SRTConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum SRTTimestampFormat {
     NumberOfSeconds,

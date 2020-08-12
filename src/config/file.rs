@@ -5,7 +5,7 @@ use std::path::Path;
 
 type Fields = HashMap<String, String>;
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct File {
     pub title: String,
     pub url: String,
@@ -15,6 +15,9 @@ pub struct File {
     pub id: Option<String>,
     #[serde(default)]
     pub stemming_override: Option<StemmingConfig>,
+
+    #[serde(default)]
+    pub html_selector_override: Option<String>,
 
     #[serde(default)]
     pub filetype: Option<Filetype>,
