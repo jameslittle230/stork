@@ -1,10 +1,14 @@
 codecov:
-  require_ci_to_pass: yes
+  require_ci_to_pass: true
 
 coverage:
   precision: 2
   round: down
-  range: "46...90"
+  status:
+    project:
+      default:
+        target: 46%
+        threshold: 5%
 
 comment:
   layout: "diff"
