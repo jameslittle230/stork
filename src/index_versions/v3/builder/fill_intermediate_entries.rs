@@ -1,3 +1,4 @@
+use super::frontmatter::parse_frontmatter;
 use super::word_list_generators::returns_word_list_generator;
 use super::{Contents, IndexGenerationError, IntermediateEntry};
 use crate::config::{Config, DataSource, StemmingConfig};
@@ -39,16 +40,26 @@ pub fn fill_intermediate_entries(
 
         let mut per_file_input_config = config.input.clone();
         per_file_input_config.html_selector = stork_file.html_selector_override.clone();
+        per_file_input_config.frontmatter_handling = stork_file
+            .frontmatter_handling_override
+            .clone()
+            .unwrap_or(per_file_input_config.frontmatter_handling);
+
+        let (frontmatter_fields, buffer) = parse_frontmatter(&per_file_input_config, &buffer);
+
         let contents: Contents = returns_word_list_generator(filetype)
             .create_word_list(&per_file_input_config, buffer.as_str())
             .map_err(IndexGenerationError::WordListGenerationError)?;
+
+        let mut fields = stork_file.fields.clone();
+        fields.extend(frontmatter_fields.into_iter());
 
         let entry = IntermediateEntry {
             contents,
             stem_algorithm,
             title: stork_file.title.clone(),
             url: stork_file.url.clone(),
-            fields: stork_file.fields.clone(),
+            fields,
         };
 
         intermediate_entries.push(entry);

@@ -1,4 +1,4 @@
-use super::StemmingConfig;
+use super::{FrontmatterConfig, StemmingConfig};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
@@ -18,6 +18,9 @@ pub struct File {
 
     #[serde(default)]
     pub html_selector_override: Option<String>,
+
+    #[serde(default)]
+    pub frontmatter_handling_override: Option<FrontmatterConfig>,
 
     #[serde(default)]
     pub filetype: Option<Filetype>,
