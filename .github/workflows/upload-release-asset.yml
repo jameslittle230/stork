@@ -35,3 +35,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./target/release/stork
           asset_name: stork-latest-x86_64-unknown-linux-gnu
+          asset_content_type: application/octet-stream  
