@@ -162,6 +162,11 @@ export class EntityDom {
             }
           }
         });
+
+        listItem.addEventListener("click", e => {
+          e.preventDefault();
+          this.selectResult();
+        });
       }
 
       add(this.elements.attribution, "beforeend", this.elements.output);
@@ -169,6 +174,20 @@ export class EntityDom {
 
     if ((query?.length || 0) > 0) {
       add(this.elements.closeButton, "afterend", this.elements.input);
+    }
+  }
+
+  private selectResult() {
+    if (typeof this.highlightedResult != null) {
+      assert(typeof this.highlightedResult === "number");
+      const result = this.entity.results[this.highlightedResult];
+      if (this.entity.config.onResultSelected) {
+        Promise.resolve(
+          this.entity.config.onResultSelected(this.getQuery(), result)
+        ).finally(() => {
+          window.location.assign(result.entry.url);
+        });
+      }
     }
   }
 
@@ -257,12 +276,7 @@ export class EntityDom {
       }
 
       case RETURN:
-        if (typeof this.highlightedResult != null) {
-          assert(typeof this.highlightedResult === "number");
-          window.location.assign(
-            this.entity.results[this.highlightedResult].entry.url
-          );
-        }
+        this.selectResult();
         break;
 
       case ESC:
