@@ -2,7 +2,7 @@ extern crate stork_search as stork;
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Request, Response, Server, StatusCode};
-use std::{convert::Infallible};
+use std::convert::Infallible;
 use stork::LatestVersion::structs::Index;
 use tokio::runtime::Runtime;
 
