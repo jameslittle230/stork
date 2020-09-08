@@ -8,32 +8,33 @@ impl Index {
         let config = &config.output;
         let file = File::create(&config.filename).unwrap();
         let mut bufwriter = BufWriter::new(file);
-        let write_version = super::VERSION_STRING.as_bytes();
 
         if config.debug {
-            self.write_debug(&mut bufwriter, &write_version)
+            self.write_debug(&mut bufwriter)
         } else {
-            self.write_release(&mut bufwriter, &write_version)
+            self.write_to_buffer(&mut bufwriter)
         }
     }
 
-    fn write_release(&self, bufwriter: &mut BufWriter<File>, write_version: &[u8]) -> usize {
+    pub fn write_to_buffer(&self, buffer: &mut dyn Write) -> usize {
         let mut bytes_written: usize = 0;
+        let write_version = super::VERSION_STRING.as_bytes();
 
         let index_bytes = rmp_serde::to_vec(self).unwrap();
 
         let byte_vectors_to_write = [write_version, index_bytes.as_slice()];
 
         for vec in byte_vectors_to_write.iter() {
-            bytes_written += bufwriter.write(&(vec.len() as u64).to_be_bytes()).unwrap();
-            bytes_written += bufwriter.write(vec).unwrap();
+            bytes_written += buffer.write(&(vec.len() as u64).to_be_bytes()).unwrap();
+            bytes_written += buffer.write(vec).unwrap();
         }
 
         bytes_written
     }
 
-    fn write_debug(&self, bufwriter: &mut BufWriter<File>, write_version: &[u8]) -> usize {
+    fn write_debug(&self, bufwriter: &mut dyn Write) -> usize {
         let index_serialized = serde_json::to_string_pretty(self).unwrap();
+        let write_version = super::VERSION_STRING.as_bytes();
 
         let byte_vectors_to_write = [write_version, index_serialized.as_bytes()];
 
