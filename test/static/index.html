@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>Federalist Search</title>
     <link rel="stylesheet" href="/basic.css" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
     <style>
       .search-wrap {
         max-width: 1200px;
@@ -60,7 +61,13 @@
       stork.register("federalist", "/federalist.st", {
         showProgress: true,
         showScores: true,
-        printIndexInfo: true
+        printIndexInfo: true,
+        onQueryUpdate: (query, results) => {console.log(query, results)},
+        onResultSelected: (query, result) => {
+          return new Promise(function(resolve) {
+            setTimeout(resolve, 2000);
+          });
+        }
       });
       
       stork.register("federalist-prod", "https://files.stork-search.net/federalist.st", {
