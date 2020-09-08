@@ -45,7 +45,7 @@ pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
         let server = Server::bind(&addr).serve(make_svc);
         let graceful = server.with_graceful_shutdown(shutdown_signal());
 
-        println!("Listening on http://{}", addr);
+        println!("Serving from http://{}", addr);
 
         if let Err(e) = graceful.await {
             eprintln!("server error: {}", e);
