@@ -1,8 +1,11 @@
 extern crate stork_search as stork;
 
 mod argparse;
-
 use argparse::Argparse;
+
+mod test_server;
+use test_server::serve;
+
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -24,6 +27,7 @@ Impossibly fast web search, made for static sites.
 
 USAGE:
     stork --build [config.toml]
+    stork --test [config.toml]
     stork --search [./index.st] "[query]"
 "#,
         env!("CARGO_PKG_VERSION")
@@ -33,6 +37,7 @@ USAGE:
 fn main() {
     let mut a = Argparse::new();
     a.register("build", build_handler, 1);
+    a.register("test", test_handler, 1);
     a.register("search", search_handler, 2);
     a.register_help(&help_text());
     std::process::exit(a.exec(env::args().collect()));
@@ -64,6 +69,16 @@ fn build_handler(args: &[String]) {
         end_time.duration_since(build_time).as_secs_f32(),
         end_time.duration_since(start_time).as_secs_f32()
     );
+}
+
+fn test_handler(args: &[String]) {
+    let config = Config::from_file(std::path::PathBuf::from(&args[2]));
+    let index = stork::build(&config).unwrap_or_else(|e| {
+        eprintln!("Could not generate index: {}", e.to_string());
+        std::process::exit(EXIT_FAILURE);
+    });
+
+    let _r = serve(index);
 }
 
 fn search_handler(args: &[String]) {
