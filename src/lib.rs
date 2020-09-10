@@ -67,7 +67,7 @@ mod tests {
         let expected = "{\"error\": \"Version size `4294967295` is too long; this isn\'t a valid index file.\"}";
         assert_eq!(computed, expected)
     }
-    
+
     #[test]
     #[ignore = "This panics in index_analyzer.rs"]
     fn short_blob_throws_appropriate_error() {
