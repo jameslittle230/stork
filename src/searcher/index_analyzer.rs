@@ -5,6 +5,7 @@ use std::error::Error;
 use std::fmt;
 
 pub fn parse_index_version(index: &IndexFromFile) -> Result<IndexVersion, VersionParseError> {
+    // TODO: This code can panic if the index isn't long enough, which is sad.
     let (version_size_bytes, rest) = index.split_at(std::mem::size_of::<u64>());
     let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap_or_default());
     if version_size > 32 {

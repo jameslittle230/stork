@@ -36,16 +36,30 @@ export async function resolveSearch(
   index: Uint8Array,
   query: string
 ): Promise<SearchData> {
+  let data = null;
   try {
-    const data = JSON.parse(wasm_search(index, query));
-
-    if (!data) {
-      throw Error("Data was an empty object");
-    }
-    return data;
+    // If wasm_search returns an error, it will return a JSON blob. Look for
+    // data.error to see if this is the case.
+    data = JSON.parse(wasm_search(index, query));
   } catch (e) {
-    // Data has come back improperly
+    // Data has come back improperly, even beyond an error in Rust-land.
     // analytics.log(e)
-    throw Error("Could not parse data from wasm_search");
+    throw Error(
+      "Could not parse data from wasm_search. If you see this, please file a bug: https://jil.im/storkbug"
+    );
   }
+  if (!data) {
+    throw Error("Data was an empty object");
+  }
+
+  if (data.error) {
+    throw Error(`Could not perform search: the WASM binary failed to return search results.
+    You might not be serving your search index properly.
+    If you think this is an error, please file a bug: https://jil.im/storkbug
+    
+    The WASM binary came back with:
+    ${data.error}`);
+  }
+
+  return data;
 }
