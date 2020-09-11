@@ -25,18 +25,18 @@ export class EntityManager {
 
     this.wasmQueue.runAfterWasmLoaded(() => {
       entity.performSearch(entity.domManager.getQuery());
-    });
 
-    if (entity.config.printIndexInfo) {
-      this.wasmQueue.runAfterWasmLoaded(() => {
-        // eslint-disable-next-line no-console
-        console.log({
-          name: entity.name,
-          sizeInBytes: indexSize,
-          indexVersion: getIndexVersion(entity.index)
+      if (entity.config.printIndexInfo) {
+        this.wasmQueue.runAfterWasmLoaded(() => {
+          // eslint-disable-next-line no-console
+          console.log({
+            name: entity.name,
+            sizeInBytes: indexSize,
+            indexVersion: getIndexVersion(entity.index)
+          });
         });
-      });
-    }
+      }
+    });
   }
 
   public register(

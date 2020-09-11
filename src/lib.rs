@@ -31,7 +31,9 @@ pub fn wasm_search(index: &IndexFromFile, query: String) -> String {
 
     match search_result {
         Ok(string) => string,
-        Err(e) => format!("{{error: '{}'}}", e),
+
+        // Returning error JSON that the JS can parse: see searchData.ts
+        Err(e) => format!("{{\"error\": \"{}\"}}", e),
     }
 }
 
@@ -54,4 +56,23 @@ pub fn search(
 
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     builder::build(config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn wasm_parse_error_returns_json_string() {
+        let computed = wasm_search(&[0, 0, 0, 0, 255, 255, 255, 255], "my query".to_string());
+        let expected = "{\"error\": \"Version size `4294967295` is too long; this isn\'t a valid index file.\"}";
+        assert_eq!(computed, expected)
+    }
+
+    #[test]
+    #[ignore = "This panics in index_analyzer.rs"]
+    fn short_blob_throws_appropriate_error() {
+        let computed = wasm_search(&[255, 255, 255, 255], "my query".to_string());
+        let expected = "{\"error\": \"Version size `4294967295` is too long; this isn\'t a valid index file.\"}";
+        assert_eq!(computed, expected)
+    }
 }

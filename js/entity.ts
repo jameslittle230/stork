@@ -82,6 +82,18 @@ export class Entity {
     this.render();
   }
 
+  private getSanitizedResults() {
+    const results = this.results;
+    results.map(result => {
+      delete result.title_highlight_ranges;
+      result.excerpts.map(excerpt => {
+        delete excerpt.highlight_ranges;
+        delete excerpt.internal_annotations;
+      });
+    });
+    return results;
+  }
+
   setDownloadProgress(percentage: number): void {
     this.progress = percentage;
     if (this.config.showProgress) {
@@ -103,6 +115,10 @@ export class Entity {
         }
 
         this.injestSearchData(data);
+
+        if (this.config.onQueryUpdate) {
+          this.config.onQueryUpdate(query, this.getSanitizedResults());
+        }
       });
     } else {
       this.results = [];
