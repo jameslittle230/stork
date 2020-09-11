@@ -16,7 +16,7 @@ jobs:
     - nvm install 13
     - cargo install wasm-pack
     before_script:
-    - wasm-pack build --target web
+    - wasm-pack build --target web -- --no-default-features
     - yarn install
     script:
     - yarn lint
@@ -33,10 +33,10 @@ jobs:
     - rustup component add clippy
     - rustup component add rustfmt
     before_script:
-    - wasm-pack build --target web
+    - wasm-pack build --target web -- --no-default-features
     script:
-    - cargo clippy  --features "test-server" -- -D warnings
-    - cargo test --features "test-server" --verbose
+    - cargo clippy  -- -D warnings
+    - cargo test --verbose
     - cargo fmt -- --check
     after_success: |
       cargo tarpaulin --out Xml
@@ -47,18 +47,18 @@ jobs:
     before_install:
     - cargo install wasm-pack
     before_script:
-    - wasm-pack build --target web
+    - wasm-pack build --target web -- --no-default-features
     script:
-    - cargo test --features "test-server" --verbose
+    - cargo test --verbose
   - language: rust
     rust: nightly
     env: RUST_BACKTRACE=1
     before_install:
     - cargo install wasm-pack
     before_script:
-    - wasm-pack build --target web
+    - wasm-pack build --target web -- --no-default-features
     script:
-    - cargo test  --features "test-server" --verbose
+    - cargo test  --verbose
   fast_finish: true
   allow_failures:
   - rust: nightly
