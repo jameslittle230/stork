@@ -31,6 +31,7 @@ srtparse = "0.2.0"
 htmlescape = "0.3.1"
 scraper = "0.12.0"
 frontmatter = "0.4.0"
+markdown = "0.3.0"
 futures = {version = "0.3", optional = true}
 hyper = {version = "0.13", optional = true}
 tokio = { version = "0.2", features = ["full"], optional = true }

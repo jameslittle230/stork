@@ -3,6 +3,21 @@ use crate::config::InputConfig;
 use super::super::{AnnotatedWord, Contents};
 use super::{WordListGenerationError, WordListGenerator};
 use scraper::{Html, Selector};
+extern crate markdown;
+
+pub(super) struct MarkdownWordListGenerator {}
+
+impl WordListGenerator for MarkdownWordListGenerator {
+    fn create_word_list(
+            &self,
+            config: &InputConfig,
+            buffer: &str,
+        ) -> Result<Contents, WordListGenerationError> {
+        let html_string = format!("<html><body><main>{}</main></body></html>", markdown::to_html(buffer));
+        println!("{}", html_string);
+        (HTMLWordListGenerator {}).create_word_list(config, &html_string.as_str())
+    }
+}
 
 pub(super) struct HTMLWordListGenerator {}
 
@@ -193,20 +208,49 @@ mod tests {
                     ..Default::default()
                 },
                 r#"
-                <html>
-                    <head></head>
-                    <body>
-                        <h1>This is a title</h1>
-                        <main>
-                            <section class="no"><p>Stork should not recognize this text</p></section>
-                            <section class="yes">
-                                <p>This content should be indexed.</p>
-                                <p>This is another paragraph with <strong><em>inline text</em>formatting</strong>.</p>
-                                <div><img src="https://example.com/foo.png" /><table><tr><td>This is in a table cell.</td></tr></table></div>
-                            </section>
-                        </main>
-                    </body>
-                </html>"#,
+<html>
+    <head></head>
+    <body>
+        <h1>This is a title</h1>
+        <main>
+            <section class="no"><p>Stork should not recognize this text</p></section>
+            <section class="yes">
+                <p>This content should be indexed.</p>
+                <p>This is another paragraph with <strong><em>inline text</em>formatting</strong>.</p>
+                <div><img src="https://example.com/foo.png" /><table><tr><td>This is in a table cell.</td></tr></table></div>
+            </section>
+        </main>
+    </body>
+</html>
+                "#,
+            ).ok().unwrap()
+            .word_list
+            .iter()
+            // .inspect(|aw| println!("{}", aw.word))
+            .map(|aw| aw.word.clone().trim().to_string())
+            .collect::<Vec<String>>()
+            .join(" ");
+
+        assert_eq!(expected, computed);
+    }
+
+    #[test]
+    fn test_markdown() {
+        let expected = "This is a title Stork should recognize this text This content should be indexed. This is another paragraph with inline text formatting . This is a link. Goodbye!";
+        let computed: String = (MarkdownWordListGenerator {})
+            .create_word_list(
+                &InputConfig::default(),
+                r#"
+# This is a title
+
+Stork should recognize this text
+
+- This content should be indexed.
+- This is another paragraph with **_inline text_formatting**.
+- [This is a link.](https://example.com)
+
+Goodbye!
+                "#,
             ).ok().unwrap()
             .word_list
             .iter()
