@@ -4,7 +4,7 @@ use crate::config::{Filetype, InputConfig, SRTConfig, SRTTimestampFormat};
 use std::fmt;
 
 pub mod html_word_list_generator;
-use html_word_list_generator::HTMLWordListGenerator;
+use html_word_list_generator::{HTMLWordListGenerator, MarkdownWordListGenerator};
 
 pub enum WordListGenerationError {
     InvalidSRT,
@@ -29,6 +29,7 @@ pub(super) fn returns_word_list_generator(filetype: &Filetype) -> Box<dyn WordLi
         Filetype::PlainText => Box::new(PlainTextWordListGenerator {}),
         Filetype::SRTSubtitle => Box::new(SRTWordListGenerator {}),
         Filetype::HTML => Box::new(HTMLWordListGenerator {}),
+        Filetype::Markdown => Box::new(MarkdownWordListGenerator {}),
     }
 }
 
