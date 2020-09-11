@@ -35,9 +35,9 @@ jobs:
     before_script:
     - wasm-pack build --target web
     script:
-    - cargo clippy -- -D warnings
-    - cargo test --verbose
-    - cargo fmt -- --check
+    - cargo clippy  --features "test-server" -- -D warnings
+    - cargo test --features "test-server" --verbose
+    - cargo fmt  --features "test-server" -- --check
     after_success: |
       cargo tarpaulin --out Xml
       bash <(curl -s https://codecov.io/bash)
@@ -49,7 +49,7 @@ jobs:
     before_script:
     - wasm-pack build --target web
     script:
-    - cargo test --verbose
+    - cargo test --features "test-server" --verbose
   - language: rust
     rust: nightly
     env: RUST_BACKTRACE=1
@@ -58,7 +58,7 @@ jobs:
     before_script:
     - wasm-pack build --target web
     script:
-    - cargo test --verbose
+    - cargo test  --features "test-server" --verbose
   fast_finish: true
   allow_failures:
   - rust: nightly

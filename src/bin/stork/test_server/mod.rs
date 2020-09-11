@@ -1,12 +1,20 @@
 extern crate stork_search as stork;
 
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Request, Response, Server, StatusCode};
-use std::convert::Infallible;
 use stork::LatestVersion::structs::Index;
-use tokio::runtime::Runtime;
 
+#[cfg(not(feature = "test-server"))]
+pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Stork was not compiled with test server support. Rebuild the crate (`cargo build --features \"test-server\"`) to enable this feature.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
+    panic!()
+}
+
+#[cfg(feature = "test-server")]
 pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
+    use hyper::service::{make_service_fn, service_fn};
+    use hyper::{Body, Request, Response, Server, StatusCode};
+    use std::convert::Infallible;
+    use tokio::runtime::Runtime;
+
     let mut rt = Runtime::new()?;
     let mut index_binary: Vec<u8> = Vec::new();
     index.write_to_buffer(&mut index_binary);
@@ -54,6 +62,7 @@ pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
     })
 }
 
+#[cfg(feature = "test-server")]
 async fn shutdown_signal() {
     // Wait for the CTRL+C signal
     tokio::signal::ctrl_c()
