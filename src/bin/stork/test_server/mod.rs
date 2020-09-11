@@ -49,7 +49,7 @@ pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
             }
         });
 
-        let addr = ([127, 0, 0, 1], 3000).into();
+        let addr = ([127, 0, 0, 1], 1612).into();
         let server = Server::bind(&addr).serve(make_svc);
         let graceful = server.with_graceful_shutdown(shutdown_signal());
 
