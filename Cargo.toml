@@ -16,6 +16,7 @@ exclude = ['/dist/', 'node_modules/', '/test/', '/test-assets/',]
 crate-type = ["cdylib", "rlib"]
 
 [features]
+default = ["test-server"]
 test-server = ["futures", "hyper", "tokio"]
 
 [dependencies]
