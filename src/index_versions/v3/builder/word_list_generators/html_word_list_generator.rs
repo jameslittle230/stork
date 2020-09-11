@@ -2,7 +2,7 @@ use crate::config::InputConfig;
 
 use super::super::{AnnotatedWord, Contents};
 use super::{WordListGenerationError, WordListGenerator};
-use scraper::{Html, Selector};
+use scraper::{ElementRef, Html, Selector};
 
 pub(super) struct HTMLWordListGenerator {}
 
@@ -15,6 +15,15 @@ impl WordListGenerator for HTMLWordListGenerator {
         let document = Html::parse_document(buffer);
         let selector_string = (config.html_selector.clone()).unwrap_or_else(|| "main".to_string());
         let selector = Selector::parse(selector_string.as_str()).unwrap();
+
+        let selector_match_in_document_count = document
+            .select(&selector)
+            .into_iter()
+            .collect::<Vec<ElementRef>>()
+            .len();
+        if selector_match_in_document_count == 0 {
+            return Err(WordListGenerationError::SelectorNotPresent);
+        }
 
         let word_list = document
             .select(&selector)
@@ -34,7 +43,9 @@ impl WordListGenerator for HTMLWordListGenerator {
             })
             .collect::<Vec<AnnotatedWord>>();
 
-        Ok(Contents { word_list })
+        Ok(Contents {
+            word_list: word_list.to_owned(),
+        })
     }
 }
 
