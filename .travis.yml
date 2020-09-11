@@ -37,7 +37,7 @@ jobs:
     script:
     - cargo clippy  --features "test-server" -- -D warnings
     - cargo test --features "test-server" --verbose
-    - cargo fmt  --features "test-server" -- --check
+    - cargo fmt -- --check
     after_success: |
       cargo tarpaulin --out Xml
       bash <(curl -s https://codecov.io/bash)
