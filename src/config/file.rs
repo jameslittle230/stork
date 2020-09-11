@@ -44,6 +44,8 @@ impl File {
                 "srt" => Some(Filetype::SRTSubtitle),
                 "txt" => Some(Filetype::PlainText),
                 "md" => Some(Filetype::Markdown),
+                "mdown" => Some(Filetype::Markdown),
+                "markdown" => Some(Filetype::Markdown),
                 _ => None,
             }
         } else {
@@ -75,7 +77,7 @@ pub enum Filetype {
     PlainText,
     SRTSubtitle,
     HTML,
-    Markdown
+    Markdown,
 }
 
 #[cfg(test)]

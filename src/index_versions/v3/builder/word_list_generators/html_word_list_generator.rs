@@ -9,12 +9,14 @@ pub(super) struct MarkdownWordListGenerator {}
 
 impl WordListGenerator for MarkdownWordListGenerator {
     fn create_word_list(
-            &self,
-            config: &InputConfig,
-            buffer: &str,
-        ) -> Result<Contents, WordListGenerationError> {
-        let html_string = format!("<html><body><main>{}</main></body></html>", markdown::to_html(buffer));
-        println!("{}", html_string);
+        &self,
+        config: &InputConfig,
+        buffer: &str,
+    ) -> Result<Contents, WordListGenerationError> {
+        let html_string = format!(
+            "<html><body><main>{}</main></body></html>",
+            markdown::to_html(buffer)
+        );
         (HTMLWordListGenerator {}).create_word_list(config, &html_string.as_str())
     }
 }
@@ -251,7 +253,9 @@ Stork should recognize this text
 
 Goodbye!
                 "#,
-            ).ok().unwrap()
+            )
+            .ok()
+            .unwrap()
             .word_list
             .iter()
             // .inspect(|aw| println!("{}", aw.word))
