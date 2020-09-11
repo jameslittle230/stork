@@ -2,7 +2,7 @@ use crate::config::InputConfig;
 
 use super::super::{AnnotatedWord, Contents};
 use super::{WordListGenerationError, WordListGenerator};
-use scraper::{ElementRef, Html, Selector};
+use scraper::{Html, Selector};
 
 pub(super) struct HTMLWordListGenerator {}
 
@@ -19,11 +19,7 @@ impl WordListGenerator for HTMLWordListGenerator {
         // We could just check to see if the outputted vec at the end of the
         // data chain is empty, but I explicitly want to avoid throwing this error
         // if the selector _is_ present but there are no words.
-        let selector_match_in_document_count = document
-            .select(&selector)
-            .into_iter()
-            .collect::<Vec<ElementRef>>()
-            .len();
+        let selector_match_in_document_count = document.select(&selector).count();
         if selector_match_in_document_count == 0 {
             return Err(WordListGenerationError::SelectorNotPresent);
         }
@@ -46,9 +42,7 @@ impl WordListGenerator for HTMLWordListGenerator {
             })
             .collect::<Vec<AnnotatedWord>>();
 
-        Ok(Contents {
-            word_list: word_list.to_owned(),
-        })
+        Ok(Contents { word_list })
     }
 }
 
