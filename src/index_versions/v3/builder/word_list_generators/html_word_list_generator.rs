@@ -16,6 +16,9 @@ impl WordListGenerator for HTMLWordListGenerator {
         let selector_string = (config.html_selector.clone()).unwrap_or_else(|| "main".to_string());
         let selector = Selector::parse(selector_string.as_str()).unwrap();
 
+        // We could just check to see if the outputted vec at the end of the
+        // data chain is empty, but I explicitly want to avoid throwing this error
+        // if the selector _is_ present but there are no words.
         let selector_match_in_document_count = document
             .select(&selector)
             .into_iter()
@@ -105,6 +108,54 @@ mod tests {
             .join(" ");
 
         assert_eq!(expected, computed);
+    }
+
+    #[test]
+    fn test_selector_not_present() {
+        let computed = (HTMLWordListGenerator {})
+            .create_word_list(
+                &InputConfig {
+                    html_selector: Some(".yes".to_string()),
+                    ..Default::default()
+                },
+                r#"
+                <html>
+                    <head></head>
+                    <body>
+                        <h1>This is a title</h1>
+                        <main>
+                            <section class="no"><p>Stork should not recognize this text</p></section>
+                        </main>
+                    </body>
+                </html>"#,
+            ).is_err();
+
+        assert_eq!(true, computed);
+    }
+
+    #[test]
+    fn test_selector_present_but_empty_contents() {
+        let computed = (HTMLWordListGenerator {})
+            .create_word_list(
+                &InputConfig {
+                    html_selector: Some(".yes".to_string()),
+                    ..Default::default()
+                },
+                r#"
+                <html>
+                    <head></head>
+                    <body>
+                        <h1>This is a title</h1>
+                        <main>
+                            <section class="no"><p>Stork should not recognize this text</p></section>
+                            <section class="yes"><p></p></section>
+                        </main>
+                    </body>
+                </html>"#,
+            ).ok().unwrap() // it shouldn't panic here! if it does the test has failed
+            .word_list.len();
+
+        assert_eq!(0, computed);
     }
 
     #[test]
