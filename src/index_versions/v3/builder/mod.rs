@@ -110,7 +110,7 @@ pub fn build(config: &Config) -> Index {
                 let normalized_word =
                     remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
                 if normalized_word.is_empty() {
-                    break;
+                    continue;
                 }
 
                 // Step 2A: Fill the container's results map
