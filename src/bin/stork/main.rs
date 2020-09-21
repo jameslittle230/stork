@@ -12,7 +12,7 @@ use stork::config::Config;
 use num_format::{Locale, ToFormattedString};
 
 const HELP_TEXT: &str = r#"
-Stork 0.7.3  --  by James Little
+Stork 0.7.4  --  by James Little
 https://stork-search.net
 Impossibly fast web search, made for static sites.
 
