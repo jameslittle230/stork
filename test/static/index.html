@@ -3,18 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <title>Federalist Search</title>
+    <link rel="stylesheet" href="/dark.css" />
     <link rel="stylesheet" href="/basic.css" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
     <style>
       .search-wrap {
-        max-width: 1200px;
+        max-width: 550px;
         display: flex;
         flex-direction: column;
       }
       
       .stork-wrapper {
-        max-width: 550px;
-        width: 100%;
         margin-bottom: 3rem;
       }
 
@@ -37,16 +36,20 @@
   <body>
     <h1>Test Page</h1>
     <div class="search-wrap">
-      <div class="stork-wrapper">
+      <div class="stork-wrapper-basic">
         <p class="subtitle">Local index</p>
         <input data-stork="federalist" placeholder="liberty" class="stork-input"></input>
         <div data-stork="federalist-output" class="stork-output"></div>
       </div>
+
+      <div style="background-color: #222; color: white; padding: 5em;">
       
-      <div class="stork-wrapper">
+      <div class="stork-wrapper-dark">
         <p class="subtitle">Uploaded Index</p>
         <input data-stork="federalist-prod" placeholder="liberty" class="stork-input"></input>
         <div data-stork="federalist-prod-output" class="stork-output"></div>
+      </div>
+
       </div>
 
       <div class="stork-wrapper">
