@@ -11,6 +11,10 @@ pub fn fill_intermediate_entries(
     config: &Config,
     intermediate_entries: &mut Vec<IntermediateEntry>,
 ) -> Result<(), IndexGenerationError> {
+    if config.input.files.len() == 0 {
+        return Err(IndexGenerationError::NoFilesSpecified);
+    }
+
     let base_directory = Path::new(&config.input.base_directory);
     for stork_file in config.input.files.iter() {
         let filetype = &stork_file.computed_filetype().unwrap_or_else(|| panic!("Cannot determine a filetype for {}. Please include a filetype field in your config file or use a known file extension.", &stork_file.title));
@@ -19,7 +23,9 @@ pub fn fill_intermediate_entries(
             DataSource::Contents(contents) => contents.to_string(),
             DataSource::FilePath(path_string) => {
                 let full_pathname = &base_directory.join(&path_string);
-                let file = File::open(&full_pathname).unwrap();
+                let file = File::open(&full_pathname).map_err(|_| {
+                    IndexGenerationError::FileNotFoundError(full_pathname.to_owned())
+                })?;
                 let mut buf_reader = BufReader::new(file);
                 let mut buffer = String::new();
                 let _bytes_read = buf_reader.read_to_string(&mut buffer);

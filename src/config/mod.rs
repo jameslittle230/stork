@@ -12,6 +12,9 @@ pub use stemming_config::StemmingConfig;
 pub mod frontmatter_config;
 pub use frontmatter_config::FrontmatterConfig;
 
+pub mod config_read_err;
+use config_read_err::ConfigReadErr;
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(deny_unknown_fields)]
 pub enum TitleBoost {
@@ -35,15 +38,9 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_file(path: std::path::PathBuf) -> Config {
-        let contents = fs::read_to_string(&path).unwrap_or_else(|_e| {
-            panic!(
-                "Something went wrong reading the file {}",
-                &path.to_str().unwrap()
-            )
-        });
-
-        toml::from_str(&contents).expect("Config file does not contain proper TOML syntax.")
+    pub fn from_file(path: std::path::PathBuf) -> Result<Config, ConfigReadErr> {
+        let contents = fs::read_to_string(&path).map_err(|_| ConfigReadErr::UnreadableFile(path))?;
+        toml::from_str(&contents).map_err(|e| ConfigReadErr::UnparseableInput(e))
     }
 }
 

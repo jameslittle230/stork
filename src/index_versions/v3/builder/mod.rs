@@ -1,6 +1,6 @@
 use super::structs::*;
 use crate::config::Config;
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error, path::PathBuf};
 use std::fmt;
 
 mod fill_intermediate_entries;
@@ -25,13 +25,20 @@ pub mod frontmatter;
 
 extern crate rust_stemmers;
 
+#[derive(Debug)]
 pub enum IndexGenerationError {
+    NoFilesSpecified,
+    FileNotFoundError(PathBuf),
     WordListGenerationError(WordListGenerationError),
 }
+
+impl Error for IndexGenerationError {}
 
 impl fmt::Display for IndexGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc: String = match self {
+            IndexGenerationError::NoFilesSpecified => "No files specified in config file".to_string(),
+            IndexGenerationError::FileNotFoundError(s) => format!("File {} not found", s.to_string_lossy()),
             IndexGenerationError::WordListGenerationError(e) => e.to_string(),
         };
 

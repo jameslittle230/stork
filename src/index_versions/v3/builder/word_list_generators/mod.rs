@@ -6,6 +6,7 @@ use std::fmt;
 pub mod html_word_list_generator;
 use html_word_list_generator::{HTMLWordListGenerator, MarkdownWordListGenerator};
 
+#[derive(Debug)]
 pub enum WordListGenerationError {
     InvalidSRT,
     SelectorNotPresent,
