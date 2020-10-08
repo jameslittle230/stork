@@ -1,8 +1,8 @@
-use std::{fmt, error::Error, path::PathBuf};
+use std::{error::Error, fmt, path::PathBuf};
 #[derive(Debug)]
 pub enum ConfigReadErr {
     UnreadableFile(PathBuf),
-    UnparseableInput(toml::de::Error)
+    UnparseableInput(toml::de::Error),
 }
 
 impl Error for ConfigReadErr {}

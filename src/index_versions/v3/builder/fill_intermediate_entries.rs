@@ -11,7 +11,7 @@ pub fn fill_intermediate_entries(
     config: &Config,
     intermediate_entries: &mut Vec<IntermediateEntry>,
 ) -> Result<(), IndexGenerationError> {
-    if config.input.files.len() == 0 {
+    if config.input.files.is_empty() {
         return Err(IndexGenerationError::NoFilesSpecified);
     }
 

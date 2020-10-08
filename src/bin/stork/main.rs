@@ -9,12 +9,12 @@ use test_server::serve;
 mod display_timings;
 use display_timings::*;
 
-
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::time::Instant;
 use std::{env, error::Error};
 use stork::config::Config;
+use stork::LatestVersion::structs::Index;
 
 use num_format::{Locale, ToFormattedString};
 
@@ -58,9 +58,7 @@ fn main() {
     std::process::exit(a.exec(env::args().collect()));
 }
 
-pub fn build_index(
-    config_path: &String,
-) -> Result<(Config, stork::LatestVersion::structs::Index), Box<dyn Error>> {
+pub fn build_index(config_path: &str) -> Result<(Config, Index), Box<dyn Error>> {
     let config = Config::from_file(std::path::PathBuf::from(config_path))?;
     let index = stork::build(&config)?;
     Ok((config, index))

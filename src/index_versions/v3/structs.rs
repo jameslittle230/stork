@@ -25,7 +25,11 @@ impl Index {
     }
 
     pub fn avg_entry_size(&self) -> usize {
-        self.entries.iter().map(|entry| entry.contents.len()).sum::<usize>() / self.entries_len()
+        self.entries
+            .iter()
+            .map(|entry| entry.contents.len())
+            .sum::<usize>()
+            / self.entries_len()
     }
 }
 
