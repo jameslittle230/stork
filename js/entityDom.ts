@@ -193,6 +193,8 @@ export class EntityDom {
         ).finally(() => {
           window.location.assign(result.entry.url);
         });
+      } else {
+        window.location.assign(result.entry.url);
       }
     }
   }
