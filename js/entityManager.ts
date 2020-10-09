@@ -55,7 +55,9 @@ export class EntityManager {
       progress: (progress, entity) => {
         entity.setDownloadProgress(progress);
       },
-      error: () => {entity.setDownloadError()}
+      error: () => {
+        entity.setDownloadError();
+      }
     });
   }
 }
