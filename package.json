@@ -44,18 +44,21 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
-    "dev": "yarn build:wasm:dev && yarn build:test-index:federalist && yarn build:js:dev",
+    "develop": "yarn build:wasm:dev && yarn build:test-index:federalist && yarn build:js:dev --watch & yarn serve",
+    "build": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
+
     "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev  -- --no-default-features",
     "build:wasm:prod": "wasm-pack build --target web --out-name stork  -- --no-default-features",
+
     "build:test-index:federalist": "cargo run -- --build test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist",
     "build:test-index:threeblue": "cargo run -- --build test/3b1b-config/3b1b.toml && mkdir -p dist && cp test/*.st dist",
-    "build:js": "echo 'You probably meant build:js:dev or build:js:prod'",
+
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
-    "build:prod": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
+
     "lint": "yarn eslint **/*.ts",
     "test": "jest",
-    "serve": "python3 -m http.server --directory ./dist 8025"
+    "serve": "python3 -m http.server --directory ./dist 8025 & open http://127.0.0.1:8025"
   },
   "//": [
     "typescript-estree only supports typescript <3.8.0 as of 2020-05-25. Upgrade the version if possible:",
