@@ -3,6 +3,7 @@ import { Entity } from "./entity";
 interface IndexLoaderCallbacks {
   load: (event: Event, entity: Entity) => void;
   progress: (percentage: number, entity: Entity) => void;
+  error: () => void;
 }
 
 const FAKE_PROGRESS_BUMP_ON_START = 0.03;
@@ -18,6 +19,11 @@ export function loadIndexFromUrl(
     if (callbacks.load) {
       callbacks.load(e, entity);
     }
+  });
+
+  r.addEventListener("error", e => {
+    console.error(`Could not fetch ${url}`);
+    callbacks.error();
   });
 
   r.addEventListener("progress", e => {

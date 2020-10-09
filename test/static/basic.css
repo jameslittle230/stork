@@ -134,6 +134,11 @@
   background-color: hsl(59, 98%, 58%);
 }
 
+.stork-error,
+.stork-wrapper-basic .stork-error {
+  outline: 2px solid red;
+}
+
 .stork-close-button,
 .stork-wrapper-basic .stork-close-button {
   position: absolute;

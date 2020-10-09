@@ -28,6 +28,7 @@ export interface RenderState {
   message: string | null;
   showProgress: boolean;
   progress: number | null;
+  error: boolean;
 }
 
 const hiddenInterfaceRenderState: RenderState = {
@@ -36,7 +37,8 @@ const hiddenInterfaceRenderState: RenderState = {
   showScores: false,
   message: null,
   showProgress: false,
-  progress: 1
+  progress: 1,
+  error: false
 };
 
 export class EntityDom {
@@ -127,6 +129,10 @@ export class EntityDom {
     } else if (state.showProgress) {
       this.elements.progress.style.width = `100%`;
       this.elements.progress.style.opacity = "0";
+    }
+
+    if (state.error) {
+      this.elements.input.classList.add("stork-error");
     }
 
     if (this.getQuery().length > 0 && state.resultsVisible) {

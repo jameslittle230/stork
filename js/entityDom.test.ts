@@ -87,7 +87,8 @@ describe("entitydom", () => {
       showProgress: true,
       showScores: true,
       progress: 0.5,
-      message: "sup"
+      message: "sup",
+      error: false
     });
 
     // message, results list, list item, attribution, close button
@@ -120,7 +121,8 @@ describe("entitydom", () => {
       showProgress: true,
       showScores: true,
       progress: 0.5,
-      message: "sup"
+      message: "sup",
+      error: false
     });
 
     // message, results list, list item, attribution, close button
@@ -142,6 +144,7 @@ describe("entitydom", () => {
       showProgress: true,
       showScores: true,
       progress: 0.5,
+      error: false,
       message: "sup",
       results: [
         {

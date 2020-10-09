@@ -54,7 +54,8 @@ export class EntityManager {
       load: e => this.handleLoadedIndex(entity, e),
       progress: (progress, entity) => {
         entity.setDownloadProgress(progress);
-      }
+      },
+      error: () => {entity.setDownloadError()}
     });
   }
 }
