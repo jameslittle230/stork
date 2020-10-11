@@ -28,6 +28,7 @@ export interface RenderState {
   message: string | null;
   showProgress: boolean;
   progress: number | null;
+  error: boolean;
 }
 
 const hiddenInterfaceRenderState: RenderState = {
@@ -36,7 +37,8 @@ const hiddenInterfaceRenderState: RenderState = {
   showScores: false,
   message: null,
   showProgress: false,
-  progress: 1
+  progress: 1,
+  error: false
 };
 
 export class EntityDom {
@@ -129,6 +131,10 @@ export class EntityDom {
       this.elements.progress.style.opacity = "0";
     }
 
+    if (state.error) {
+      this.elements.input.classList.add("stork-error");
+    }
+
     if (this.getQuery().length > 0 && state.resultsVisible) {
       this.elements.output.classList.add("stork-output-visible");
       add(this.elements.message, "beforeend", this.elements.output);
@@ -187,6 +193,8 @@ export class EntityDom {
         ).finally(() => {
           window.location.assign(result.entry.url);
         });
+      } else {
+        window.location.assign(result.entry.url);
       }
     }
   }

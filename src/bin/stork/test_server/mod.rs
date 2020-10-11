@@ -4,7 +4,7 @@ use stork::LatestVersion::structs::Index;
 
 #[cfg(not(feature = "test-server"))]
 pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Stork was not compiled with test server support. Rebuild the crate (`cargo build --features \"test-server\"`) to enable this feature.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
+    println!("Stork was not compiled with test server support. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
     panic!()
 }
 
@@ -53,7 +53,7 @@ pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
         let server = Server::bind(&addr).serve(make_svc);
         let graceful = server.with_graceful_shutdown(shutdown_signal());
 
-        println!("Serving from http://{}", addr);
+        println!("Serving from http://{}\nPress ctrl-C to exit.", addr);
 
         if let Err(e) = graceful.await {
             eprintln!("server error: {}", e);

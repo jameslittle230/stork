@@ -14,6 +14,7 @@ export class Entity {
   results: Array<Result> = [];
   highlightedResult = 0;
   progress = 0;
+  error = false;
   totalResultCount = 0;
   // query = "";
   resultsVisible = false;
@@ -35,12 +36,15 @@ export class Entity {
 
   private getCurrentMessage(): string | null {
     const query = this.domManager.getQuery();
-    if (this.progress < 1) {
+    if (this.error) {
+      return "Error! Check the browser console.";
+    } else if (this.progress < 1 || !this.wasmQueue.loaded) {
       return "Loading...";
     } else if (query?.length < 3) {
       return "Filtering...";
     } else if (this.results) {
       if (this.totalResultCount === 0) {
+        console.log(this.wasmQueue);
         return "No files found.";
       } else if (this.totalResultCount === 1) {
         return "1 file found.";
@@ -59,7 +63,8 @@ export class Entity {
       showScores: this.config.showScores,
       message: this.getCurrentMessage(),
       showProgress: this.config.showProgress,
-      progress: this.progress
+      progress: this.progress,
+      error: this.error
     };
   }
 
@@ -75,7 +80,19 @@ export class Entity {
     // Mutate the result URL, like we do when there's a url prefix or suffix
     const urlPrefix = data.url_prefix || "";
     this.results.map(r => {
-      const urlSuffix = r.excerpts[0]?.internal_annotations[0]?.["a"] || "";
+      let urlSuffix = "";
+
+      // oof
+      if (
+        r.excerpts &&
+        r.excerpts[0] &&
+        r.excerpts[0].internal_annotations &&
+        r.excerpts[0].internal_annotations[0] &&
+        r.excerpts[0].internal_annotations[0]["a"] &&
+        typeof r.excerpts[0].internal_annotations[0]["a"] === "string"
+      ) {
+        urlSuffix = r.excerpts[0].internal_annotations[0]["a"];
+      }
       r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix}`;
     });
 
@@ -95,31 +112,43 @@ export class Entity {
   }
 
   setDownloadProgress(percentage: number): void {
+    this.error = false;
     this.progress = percentage;
     if (this.config.showProgress) {
       this.render();
     }
   }
 
+  setDownloadError(): void {
+    this.progress = 1;
+    this.error = true;
+    this.render();
+  }
+
   performSearch(query: string): void {
-    if (!this.wasmQueue.loaded) {
+    if (!this.wasmQueue.loaded || this.error) {
+      this.render();
       return;
     }
 
     if (query.length >= 3) {
-      resolveSearch(this.index, query).then((data: SearchData) => {
-        if (!data) return;
+      resolveSearch(this.index, query)
+        .then((data: SearchData) => {
+          if (!data) return;
 
-        if (process.env.NODE_ENV === "development") {
-          console.log(data);
-        }
+          if (process.env.NODE_ENV === "development") {
+            console.log(data);
+          }
 
-        this.injestSearchData(data);
+          this.injestSearchData(data);
 
-        if (this.config.onQueryUpdate) {
-          this.config.onQueryUpdate(query, this.getSanitizedResults());
-        }
-      });
+          if (this.config.onQueryUpdate) {
+            this.config.onQueryUpdate(query, this.getSanitizedResults());
+          }
+        })
+        .catch(e => {
+          console.error(e);
+        });
     } else {
       this.results = [];
       this.render();

@@ -19,6 +19,20 @@ pub struct Index {
     pub(super) containers: HashMap<String, Container>,
 }
 
+impl Index {
+    pub fn entries_len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn avg_entry_size(&self) -> usize {
+        self.entries
+            .iter()
+            .map(|entry| entry.contents.len())
+            .sum::<usize>()
+            / self.entries_len()
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(super) struct PassthroughConfig {
     pub(super) url_prefix: String,
