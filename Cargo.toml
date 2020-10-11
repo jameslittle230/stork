@@ -36,7 +36,7 @@ markdown = "0.3.0"
 futures = {version = "0.3", optional = true}
 hyper = {version = "0.13", optional = true}
 tokio = { version = "0.2", features = ["full"], optional = true }
-wasm-bindgen = { version= "^0.2", features = ["serde-serialize"] }
+wasm-bindgen = { version = "=0.2.59", features = ["serde-serialize"] }
 
 [profile.release]
 lto = true
