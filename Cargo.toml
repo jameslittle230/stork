@@ -36,7 +36,14 @@ markdown = "0.3.0"
 futures = {version = "0.3", optional = true}
 hyper = {version = "0.13", optional = true}
 tokio = { version = "0.2", features = ["full"], optional = true }
-wasm-bindgen = { version = "=0.2.59", features = ["serde-serialize"] }
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+
+# wasm-opt is out of date in wasm-bindgen, so we have to manually
+# enable the "mutable globals" feature so wasm-opt doesn't reject
+# the wasm blob that gets generated.
+# See: https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Oz", "--enable-mutable-globals"]
 
 [profile.release]
 lto = true
