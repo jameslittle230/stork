@@ -3,6 +3,8 @@ import { Result, SearchData, resolveSearch } from "./searchData";
 import WasmQueue from "./wasmQueue";
 import { EntityDom, RenderState } from "./entityDom";
 
+const minimumQueryLength = 1;
+
 export class Entity {
   readonly name: string;
   readonly url: string;
@@ -40,7 +42,7 @@ export class Entity {
       return "Error! Check the browser console.";
     } else if (this.progress < 1 || !this.wasmQueue.loaded) {
       return "Loading...";
-    } else if (query?.length < 3) {
+    } else if (query?.length < minimumQueryLength) {
       return "Filtering...";
     } else if (this.results) {
       if (this.totalResultCount === 0) {
@@ -131,7 +133,7 @@ export class Entity {
       return;
     }
 
-    if (query.length >= 3) {
+    if (query.length >= minimumQueryLength) {
       resolveSearch(this.index, query)
         .then((data: SearchData) => {
           if (!data) return;
