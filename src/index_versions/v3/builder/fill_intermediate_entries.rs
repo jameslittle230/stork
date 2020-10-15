@@ -16,6 +16,9 @@ pub fn fill_intermediate_entries(
     }
 
     let base_directory = Path::new(&config.input.base_directory);
+
+    let mut per_file_input_config = config.input.clone();
+
     for stork_file in config.input.files.iter() {
         let filetype = &stork_file.computed_filetype().unwrap_or_else(|| panic!("Cannot determine a filetype for {}. Please include a filetype field in your config file or use a known file extension.", &stork_file.title));
 
@@ -44,7 +47,6 @@ pub fn fill_intermediate_entries(
             StemmingConfig::None => None,
         };
 
-        let mut per_file_input_config = config.input.clone();
         per_file_input_config.html_selector = stork_file.html_selector_override.clone();
         per_file_input_config.frontmatter_handling = stork_file
             .frontmatter_handling_override
