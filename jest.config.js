@@ -6,5 +6,6 @@ module.exports = {
   testEnvironment: "<rootDir>/js/test-environment.js",
   modulePathIgnorePatterns: ["<rootDir>/target/*"],
   collectCoverage: true,
-  collectCoverageFrom: ["js/**/*.ts"]
+  collectCoverageFrom: ["js/**/*.ts"],
+  roots: ['js']
 };
