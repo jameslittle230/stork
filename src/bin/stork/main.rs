@@ -32,7 +32,7 @@ Impossibly fast web search, made for static sites.
 USAGE:
     stork --build [config.toml]
 
-        Builds a search index from the specifications in the TOML configuration 
+        Builds a search index from the specifications in the TOML configuration
         file. See https://stork-search.net/docs/build for more information.
 
     stork --test [config.toml]
@@ -41,7 +41,7 @@ USAGE:
         webpage on http://127.0.0.1:1612 that shows a search bar using that index.
 
     stork --search [./index.st] "[query]"
-    
+
         Given a search index file, searches for the given query and outputs
         the results in JSON.
 "#,
@@ -119,7 +119,14 @@ fn search_handler(args: &[String]) {
     let mut index_bytes: Vec<u8> = Vec::new();
     let bytes_read = buf_reader.read_to_end(&mut index_bytes);
     let read_time = Instant::now();
-    let results = stork::search(&index_bytes, args[3].clone());
+    let index = match stork::parse_index(&index_bytes) {
+        Ok(index) => index,
+        Err(e) => {
+            eprintln!("Error parsing index: {}", e);
+            std::process::exit(EXIT_FAILURE);
+        }
+    };
+    let results = stork::search(&index, &args[3]);
     let end_time = Instant::now();
 
     match results {
