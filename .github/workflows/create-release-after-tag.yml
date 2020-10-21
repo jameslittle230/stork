@@ -3,10 +3,7 @@ on:
   push:
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-  
-
-name: Upload Release Asset
-
+name: Create Release after Tag
 jobs:
   release:
     name: Create release
@@ -28,7 +25,7 @@ jobs:
     name: "Build Artifacts"
     strategy:
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["ubuntu-latest", "macos-latest"] # todo: windows-latest doesn't build to ./target/release/stork
     runs-on: ${{matrix.os}}
     needs: release
     steps:
