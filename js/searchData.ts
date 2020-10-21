@@ -1,4 +1,4 @@
-import { wasm_search } from "stork-search";
+import { wasm_search, wasm_parse_index } from "stork-search";
 
 export interface HighlightRange {
   beginning: number;
@@ -32,15 +32,22 @@ export interface SearchData {
   url_prefix: string;
 }
 
-export async function resolveSearch(
+export function parseIndex(
   index: Uint8Array,
+): number {
+  if (index.length === 0) {
+    throw Error("Tried to parse an empty index.");
+  }
+
+  return wasm_parse_index(index);
+}
+
+export async function resolveSearch(
+  index: number,
   query: string
 ): Promise<SearchData> {
   let searchOutput = null;
   let data = null;
-  if (index.length === 0) {
-    throw Error("Tried to search with an empty index.");
-  }
 
   try {
     searchOutput = wasm_search(index, query);
@@ -64,7 +71,7 @@ export async function resolveSearch(
     throw Error(`Could not perform search: the WASM binary failed to return search results.
     You might not be serving your search index properly.
     If you think this is an error, please file a bug: https://jil.im/storkbug
-    
+
     The WASM binary came back with:
     ${data.error}`);
   }
