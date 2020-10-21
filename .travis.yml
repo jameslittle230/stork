@@ -30,12 +30,10 @@ jobs:
     before_install:
     - cargo install wasm-pack
     - cargo install cargo-tarpaulin
-    - rustup component add clippy
     - rustup component add rustfmt
     before_script:
     - wasm-pack build --target web -- --no-default-features
     script:
-    - cargo clippy  -- -D warnings
     - cargo test --verbose
     - cargo fmt -- --check
     after_success: |
