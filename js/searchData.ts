@@ -1,4 +1,4 @@
-import { wasm_search, wasm_parse_index } from "stork-search";
+import { wasm_search, wasm_register_index as wasmRegisterIndex } from "stork-search";
 
 export interface HighlightRange {
   beginning: number;
@@ -32,9 +32,7 @@ export interface SearchData {
   url_prefix: string;
 }
 
-export function parseIndex(
-  index: Uint8Array,
-): number {
+export function parseIndex(index: Uint8Array): number {
   if (index.length === 0) {
     throw Error("Tried to parse an empty index.");
   }

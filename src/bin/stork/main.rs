@@ -119,14 +119,16 @@ fn search_handler(args: &[String]) {
     let mut index_bytes: Vec<u8> = Vec::new();
     let bytes_read = buf_reader.read_to_end(&mut index_bytes);
     let read_time = Instant::now();
-    let index = match stork::parse_index(&index_bytes) {
-        Ok(index) => index,
+
+    match stork::parse_index(&index_bytes, "a") {
+        Ok(_info) => {},
         Err(e) => {
             eprintln!("Error parsing index: {}", e);
             std::process::exit(EXIT_FAILURE);
         }
     };
-    let results = stork::search(&index, &args[3]);
+    
+    let results = stork::search("a", &args[3]);
     let end_time = Instant::now();
 
     match results {

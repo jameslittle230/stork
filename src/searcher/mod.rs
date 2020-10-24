@@ -1,7 +1,8 @@
-pub mod index_analyzer;
+pub mod parse;
+use parse::ParsedIndex;
 
 use crate::common::{Fields, InternalWordAnnotation};
-use crate::index_versions::{v2, v3, ParsedIndex};
+use crate::index_versions::{v2, v3};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -48,6 +49,8 @@ pub struct HighlightRange {
 
 #[derive(Debug)]
 pub enum SearchError {
+    NamedIndexNotInCache,
+
     // If the JSON serialization engine crashes while turning the SearchOutput
     // into a string
     JSONSerializationError,
@@ -59,6 +62,10 @@ pub enum SearchError {
 impl fmt::Display for SearchError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc: String = match self {
+            SearchError::NamedIndexNotInCache => {
+                "Index not found. You must parse an index before performing searches with it."
+                    .to_string()
+            }
             SearchError::JSONSerializationError => "Could not format search results.".to_string(),
             SearchError::InternalCrash => "Unknown error.".to_string(),
         };
@@ -69,11 +76,7 @@ impl fmt::Display for SearchError {
 
 pub fn search(index: &ParsedIndex, query: &str) -> Result<SearchOutput, SearchError> {
     match index {
-        ParsedIndex::V3(inner) => {
-            Ok(v3::search::search(inner, query))
-        }
-        ParsedIndex::V2(inner) => {
-            v2::search::search(inner, query)
-        }
+        ParsedIndex::V3(inner) => Ok(v3::search::search(inner, query)),
+        ParsedIndex::V2(inner) => v2::search::search(inner, query),
     }
 }

@@ -38,7 +38,6 @@ hyper = {version = "0.13", optional = true}
 tokio = { version = "0.2", features = ["full"], optional = true }
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 once_cell = "1"
-js-sys = "0.3"
 
 # wasm-opt is out of date in wasm-bindgen, so we have to manually
 # enable the "mutable globals" feature so wasm-opt doesn't reject
