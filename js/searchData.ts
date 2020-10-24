@@ -1,4 +1,4 @@
-import { wasm_search, wasm_register_index as wasmRegisterIndex } from "stork-search";
+import { wasm_search } from "stork-search";
 
 export interface HighlightRange {
   beginning: number;
@@ -32,23 +32,15 @@ export interface SearchData {
   url_prefix: string;
 }
 
-export function parseIndex(index: Uint8Array): number {
-  if (index.length === 0) {
-    throw Error("Tried to parse an empty index.");
-  }
-
-  return wasm_parse_index(index);
-}
-
 export async function resolveSearch(
-  index: number,
+  name: string,
   query: string
 ): Promise<SearchData> {
   let searchOutput = null;
   let data = null;
 
   try {
-    searchOutput = wasm_search(index, query);
+    searchOutput = wasm_search(name, query);
     // If wasm_search returns an error, it will return a JSON blob. Look for
     // data.error to see if this is the case.
     data = JSON.parse(searchOutput);

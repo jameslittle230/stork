@@ -27,7 +27,7 @@ export class EntityManager {
         new Uint8Array(response)
       );
 
-      entity.indexVersion = indexInfo.version;
+      entity.indexVersion = indexInfo;
       entity.performSearch(entity.domManager.getQuery());
 
       if (entity.config.printIndexInfo) {

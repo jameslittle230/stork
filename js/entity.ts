@@ -1,5 +1,5 @@
 import { Configuration } from "./config";
-import { Result, SearchData, resolveSearch, parseIndex } from "./searchData";
+import { Result, SearchData, resolveSearch } from "./searchData";
 import WasmQueue from "./wasmQueue";
 import { EntityDom, RenderState } from "./entityDom";
 
@@ -11,7 +11,7 @@ export class Entity {
   readonly domManager: EntityDom;
 
   index: Uint8Array;
-  indexToken: number | null = null;
+  indexVersion: string;
   results: Array<Result> = [];
   highlightedResult = 0;
   progress = 0;
@@ -132,12 +132,8 @@ export class Entity {
       return;
     }
 
-    if (this.indexToken == null) {
-      this.indexToken = parseIndex(this.index);
-    }
-
     if (query.length >= 3) {
-      resolveSearch(this.indexToken, query)
+      resolveSearch(this.name, query)
         .then((data: SearchData) => {
           if (!data) return;
 
