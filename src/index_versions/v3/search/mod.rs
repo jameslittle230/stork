@@ -10,8 +10,7 @@ use intermediate_excerpt::IntermediateExcerpt;
 
 pub fn search(index: &Index, query: &str) -> SearchOutput {
     let normalized_query = query.to_lowercase();
-    let words_in_query: Vec<String> =
-        normalized_query.split(' ').map(|s| s.to_string()).collect();
+    let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
 
     // Get the containers for each word in the query, and separate them
     // into intermediate excerpts
@@ -29,8 +28,7 @@ pub fn search(index: &Index, query: &str) -> SearchOutput {
         }
     }
 
-    let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> =
-        HashMap::new();
+    let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> = HashMap::new();
     for ie in intermediate_excerpts {
         excerpts_by_index
             .entry(ie.entry_index)
@@ -296,8 +294,8 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
     use std::convert::TryFrom;
+    use std::fs;
     use std::io::{BufReader, Read};
     #[test]
     fn e2e_v3_search_works() {

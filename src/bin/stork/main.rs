@@ -121,13 +121,13 @@ fn search_handler(args: &[String]) {
     let read_time = Instant::now();
 
     match stork::parse_index(&index_bytes, "a") {
-        Ok(_info) => {},
+        Ok(_info) => {}
         Err(e) => {
             eprintln!("Error parsing index: {}", e);
             std::process::exit(EXIT_FAILURE);
         }
     };
-    
+
     let results = stork::search("a", &args[3]);
     let end_time = Instant::now();
 

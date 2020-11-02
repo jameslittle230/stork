@@ -268,9 +268,9 @@ pub fn internal_search(index: &Index, query: &str) -> SearchOutput {
 mod tests {
     use super::*;
     use crate::searcher::parse::{IndexVersion, ParsedIndex};
-    use std::{convert::TryFrom, fs};
     use std::io::{BufReader, Read};
-    
+    use std::{convert::TryFrom, fs};
+
     #[test]
     fn e2e_v2_search_works() {
         let file = fs::File::open("./test-assets/federalist-min-0.6.0.st").unwrap();

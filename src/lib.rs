@@ -5,7 +5,7 @@ pub mod wasm;
 
 mod index_versions;
 
-use crate::searcher::parse::{ParsedIndex, IndexParseError};
+use crate::searcher::parse::{IndexParseError, ParsedIndex};
 use common::IndexFromFile;
 use config::Config;
 use searcher::SearchError;
