@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::common::IndexFromFile;
+use crate::{common::IndexFromFile, searcher::parse::IndexMetadata};
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
@@ -37,9 +37,8 @@ extern "C" {
 #[wasm_bindgen]
 pub fn wasm_register_index(name: &str, data: &IndexFromFile) -> String {
     console_error_panic_hook::set_once();
-    wasm_output(parse_index(data, name).map(|_index| {
-        // return index info
-        true
+    wasm_output(parse_index(data, name).map(|index| {
+        IndexMetadata::from(index)
     }))
 }
 

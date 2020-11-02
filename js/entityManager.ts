@@ -19,15 +19,15 @@ export class EntityManager {
       XMLHttpRequestEventTarget
     >).target;
 
-    entity.setDownloadProgress(1);
-
     this.wasmQueue.runAfterWasmLoaded(() => {
       const indexInfo = wasmRegisterIndex(
         entity.name,
         new Uint8Array(response)
       );
 
-      entity.indexVersion = indexInfo;
+      // Force end progress after index is registered
+      entity.setDownloadProgress(1);
+
       entity.performSearch(entity.domManager.getQuery());
 
       if (entity.config.printIndexInfo) {
@@ -35,8 +35,8 @@ export class EntityManager {
           // eslint-disable-next-line no-console
           console.log({
             name: entity.name,
-            sizeInBytes: response.length,
-            indexVersion: entity.indexVersion
+            sizeInBytes: response.byteLength,
+            ...JSON.parse(indexInfo)
           });
         });
       }

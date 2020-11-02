@@ -5522,7 +5522,7 @@ stealthy-require@^1.1.1:
   integrity sha1-NbCYdbT/SfJqd35QmzCQoyJr8ks=
 
 stork-search@./pkg:
-  version "0.7.2"
+  version "0.8.0"
 
 stream-browserify@^2.0.1:
   version "2.0.2"

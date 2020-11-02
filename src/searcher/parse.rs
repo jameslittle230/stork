@@ -1,5 +1,6 @@
 use crate::index_versions::*;
 use crate::IndexFromFile;
+use serde::Serialize;
 use std::convert::TryInto;
 use std::error::Error;
 use std::fmt;
@@ -96,6 +97,23 @@ impl fmt::Display for IndexParseError {
         write!(f, "{}", desc)
     }
 }
+/**
+ * Used to send metadata from WASM to JS. Derived from a ParsedIndex and
+ * eventually serialized to JSON.
+ */
+#[derive(Serialize)]
+pub struct IndexMetadata {
+    #[serde(rename = "indexVersion")]
+    index_version: String,
+}
+
+impl From<ParsedIndex> for IndexMetadata {
+    fn from(index: ParsedIndex) -> Self {
+        IndexMetadata {
+            index_version: IndexVersion::from(index).to_string(),
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum ParsedIndex {
@@ -107,7 +125,7 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
     type Error = IndexParseError;
 
     fn try_from(index: &IndexFromFile) -> Result<ParsedIndex, IndexParseError> {
-        pub fn parse_index_version(index: &IndexFromFile) -> Result<IndexVersion, IndexParseError> {
+        fn parse_index_version(index: &IndexFromFile) -> Result<IndexVersion, IndexParseError> {
             if index.len() <= std::mem::size_of::<u64>() {
                 return Err(IndexParseError::FileTooShort);
             }
@@ -116,18 +134,22 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
             let (version_size_bytes, rest) = index.split_at(std::mem::size_of::<u64>());
             let version_size =
                 u64::from_be_bytes(version_size_bytes.try_into().unwrap_or_default());
-            if version_size > 32 {
-                return Err(IndexParseError::BadVersionSize(
-                    version_size,
-                    VersionSizeProblem::Long,
-                ));
-            }
 
-            if version_size < 1 {
-                return Err(IndexParseError::BadVersionSize(
-                    version_size,
-                    VersionSizeProblem::Short,
-                ));
+            let size_problem: Option<VersionSizeProblem> = match version_size {
+                0..=1 => Some(VersionSizeProblem::Short),
+                32..=u64::MAX => Some(VersionSizeProblem::Long),
+                _ => None,
+            };
+
+            match size_problem {
+                Some(size_problem) => {
+                    return Err(IndexParseError::BadVersionSize(version_size, size_problem))
+                }
+                None => {}
+            };
+
+            if index.len() <= (std::mem::size_of::<u64>() + version_size as usize) {
+                return Err(IndexParseError::FileTooShort);
             }
 
             let (version_bytes, _rest) = rest.split_at(version_size as usize);
@@ -148,6 +170,7 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
                 let index = v2::structs::Index::from_file(index);
                 ParsedIndex::V2(index)
             }
+
             IndexVersion::V3 => {
                 let index = v3::structs::Index::try_from(index)?;
                 ParsedIndex::V3(index)

@@ -7,6 +7,7 @@ interface IndexLoaderCallbacks {
 }
 
 const FAKE_PROGRESS_BUMP_ON_START = 0.03;
+const PROGRESS_SHOWING_INDEX_NOT_YET_REGISTERED = 0.94;
 
 export function loadIndexFromUrl(
   entity: Entity,
@@ -28,9 +29,9 @@ export function loadIndexFromUrl(
 
   r.addEventListener("progress", e => {
     if (callbacks.progress) {
-      const loadedPercentage = Math.max(
-        FAKE_PROGRESS_BUMP_ON_START,
-        e.loaded / e.total
+      const loadedPercentage = Math.min(
+        Math.max(FAKE_PROGRESS_BUMP_ON_START, e.loaded / e.total),
+        PROGRESS_SHOWING_INDEX_NOT_YET_REGISTERED
       );
       callbacks.progress(loadedPercentage, entity);
     }

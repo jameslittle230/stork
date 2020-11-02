@@ -138,7 +138,7 @@ export class Entity {
           if (!data) return;
 
           if (process.env.NODE_ENV === "development") {
-            console.log(data);
+            console.log("DEVELOPMENT:", data);
           }
 
           this.injestSearchData(data);
