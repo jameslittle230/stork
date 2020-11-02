@@ -141,12 +141,9 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
                 _ => None,
             };
 
-            match size_problem {
-                Some(size_problem) => {
-                    return Err(IndexParseError::BadVersionSize(version_size, size_problem))
-                }
-                None => {}
-            };
+            if let Some(size_problem) = size_problem {
+                return Err(IndexParseError::BadVersionSize(version_size, size_problem));
+            }
 
             if index.len() <= (std::mem::size_of::<u64>() + version_size as usize) {
                 return Err(IndexParseError::FileTooShort);

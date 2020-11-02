@@ -27,7 +27,7 @@ pub fn parse_index(data: &IndexFromFile, name: &str) -> Result<ParsedIndex, Inde
     let index = ParsedIndex::try_from(data)?;
     let mutex = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
     let mut lock = mutex.lock().unwrap();
-    &lock.insert(name.to_string(), index.clone());
+    lock.insert(name.to_string(), index.clone());
     Ok(index)
 }
 

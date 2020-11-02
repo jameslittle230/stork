@@ -37,7 +37,7 @@ extern "C" {
 #[wasm_bindgen]
 pub fn wasm_register_index(name: &str, data: &IndexFromFile) -> String {
     console_error_panic_hook::set_once();
-    wasm_output(parse_index(data, name).map(|index| IndexMetadata::from(index)))
+    wasm_output(parse_index(data, name).map(IndexMetadata::from))
 }
 
 #[wasm_bindgen]
