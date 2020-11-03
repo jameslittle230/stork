@@ -11,13 +11,11 @@ export class Entity {
   readonly domManager: EntityDom;
 
   index: Uint8Array;
-  indexVersion: string;
   results: Array<Result> = [];
   highlightedResult = 0;
   progress = 0;
   error = false;
   totalResultCount = 0;
-  // query = "";
   resultsVisible = false;
   hoverSelectEnabled = true;
 

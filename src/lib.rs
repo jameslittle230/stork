@@ -1,4 +1,4 @@
-pub mod common;
+mod common;
 pub mod config;
 pub mod searcher;
 pub mod wasm;

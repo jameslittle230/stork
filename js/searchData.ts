@@ -61,7 +61,7 @@ export async function resolveSearch(
     throw Error(`Could not perform search: the WASM binary failed to return search results.
     You might not be serving your search index properly.
     If you think this is an error, please file a bug: https://jil.im/storkbug
-
+    
     The WASM binary came back with:
     ${data.error}`);
   }
