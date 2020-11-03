@@ -37,6 +37,17 @@ pub enum VersionSizeProblem {
     Long,
 }
 
+impl fmt::Display for VersionSizeProblem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", {
+            match self {
+                VersionSizeProblem::Short => "short".to_string(),
+                VersionSizeProblem::Long => "long".to_string(),
+            }
+        })
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum IndexParseError {
     FileTooShort,
@@ -44,7 +55,8 @@ pub enum IndexParseError {
     VersionStringUtf8Error(std::string::FromUtf8Error),
     UnknownVersionString(String),
 
-    // suppressing rmp deserialize error
+    // This could have an rmp::decode associated value, but I'm opting to
+    // suppress it.
     DecodeError,
 }
 
@@ -74,14 +86,9 @@ impl fmt::Display for IndexParseError {
             IndexParseError::BadVersionSize(size, problem) => format!(
                 "Version size `{}` is too {}; this isn't a valid index file.",
                 size,
-                {
-                    if problem == &VersionSizeProblem::Short {
-                        "short"
-                    } else {
-                        "long"
-                    }
-                }
+                problem
             ),
+
             IndexParseError::VersionStringUtf8Error(e) => format!(
                 "Could not parse version string as valid UTF8, got:\n{:?}",
                 e.as_bytes()
