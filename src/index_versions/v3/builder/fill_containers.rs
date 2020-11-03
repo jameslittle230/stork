@@ -103,9 +103,10 @@ fn fill_other_containers_alias_maps_with_prefixes(
 ) {
     let chars: Vec<char> = normalized_word.chars().collect();
 
-    let substring_max_length_range: Range<usize> = match string_is_cjk_ideographic(&chars) {
-        true => (ideograph_prefix_length as usize)..chars.len(),
-        false => (prefix_length as usize)..chars.len(),
+    let substring_max_length_range: Range<usize> = if string_is_cjk_ideographic(&chars) {
+        (ideograph_prefix_length as usize)..chars.len()
+    } else {
+        (prefix_length as usize)..chars.len()
     };
 
     for n in substring_max_length_range {
@@ -147,7 +148,7 @@ fn fill_other_containers_alias_maps_with_reverse_stems(
     }
 }
 
-fn string_is_cjk_ideographic(s: &std::vec::Vec<char>) -> bool {
+fn string_is_cjk_ideographic(s: &[char]) -> bool {
     s.iter()
         .map(char_is_cjk_ideograph)
         .fold(true, |acc, x| acc & x)

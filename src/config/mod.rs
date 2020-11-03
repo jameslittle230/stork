@@ -84,7 +84,7 @@ impl Default for InputConfig {
             frontmatter_handling: Default::default(),
             files: Default::default(),
             srt_config: Default::default(),
-            
+
             minimum_indexed_substring_length: 3,
             minimum_index_ideographic_substring_length: 1,
         }
