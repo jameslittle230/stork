@@ -2,7 +2,7 @@ export interface Configuration {
   showProgress: boolean;
   printIndexInfo: boolean;
   showScores: boolean;
-  minimumQueryLength: number,
+  minimumQueryLength: number;
   onQueryUpdate?: (query: string, results: unknown) => unknown;
   onResultSelected?: (query: string, result: unknown) => unknown;
 }
