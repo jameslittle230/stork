@@ -54,7 +54,7 @@ impl Default for Config {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
 pub struct InputConfig {
@@ -68,6 +68,27 @@ pub struct InputConfig {
     pub frontmatter_handling: FrontmatterConfig,
     pub files: Vec<File>,
     pub srt_config: SRTConfig,
+    pub minimum_indexed_substring_length: u8,
+    pub minimum_index_ideographic_substring_length: u8,
+}
+
+impl Default for InputConfig {
+    fn default() -> Self {
+        InputConfig {
+            UNUSED_surrounding_word_count: Default::default(),
+            base_directory: Default::default(),
+            url_prefix: Default::default(),
+            title_boost: Default::default(),
+            stemming: Default::default(),
+            html_selector: Default::default(),
+            frontmatter_handling: Default::default(),
+            files: Default::default(),
+            srt_config: Default::default(),
+            
+            minimum_indexed_substring_length: 3,
+            minimum_index_ideographic_substring_length: 1,
+        }
+    }
 }
 
 /**
