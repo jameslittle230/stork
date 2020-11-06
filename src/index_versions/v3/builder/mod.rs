@@ -60,7 +60,7 @@ pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     fill_stems(&intermediate_entries, &mut stems);
 
     let mut containers: HashMap<String, Container> = HashMap::new();
-    fill_containers(&intermediate_entries, &stems, &mut containers);
+    fill_containers(&config, &intermediate_entries, &stems, &mut containers);
 
     let entries: Vec<Entry> = intermediate_entries.iter().map(Entry::from).collect();
 

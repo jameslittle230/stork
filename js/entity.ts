@@ -40,7 +40,7 @@ export class Entity {
       return "Error! Check the browser console.";
     } else if (this.progress < 1 || !this.wasmQueue.loaded) {
       return "Loading...";
-    } else if (query?.length < 3) {
+    } else if (query?.length < this.config.minimumQueryLength) {
       return "Filtering...";
     } else if (this.results) {
       if (this.totalResultCount === 0) {
@@ -131,7 +131,7 @@ export class Entity {
       return;
     }
 
-    if (query.length >= 3) {
+    if (query.length >= this.config.minimumQueryLength) {
       resolveSearch(this.index, query)
         .then((data: SearchData) => {
           if (!data) return;
