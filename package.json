@@ -1,6 +1,6 @@
 {
   "name": "stork",
-  "version": "0.7.2",
+  "version": "1.0.0",
   "description": "Impossibly fast web search, made for static sites.",
   "main": "index.js",
   "repository": {
