@@ -37,7 +37,7 @@ pub fn search(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchE
     let index = lock
         .get(name)
         .to_owned()
-        .ok_or_else(|| SearchError::NamedIndexNotInCache)?;
+        .ok_or(SearchError::NamedIndexNotInCache)?;
     searcher::search(index, query)
 }
 
