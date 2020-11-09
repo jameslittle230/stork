@@ -1,7 +1,7 @@
 mod common;
 pub mod config;
-pub mod searcher;
 pub mod wasm;
+mod searcher;
 
 mod index_versions;
 
@@ -23,6 +23,9 @@ use std::sync::Mutex;
 // We can't pass a parsed index over the WASM boundary so we store the parsed indices here
 static INDEX_CACHE: OnceCell<Mutex<HashMap<String, ParsedIndex>>> = OnceCell::new();
 
+/**
+ * Parses an index from a binary file and saves it in memory.
+ */
 pub fn parse_index(data: &IndexFromFile, name: &str) -> Result<ParsedIndex, IndexParseError> {
     let index = ParsedIndex::try_from(data)?;
     let mutex = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
@@ -31,6 +34,9 @@ pub fn parse_index(data: &IndexFromFile, name: &str) -> Result<ParsedIndex, Inde
     Ok(index)
 }
 
+/**
+ * Retrieves an index object from memory, and performs a search with the given query
+ */
 pub fn search(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchError> {
     let parsed_indices = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
     let lock = parsed_indices.lock().unwrap();
@@ -41,6 +47,9 @@ pub fn search(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchE
     searcher::search(index, query)
 }
 
+/**
+ * Builds an index that can be serialized and parsed later
+ */
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     builder::build(config)
 }
