@@ -1,7 +1,7 @@
 mod common;
 pub mod config;
-pub mod wasm;
 mod searcher;
+pub mod wasm;
 
 mod index_versions;
 
@@ -26,7 +26,10 @@ static INDEX_CACHE: OnceCell<Mutex<HashMap<String, ParsedIndex>>> = OnceCell::ne
 /**
  * Parses an index from a binary file and saves it in memory.
  */
-pub fn parse_index(data: &IndexFromFile, name: &str) -> Result<ParsedIndex, IndexParseError> {
+pub fn parse_and_cache_index(
+    data: &IndexFromFile,
+    name: &str,
+) -> Result<ParsedIndex, IndexParseError> {
     let index = ParsedIndex::try_from(data)?;
     let mutex = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
     let mut lock = mutex.lock().unwrap();
@@ -35,9 +38,9 @@ pub fn parse_index(data: &IndexFromFile, name: &str) -> Result<ParsedIndex, Inde
 }
 
 /**
- * Retrieves an index object from memory, and performs a search with the given query
+ * Retrieves an index object from memory, and performs a search with the given index binary and the given query.
  */
-pub fn search(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchError> {
+pub fn search_from_cache(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchError> {
     let parsed_indices = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
     let lock = parsed_indices.lock().unwrap();
     let index = lock
@@ -48,7 +51,16 @@ pub fn search(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchE
 }
 
 /**
- * Builds an index that can be serialized and parsed later
+ * Searches an Index object created from the `stork_search::build()` method.
+ *
+ * This method only works with indexes created with the same package version used to run the search.
+ */
+pub fn search_with_index(index: &Index, query: &str) -> searcher::SearchOutput {
+    LatestVersion::search::search(index, query)
+}
+
+/**
+ * Builds an Index object that can be serialized and parsed later
  */
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     builder::build(config)

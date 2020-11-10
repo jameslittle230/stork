@@ -120,7 +120,7 @@ fn search_handler(args: &[String]) {
     let bytes_read = buf_reader.read_to_end(&mut index_bytes);
     let read_time = Instant::now();
 
-    match stork::parse_index(&index_bytes, "a") {
+    match stork::parse_and_cache_index(&index_bytes, "a") {
         Ok(_info) => {}
         Err(e) => {
             eprintln!("Error parsing index: {}", e);
@@ -128,7 +128,7 @@ fn search_handler(args: &[String]) {
         }
     };
 
-    let results = stork::search("a", &args[3]);
+    let results = stork::search_from_cache("a", &args[3]);
     let end_time = Instant::now();
 
     match results {
