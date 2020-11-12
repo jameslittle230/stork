@@ -1032,6 +1032,7 @@ dependencies = [
  "hyper",
  "markdown",
  "num-format",
+ "once_cell",
  "rmp-serde",
  "rust-stemmers",
  "scraper",

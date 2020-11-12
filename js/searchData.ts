@@ -33,17 +33,14 @@ export interface SearchData {
 }
 
 export async function resolveSearch(
-  index: Uint8Array,
+  name: string,
   query: string
 ): Promise<SearchData> {
   let searchOutput = null;
   let data = null;
-  if (index.length === 0) {
-    throw Error("Tried to search with an empty index.");
-  }
 
   try {
-    searchOutput = wasm_search(index, query);
+    searchOutput = wasm_search(name, query);
     // If wasm_search returns an error, it will return a JSON blob. Look for
     // data.error to see if this is the case.
     data = JSON.parse(searchOutput);

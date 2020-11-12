@@ -1,70 +1,62 @@
 use super::scores::*;
 use super::structs::*;
-use crate::common::{IndexFromFile, STOPWORDS};
+use crate::common::STOPWORDS;
 use crate::config::TitleBoost;
 use crate::searcher::*;
 use std::collections::HashMap;
-use std::convert::TryFrom;
 
 pub mod intermediate_excerpt;
 use intermediate_excerpt::IntermediateExcerpt;
 
-pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
-    match Index::try_from(index) {
-        Err(_e) => Err(SearchError::IndexParseError),
-        Ok(index) => {
-            let normalized_query = query.to_lowercase();
-            let words_in_query: Vec<String> =
-                normalized_query.split(' ').map(|s| s.to_string()).collect();
+pub fn search(index: &Index, query: &str) -> SearchOutput {
+    let normalized_query = query.to_lowercase();
+    let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
 
-            // Get the containers for each word in the query, and separate them
-            // into intermediate excerpts
-            let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
-                .iter()
-                .flat_map(|word| index.containers.get_key_value(word))
-                .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
-                .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
-                .flatten()
-                .collect();
+    // Get the containers for each word in the query, and separate them
+    // into intermediate excerpts
+    let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
+        .iter()
+        .flat_map(|word| index.containers.get_key_value(word))
+        .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
+        .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
+        .flatten()
+        .collect();
 
-            for mut ie in &mut intermediate_excerpts {
-                if STOPWORDS.contains(&ie.query.as_str()) {
-                    ie.score = STOPWORD_SCORE;
-                }
-            }
-
-            let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> =
-                HashMap::new();
-            for ie in intermediate_excerpts {
-                excerpts_by_index
-                    .entry(ie.entry_index)
-                    .or_insert_with(Vec::new)
-                    .push(ie)
-            }
-
-            let total_len = &excerpts_by_index.len();
-
-            let mut output_results: Vec<OutputResult> = excerpts_by_index
-                .iter()
-                .map(|(entry_index, ies)| {
-                    let data = EntryAndIntermediateExcerpts {
-                        entry: index.entries[*entry_index].to_owned(),
-                        config: index.config.clone(),
-                        intermediate_excerpts: ies.to_owned(),
-                    };
-                    OutputResult::from(data)
-                })
-                .collect();
-            output_results.sort_by_key(|or| or.entry.title.clone());
-            output_results.sort_by_key(|or| -(or.score as i64));
-            output_results.truncate(index.config.displayed_results_count as usize);
-
-            Ok(SearchOutput {
-                results: output_results,
-                total_hit_count: *total_len,
-                url_prefix: index.config.url_prefix,
-            })
+    for mut ie in &mut intermediate_excerpts {
+        if STOPWORDS.contains(&ie.query.as_str()) {
+            ie.score = STOPWORD_SCORE;
         }
+    }
+
+    let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> = HashMap::new();
+    for ie in intermediate_excerpts {
+        excerpts_by_index
+            .entry(ie.entry_index)
+            .or_insert_with(Vec::new)
+            .push(ie)
+    }
+
+    let total_len = &excerpts_by_index.len();
+
+    let mut output_results: Vec<OutputResult> = excerpts_by_index
+        .iter()
+        .map(|(entry_index, ies)| {
+            let data = EntryAndIntermediateExcerpts {
+                entry: index.entries[*entry_index].to_owned(),
+                config: index.config.clone(),
+                intermediate_excerpts: ies.to_owned(),
+            };
+            OutputResult::from(data)
+        })
+        .collect();
+    output_results.sort_by_key(|or| or.entry.title.clone());
+    output_results.sort_by_key(|or| -(or.score as i64));
+    output_results.truncate(index.config.displayed_results_count as usize);
+
+    SearchOutput {
+        results: output_results,
+        total_hit_count: *total_len,
+        url_prefix: index.config.url_prefix.clone(),
     }
 }
 
@@ -302,6 +294,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::convert::TryFrom;
     use std::fs;
     use std::io::{BufReader, Read};
     #[test]
@@ -311,7 +304,8 @@ mod tests {
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
 
-        let generated = search(index_bytes.as_slice(), "liber old world").unwrap();
+        let index = Index::try_from(index_bytes.as_slice()).unwrap();
+        let generated = search(&index, "liber old world");
         let expected = serde_json::from_str("{\"results\":[{\"entry\":{\"url\":\"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1\",\"title\":\"Introduction\",\"fields\":{}},\"excerpts\":[{\"text\":\"in many respects the most interesting in the world. It has been frequently remarked that it\",\"highlight_ranges\":[{\"beginning\":45,\"end\":50}],\"score\":128,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"despotic power and hostile to the principles of liberty. An over-scrupulous jealousy of danger to the\",\"highlight_ranges\":[{\"beginning\":48,\"end\":55}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"of love, and that the noble enthusiasm of liberty is apt to be infected with a\",\"highlight_ranges\":[{\"beginning\":42,\"end\":49}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"of government is essential to the security of liberty; that, in the contemplation of a sound\",\"highlight_ranges\":[{\"beginning\":46,\"end\":53}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"that this is the safest course for your liberty, your dignity, and your happiness. I affect\",\"highlight_ranges\":[{\"beginning\":40,\"end\":47}],\"score\":125,\"internal_annotations\":[],\"fields\":{}}],\"title_highlight_ranges\":[],\"score\":128}],\"total_hit_count\":1,\"url_prefix\":\"\"}").unwrap();
 
         assert_eq!(generated, expected, "{:?}", generated);

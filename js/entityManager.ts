@@ -1,7 +1,7 @@
 import { Entity } from "./entity";
 import { Configuration, calculateOverriddenConfig } from "./config";
 import { loadIndexFromUrl } from "./indexLoader";
-import { get_index_version as getIndexVersion } from "stork-search";
+import { wasm_register_index as wasmRegisterIndex } from "stork-search";
 import WasmQueue from "./wasmQueue";
 
 export class EntityManager {
@@ -19,11 +19,15 @@ export class EntityManager {
       XMLHttpRequestEventTarget
     >).target;
 
-    const indexSize = response.byteLength;
-    entity.setDownloadProgress(1);
-    entity.index = new Uint8Array(response);
-
     this.wasmQueue.runAfterWasmLoaded(() => {
+      const indexInfo = wasmRegisterIndex(
+        entity.name,
+        new Uint8Array(response)
+      );
+
+      // Force end progress after index is registered
+      entity.setDownloadProgress(1);
+
       entity.performSearch(entity.domManager.getQuery());
 
       if (entity.config.printIndexInfo) {
@@ -31,8 +35,8 @@ export class EntityManager {
           // eslint-disable-next-line no-console
           console.log({
             name: entity.name,
-            sizeInBytes: indexSize,
-            indexVersion: getIndexVersion(entity.index)
+            sizeInBytes: response.byteLength,
+            ...JSON.parse(indexInfo)
           });
         });
       }

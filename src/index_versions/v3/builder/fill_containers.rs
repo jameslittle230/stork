@@ -156,7 +156,7 @@ fn string_is_cjk_ideographic(s: &[char]) -> bool {
 
 fn char_is_cjk_ideograph(c: &char) -> bool {
     // Block ranges sourced from https://en.wikipedia.org/wiki/CJK_Unified_Ideographs#CJK_Unified_Ideographs_blocks
-    match c {
+    matches!(c,
         // CJK Unified Ideographs
         '\u{4E00}'..='\u{62FF}' |
         '\u{6300}'..='\u{77FF}' |
@@ -184,7 +184,5 @@ fn char_is_cjk_ideograph(c: &char) -> bool {
         '\u{30000}'..='\u{3134F}' |
         // CJK Compatibility Ideographs
         '\u{F900}'..='\u{FAFF}'
-        => true,
-        _ => false,
-    }
+    )
 }

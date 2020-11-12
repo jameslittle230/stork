@@ -44,7 +44,7 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
-    "develop": "yarn build:wasm:dev && yarn build:test-index:federalist && yarn build:js:dev --watch & yarn serve",
+    "develop": "yarn build:wasm:dev && yarn build:test-index:federalist && yarn build:js:dev --watch",
     "build": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
 
     "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev  -- --no-default-features",

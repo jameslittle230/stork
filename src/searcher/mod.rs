@@ -1,8 +1,8 @@
-pub mod index_analyzer;
+pub mod parse;
+use parse::ParsedIndex;
 
-use crate::common::{Fields, IndexFromFile, InternalWordAnnotation};
+use crate::common::{Fields, InternalWordAnnotation};
 use crate::index_versions::{v2, v3};
-use index_analyzer::{parse_index_version, IndexVersion, VersionParseError};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -49,11 +49,7 @@ pub struct HighlightRange {
 
 #[derive(Debug)]
 pub enum SearchError {
-    /// If version can't be parsed when reading the index
-    VersionParseError(VersionParseError),
-
-    /// If the index deserialization returns an error (applicable to v3 only)
-    IndexParseError,
+    NamedIndexNotInCache,
 
     // If the JSON serialization engine crashes while turning the SearchOutput
     // into a string
@@ -66,8 +62,10 @@ pub enum SearchError {
 impl fmt::Display for SearchError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc: String = match self {
-            SearchError::VersionParseError(e) => format!("{}", e),
-            SearchError::IndexParseError => "Could not parse index file.".to_string(),
+            SearchError::NamedIndexNotInCache => {
+                "Index not found. You must parse an index before performing searches with it."
+                    .to_string()
+            }
             SearchError::JSONSerializationError => "Could not format search results.".to_string(),
             SearchError::InternalCrash => "Unknown error.".to_string(),
         };
@@ -76,16 +74,9 @@ impl fmt::Display for SearchError {
     }
 }
 
-pub fn search(index: &IndexFromFile, query: &str) -> Result<SearchOutput, SearchError> {
-    match parse_index_version(index) {
-        Ok(version) => {
-            let search_function = match version {
-                IndexVersion::V2 => v2::search::search,
-                IndexVersion::V3 => v3::search::search,
-            };
-
-            search_function(index, query)
-        }
-        Err(e) => Err(SearchError::VersionParseError(e)),
+pub fn search(index: &ParsedIndex, query: &str) -> Result<SearchOutput, SearchError> {
+    match index {
+        ParsedIndex::V3(inner) => Ok(v3::search::search(inner, query)),
+        ParsedIndex::V2(inner) => v2::search::search(inner, query),
     }
 }

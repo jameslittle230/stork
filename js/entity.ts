@@ -16,7 +16,6 @@ export class Entity {
   progress = 0;
   error = false;
   totalResultCount = 0;
-  // query = "";
   resultsVisible = false;
   hoverSelectEnabled = true;
 
@@ -132,12 +131,12 @@ export class Entity {
     }
 
     if (query.length >= this.config.minimumQueryLength) {
-      resolveSearch(this.index, query)
+      resolveSearch(this.name, query)
         .then((data: SearchData) => {
           if (!data) return;
 
           if (process.env.NODE_ENV === "development") {
-            console.log(data);
+            console.log("DEVELOPMENT:", data);
           }
 
           this.injestSearchData(data);

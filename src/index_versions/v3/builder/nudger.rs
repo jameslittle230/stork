@@ -48,7 +48,7 @@ impl Nudger {
         }
 
         for nudge in &self.nudges {
-            output.push_str("\n");
+            output.push('\n');
             output.push_str(nudge.description())
         }
 

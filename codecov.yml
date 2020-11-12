@@ -8,7 +8,7 @@ coverage:
     project:
       default:
         target: 46%
-        threshold: 5%
+  patch: off
 
 comment:
   layout: "diff"
