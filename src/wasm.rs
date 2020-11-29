@@ -58,16 +58,16 @@ mod tests {
     struct MyData {
         one: u32,
         two: String,
-        three: bool
+        three: bool,
     }
 
     use super::*;
     #[test]
     fn serializiable_value_can_be_deserialized() {
-        let my_data_val = MyData{
+        let my_data_val = MyData {
             one: 42,
             two: "This is a string".to_string(),
-            three: true
+            three: true,
         };
 
         let result: Result<MyData, JsonSerializationError> = Ok(my_data_val);
