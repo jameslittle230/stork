@@ -4,17 +4,13 @@ about: Suggest an idea for this project
 title: ''
 labels: feature
 assignees: jameslittle230
-
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+Thanks for submitting a feature request for Stork! Your feature request will probably get acknowledged and closed, since that's how I like to best use Github Issues. I encourage you to submit it, though -- Stork is *very much* accepting feature requests, and I appreciate all suggestions. Your feature will go onto my list and I'll get to it when I have time, probably.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+Before submitting a feature request, please:
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+- Look at the [project roadmap](https://stork-search.net/roadmap) to see where Stork is going, what features are coming down the pipeline, and what I hope to accomplish
+- Look at the [existing feature issues](https://github.com/jameslittle230/stork/issues?q=is%3Aissue+label%3Afeature+) to make sure the feature you're requesting hasn't already been requested.
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+Thanks!
