@@ -26,11 +26,11 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - name: Checkout Federalist
+      - name: Checkout Federalist Papers Repository
         uses: actions/checkout@v2
         with:
           repository: jameslittle230/federalist
-          path: ./test
+          path: ./test/federalist
       - run: ls -al test
       - run: ls -al test/federalist
       - run: ls -al test/federalist-config
