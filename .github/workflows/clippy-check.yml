@@ -5,6 +5,7 @@ jobs:
     name: "Run Rust Tests"
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: cargo install wasm-pack
       - run: cargo install cargo-tarpaulin
       - run: rustup component add rustfmt
@@ -17,6 +18,7 @@ jobs:
     name: "Run JS Tests"
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: cargo install wasm-pack
       - run: wasm-pack build --target web -- --no-default-features
       - run: yarn install

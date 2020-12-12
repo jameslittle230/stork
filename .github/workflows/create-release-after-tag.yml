@@ -25,39 +25,31 @@ jobs:
     name: "Build Artifact (Ubuntu)"
     runs-on: "ubuntu-latest"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - run: pwd
-      - name: Remove existing federalist directory
-        run: rm -rf ./test/federalist
-      - name: Checkout Federalist Papers
-        uses: actions/checkout@v2
+      - run: ls -al test
+      - run: ls -al test/federalist
+      - run: ls -al test/federalist-config
+      - run: rm -rf ./test/federalist
+      - uses: actions/checkout@v2
         with:
           repository: jameslittle230/federalist
           path: ./test
-      - name: Install wasm-pack
-        run: cargo install wasm-pack
-      - name: Build wasm package
-        run: yarn build:wasm:prod
-      - name: Build everything else # TODO: Change yarn build so that it doesn't rely on yarn build:wasm:prod
-        run: yarn build
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1
+      - run: cargo install wasm-pack
+      - run: yarn build:wasm:prod
+      - run: yarn build # TODO: Change yarn build so that it doesn't rely on yarn build:wasm:prod
+      - uses: actions/upload-artifact@v1
         with:
           name: ubuntu-stork-artifact
           path: ./target/release/stork
-      - name: Run S3 upload script # TODO: Is there a way to move this to its own job?
-        run: python3 ./scripts/upload_federalist.py
+      - run: python3 ./scripts/upload_federalist.py
   build_macos:
     name: "Build Artifact (macOS)"
     runs-on: "macos-latest"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Build project
-        run: cargo build --verbose --release
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1
+      - uses: actions/checkout@v2
+      - run: cargo build --verbose --release
+      - uses: actions/upload-artifact@v1
         with:
           name: macos-stork-artifact
           path: ./target/release/stork
@@ -69,7 +61,7 @@ jobs:
         artifact: ["macos-stork-artifact", "ubuntu-stork-artifact"] # todo: windows-latest doesn't build to ./target/release/stork
     needs: ["release", "build_ubuntu", "build_macos"]
     steps:
-      - name: Download artifact
+      - name: Download Artifact
         uses: actions/download-artifact@v2
         with:
           name: ${{matrix.artifact}}
