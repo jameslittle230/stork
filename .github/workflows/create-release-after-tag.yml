@@ -43,3 +43,17 @@ jobs:
           asset_path: ./target/release/stork
           asset_name: stork-${{ matrix.os }}
           asset_content_type: application/octet-stream
+  upload_to_s3:
+    name: "Upload build artifacts to S3"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install wasm-pack
+        run: cargo install wasm-pack
+      - name: Build entire project
+        run: yarn build:prod
+      - name: Run upload script
+        run: python3 ./scripts/upload_federalist.py
+      - name: Benchmark
+        run: python3 generate_stats.py
+
