@@ -52,7 +52,7 @@ jobs:
       - name: Install wasm-pack
         run: cargo install wasm-pack
       - name: Build entire project
-        run: yarn build:prod
+        run: yarn build
       - name: Run upload script
         run: python3 ./scripts/upload_federalist.py
       - name: Benchmark
