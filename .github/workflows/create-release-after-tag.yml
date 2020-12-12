@@ -26,18 +26,24 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - run: pwd
-      - run: ls -al test
-      - run: ls -al test/federalist
-      - run: ls -al test/federalist-config
-      - run: rm -rf ./test/federalist
-      - uses: actions/checkout@v2
+      - name: Checkout Federalist
+        uses: actions/checkout@v2
         with:
           repository: jameslittle230/federalist
           path: ./test
+      - run: ls -al test
+      - run: ls -al test/federalist
+      - run: ls -al test/federalist-config
       - run: cargo install wasm-pack
-      - run: yarn build:wasm:prod
-      - run: yarn build # TODO: Change yarn build so that it doesn't rely on yarn build:wasm:prod
+      - name: Build WASM
+        run: wasm-pack build --target web --out-name stork  -- --no-default-features
+      - name: Build executable
+        run: cargo build --verbose --release
+      - run: ls -al ./test/federalist-config
+      - name: Build Federalist index file and move to ./dist
+        run: cargo run -- --build ./test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist
+      - run: yarn install
+      - run: yarn webpack --mode=production
       - uses: actions/upload-artifact@v1
         with:
           name: ubuntu-stork-artifact
