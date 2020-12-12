@@ -45,6 +45,7 @@ jobs:
           asset_content_type: application/octet-stream
   upload_to_s3:
     name: "Upload build artifacts to S3"
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
