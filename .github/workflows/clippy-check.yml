@@ -1,7 +1,30 @@
 on: push
-name: Clippy check
+name: Run CI on Pull Requests
 jobs:
-  clippy_check:
+  rust_tests:
+    name: "Run Rust Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - run: cargo install wasm-pack
+      - run: cargo install cargo-tarpaulin
+      - run: rustup component add rustfmt
+      - run: wasm-pack build --target web -- --no-default-features
+      - run: cargo test --verbose
+      - run: cargo fmt -- --check
+      - run: cargo tarpaulin --out Xml
+      - run: bash <(curl -s https://codecov.io/bash)
+  js_tests:
+    name: "Run JS Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - run: cargo install wasm-pack
+      - run: wasm-pack build --target web -- --no-default-features
+      - run: yarn install
+      - run: yarn lint
+      - run: yarn test --coverage
+      - run: bash <(curl -s https://codecov.io/bash) -cF javascript
+  clippy_check_nightly:
+    name: "Run Clippy Check on Nightly"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

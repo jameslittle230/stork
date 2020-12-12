@@ -27,6 +27,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - run: pwd
       - name: Remove existing federalist directory
         run: rm -rf ./test/federalist
       - name: Checkout Federalist Papers
