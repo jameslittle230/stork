@@ -11,7 +11,6 @@ jobs:
           cargo install wasm-pack
           cargo install cargo-tarpaulin
           rustup component add rustfmt
-      # - name: Buildwasm-pack build --target web -- --no-default-features
       - run: cargo test --verbose
       - run: cargo fmt -- --check
       - name: Upload code coverage
