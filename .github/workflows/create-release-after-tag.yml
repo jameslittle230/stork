@@ -50,7 +50,7 @@ jobs:
       - name: Upload executable build artifact
         uses: actions/upload-artifact@v1
         with:
-          name: ubuntu-stork-artifact
+          name: stork-ubuntu-latest
           path: ./target/release/stork
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
@@ -66,7 +66,7 @@ jobs:
       - run: cargo build --verbose --release
       - uses: actions/upload-artifact@v1
         with:
-          name: macos-stork-artifact
+          name: stork-macos-latest
           path: ./target/release/stork
 
   release_upload:
@@ -74,7 +74,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        artifact: ["macos-stork-artifact", "ubuntu-stork-artifact"] 
+        artifact: ["stork-macos-latest", "stork-ubuntu-latest"]
     needs: ["release", "build_ubuntu", "build_macos"]
     steps:
       - name: Download Artifact
