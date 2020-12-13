@@ -8,6 +8,7 @@ jobs:
   test:
     name: Test Job
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v2
       - name: Run Upload Script
@@ -44,14 +45,14 @@ jobs:
         with:
           repository: jameslittle230/federalist
           path: ./test/federalist
-      - run: cargo install wasm-pack
+      - run: cargo install wasm-pack # Todo: Figure out if this is required or if I can download a binary
       - name: Build WASM
         run: wasm-pack build --target web --out-name stork  -- --no-default-features
       - name: Build executable
         run: cargo build --verbose --release
       - run: ls -al ./test/federalist-config
       - name: Build Federalist index file and move to ./dist
-        run: cargo run -- --build ./test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist
+        run: cargo run -- --build ./test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist # Todo: Don't rebuild executable on this command
       - run: yarn install
       - run: yarn webpack --mode=production
       - name: Upload executable build artifact 
@@ -104,6 +105,7 @@ jobs:
     runs-on: "ubuntu-latest"
     needs: ["build_ubuntu"]
     steps:
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - name: Install Python dependencies
         run: |
