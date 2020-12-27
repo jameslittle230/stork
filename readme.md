@@ -10,6 +10,8 @@ Stork is two things. First, it's an indexer: it turns your loosely-structured co
 
 Currently in development by [James Little](https://jameslittle.me)
 
+![Gif of Stork in Action](https://files.stork-search.net/marketing/1.0.0-video.gif)
+
 ## Getting Started
 
 Let's put a search box online that searches within the text of the [Federalist Papers](https://www.youtube.com/watch?v=DPgE7PNzXag).
