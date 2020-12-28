@@ -32,12 +32,7 @@ module.exports = {
           flatten: true
         },
         {
-          from: path.resolve(__dirname, "test", "3b1b.st"),
-          to: ".",
-          flatten: true
-        },
-        {
-          from: path.resolve(__dirname, "test", "federalist.st"),
+          from: path.resolve(__dirname, "test", "*.st"),
           to: ".",
           flatten: true
         }
