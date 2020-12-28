@@ -330,13 +330,39 @@ mod tests {
                     source: WordListSource::Contents, 
                     word_index: 3, 
                     internal_annotations: Vec::default(), 
-                    fields: HashMap::default() }] };
+                    fields: HashMap::default() 
+                }, 
+                IntermediateExcerpt { 
+                    query: "‘surprisingly’".to_string(), 
+                    entry_index: 0, 
+                    score: 128, 
+                    source: WordListSource::Contents, 
+                    word_index: 2, 
+                    internal_annotations: Vec::default(), 
+                    fields: HashMap::default() 
+                }, ] 
+            };
 
         let output_result = OutputResult::from(entry_and_intermediate_excerpts);
         let excerpt = output_result.excerpts.first().unwrap();
-        let highlight_range = &excerpt.highlight_ranges.first().unwrap();
         let excerpt_chars = excerpt.text.chars().collect::<Vec<char>>();
+        let first_highlight_range = &excerpt.highlight_ranges.first().unwrap();
+        let computed_first_word = &excerpt_chars[first_highlight_range.beginning..first_highlight_range.end].iter().collect::<String>();
+        let second_highlight_range= &excerpt.highlight_ranges[1];
+        let computed_second_word = &excerpt_chars[second_highlight_range.beginning..second_highlight_range.end].iter().collect::<String>();
 
-        assert_eq!(&excerpt_chars[highlight_range.beginning..highlight_range.end].iter().collect::<String>(), "unequivocal");
+        assert_eq!(
+            computed_second_word, 
+            "unequivocal",
+            "Expected `unequivocal`, got {}",
+            computed_second_word
+        );
+       
+        assert_eq!(
+            computed_first_word, 
+            "‘surprisingly’",
+            "Expected `‘surprisingly’`, got {}",
+            computed_first_word
+        );
     }
 }
