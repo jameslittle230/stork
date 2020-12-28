@@ -45,7 +45,7 @@ export class EntityDom {
   readonly elements: ElementMap;
   readonly entity: Entity;
 
-  highlightedResult: number | null;
+  highlightedResult?: number;
   hoverSelectEnabled: boolean;
   lastRenderState: RenderState;
 
@@ -184,8 +184,7 @@ export class EntityDom {
   }
 
   private selectResult() {
-    if (typeof this.highlightedResult != null) {
-      assert(typeof this.highlightedResult === "number");
+    if (this.highlightedResult != null) {
       const result = this.entity.results[this.highlightedResult];
       if (this.entity.config.onResultSelected) {
         Promise.resolve(
@@ -262,7 +261,7 @@ export class EntityDom {
 
     switch (event.keyCode) {
       case DOWN: {
-        if (typeof this.highlightedResult != "number") {
+        if (this.highlightedResult == null) {
           this.changeHighlightedResult({ to: 0, shouldScrollTo: true });
         } else {
           const target = Math.min(
@@ -275,8 +274,7 @@ export class EntityDom {
       }
 
       case UP: {
-        if (typeof this.highlightedResult != null) {
-          assert(typeof this.highlightedResult === "number");
+        if (this.highlightedResult != null) {
           const target = Math.max(0, this.highlightedResult - 1);
           this.changeHighlightedResult({ to: target, shouldScrollTo: true });
         }
