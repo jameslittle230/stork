@@ -125,6 +125,7 @@ impl From<Entry> for OutputEntry {
     }
 }
 
+#[derive(Debug)]
 struct EntryAndIntermediateExcerpts {
     entry: Entry,
     config: PassthroughConfig,
@@ -309,5 +310,34 @@ mod tests {
         let expected = serde_json::from_str("{\"results\":[{\"entry\":{\"url\":\"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1\",\"title\":\"Introduction\",\"fields\":{}},\"excerpts\":[{\"text\":\"in many respects the most interesting in the world. It has been frequently remarked that it\",\"highlight_ranges\":[{\"beginning\":45,\"end\":50}],\"score\":128,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"despotic power and hostile to the principles of liberty. An over-scrupulous jealousy of danger to the\",\"highlight_ranges\":[{\"beginning\":48,\"end\":55}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"of love, and that the noble enthusiasm of liberty is apt to be infected with a\",\"highlight_ranges\":[{\"beginning\":42,\"end\":49}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"of government is essential to the security of liberty; that, in the contemplation of a sound\",\"highlight_ranges\":[{\"beginning\":46,\"end\":53}],\"score\":125,\"internal_annotations\":[],\"fields\":{}},{\"text\":\"that this is the safest course for your liberty, your dignity, and your happiness. I affect\",\"highlight_ranges\":[{\"beginning\":40,\"end\":47}],\"score\":125,\"internal_annotations\":[],\"fields\":{}}],\"title_highlight_ranges\":[],\"score\":128}],\"total_hit_count\":1,\"url_prefix\":\"\"}").unwrap();
 
         assert_eq!(generated, expected, "{:?}", generated);
+    }
+
+    #[test]
+    #[ignore]
+    fn highlighting_does_not_offset_with_special_characters() {
+        let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts { 
+            entry: Entry { 
+                contents: "-AFTER an unequivocal experience of the inefficiency of the subsisting federal government".to_string(), 
+                title: "Introduction".to_string(), 
+                url: String::default(), 
+                fields: HashMap::default() 
+            }, 
+            config: PassthroughConfig::default(),
+            intermediate_excerpts: vec![
+                IntermediateExcerpt { 
+                    query: "unequivocal".to_string(), 
+                    entry_index: 0, 
+                    score: 128, 
+                    source: WordListSource::Contents, 
+                    word_index: 2, 
+                    internal_annotations: Vec::default(), 
+                    fields: HashMap::default() }] };
+
+        let output_result = OutputResult::from(entry_and_intermediate_excerpts);
+        let excerpt = output_result.excerpts.first().unwrap();
+        let highlight_range = &excerpt.highlight_ranges.first().unwrap();
+        let excerpt_chars = excerpt.text.chars().collect::<Vec<char>>();
+
+        println!("{:?}", &excerpt_chars[highlight_range.beginning]);
     }
 }
