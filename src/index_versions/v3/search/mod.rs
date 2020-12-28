@@ -313,11 +313,10 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn highlighting_does_not_offset_with_special_characters() {
         let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts { 
             entry: Entry { 
-                contents: "-AFTER an unequivocal experience of the inefficiency of the subsisting federal government".to_string(), 
+                contents: "AFTER a ‘surprisingly’ unequivocal experience of the inefficiency of the subsisting federal government".to_string(), 
                 title: "Introduction".to_string(), 
                 url: String::default(), 
                 fields: HashMap::default() 
@@ -329,7 +328,7 @@ mod tests {
                     entry_index: 0, 
                     score: 128, 
                     source: WordListSource::Contents, 
-                    word_index: 2, 
+                    word_index: 3, 
                     internal_annotations: Vec::default(), 
                     fields: HashMap::default() }] };
 
@@ -338,6 +337,6 @@ mod tests {
         let highlight_range = &excerpt.highlight_ranges.first().unwrap();
         let excerpt_chars = excerpt.text.chars().collect::<Vec<char>>();
 
-        println!("{:?}", &excerpt_chars[highlight_range.beginning]);
+        assert_eq!(&excerpt_chars[highlight_range.beginning..highlight_range.end].iter().collect::<String>(), "unequivocal");
     }
 }
