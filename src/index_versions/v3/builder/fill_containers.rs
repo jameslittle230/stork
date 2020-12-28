@@ -186,3 +186,40 @@ fn char_is_cjk_ideograph(c: &char) -> bool {
         '\u{F900}'..='\u{FAFF}'
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        config::Config,
+        LatestVersion::{builder::intermediate_entry::IntermediateEntry, structs::Contents},
+    };
+    use std::collections::HashMap;
+
+    use super::fill_containers;
+
+    #[test]
+    fn container_filling_continues_after_encountering_unnormalizable_word() {
+        let intermediate_entry = IntermediateEntry {
+            contents: Contents { word_list: vec![] },
+            title: "10 - Polymorphism".to_string(),
+            url: "".to_string(),
+            fields: HashMap::default(),
+            stem_algorithm: None,
+        };
+
+        let mut containers = HashMap::default();
+
+        fill_containers(
+            &Config::default(),
+            &[intermediate_entry],
+            &HashMap::default(),
+            &mut containers,
+        );
+
+        assert!(
+            containers.get("polymorphism").is_some(),
+            "Containers did not contain `polymorphism`, containers was {:?}",
+            containers.keys()
+        );
+    }
+}
