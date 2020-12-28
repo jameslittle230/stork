@@ -194,11 +194,12 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     .map(|ie| {
                         let beginning = split_contents[minimum_word_index..ie.word_index]
                             .join(" ")
-                            .len()
+                            .chars()
+                            .count()
                             + 1;
                         HighlightRange {
                             beginning,
-                            end: beginning + ie.query.len(),
+                            end: beginning + ie.query.chars().count(),
                         }
                     })
                     .collect();
