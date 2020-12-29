@@ -27,9 +27,7 @@ extern crate rust_stemmers;
 
 #[derive(Debug)]
 pub enum IndexGenerationError {
-    NoFilesSpecified,
-    FileNotFoundError(PathBuf),
-    WordListGenerationError(WordListGenerationError),
+    NoFilesSpecified
 }
 
 impl Error for IndexGenerationError {}
@@ -40,10 +38,6 @@ impl fmt::Display for IndexGenerationError {
             IndexGenerationError::NoFilesSpecified => {
                 "No files specified in config file".to_string()
             }
-            IndexGenerationError::FileNotFoundError(s) => {
-                format!("File {} not found", s.to_string_lossy())
-            }
-            IndexGenerationError::WordListGenerationError(e) => e.to_string(),
         };
 
         write!(f, "{}", desc)
