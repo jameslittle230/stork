@@ -1,6 +1,9 @@
 use super::scores::*;
-use crate::common::{Fields, InternalWordAnnotation};
 use crate::config::TitleBoost;
+use crate::{
+    common::{Fields, InternalWordAnnotation},
+    config::OutputConfig,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -33,13 +36,26 @@ impl Index {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub(super) struct PassthroughConfig {
     pub(super) url_prefix: String,
     pub(super) title_boost: TitleBoost,
     pub(super) excerpt_buffer: u8,
     pub(super) excerpts_per_result: u8,
     pub(super) displayed_results_count: u8,
+}
+
+impl Default for PassthroughConfig {
+    fn default() -> Self {
+        let output_config = OutputConfig::default();
+        Self {
+            url_prefix: String::default(),
+            title_boost: TitleBoost::default(),
+            excerpt_buffer: output_config.excerpt_buffer,
+            excerpts_per_result: output_config.excerpts_per_result,
+            displayed_results_count: output_config.displayed_results_count,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

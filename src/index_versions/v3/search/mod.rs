@@ -1,12 +1,14 @@
 use super::scores::*;
 use super::structs::*;
 use crate::common::STOPWORDS;
-use crate::config::TitleBoost;
 use crate::searcher::*;
 use std::collections::HashMap;
 
 pub mod intermediate_excerpt;
 use intermediate_excerpt::IntermediateExcerpt;
+
+mod entry_and_intermediate_excerpts;
+use entry_and_intermediate_excerpts::EntryAndIntermediateExcerpts;
 
 pub fn search(index: &Index, query: &str) -> SearchOutput {
     let normalized_query = query.to_lowercase();
@@ -121,172 +123,6 @@ impl From<Entry> for OutputEntry {
             url: entry.url.clone(),
             title: entry.title.clone(),
             fields: entry.fields,
-        }
-    }
-}
-
-struct EntryAndIntermediateExcerpts {
-    entry: Entry,
-    config: PassthroughConfig,
-    intermediate_excerpts: Vec<IntermediateExcerpt>,
-}
-
-impl From<EntryAndIntermediateExcerpts> for OutputResult {
-    fn from(data: EntryAndIntermediateExcerpts) -> Self {
-        let entry = data.entry;
-        let excerpt_buffer = data.config.excerpt_buffer as usize;
-        let split_contents: Vec<String> = entry
-            .contents
-            .split_whitespace()
-            .map(|s| s.to_string())
-            .collect();
-        let mut ies: Vec<&IntermediateExcerpt> = data
-            .intermediate_excerpts
-            .iter()
-            .filter(|ie| ie.source == WordListSource::Contents)
-            .collect();
-        // Get rid of intermediate excerpts that refer to the same word index.
-        // First, sort by score so that only the highest score within the same
-        // word index is kept.
-        ies.sort_by_cached_key(|ie| ie.score);
-        ies.sort_by_cached_key(|ie| ie.word_index);
-        ies.dedup_by_key(|ie| ie.word_index);
-
-        let mut ies_grouped_by_word_index: Vec<Vec<&IntermediateExcerpt>> = vec![];
-
-        for ie in &ies {
-            if let Some(most_recent) = ies_grouped_by_word_index.last_mut() {
-                if let Some(trailing_ie) = most_recent.first() {
-                    if (ie.word_index as isize) - (trailing_ie.word_index as isize)
-                        < (excerpt_buffer as isize)
-                    {
-                        most_recent.push(ie);
-                        continue;
-                    }
-                }
-            }
-
-            ies_grouped_by_word_index.push(vec![ie])
-        }
-
-        let mut excerpts: Vec<crate::searcher::Excerpt> = ies_grouped_by_word_index
-            .iter()
-            .map(|ies| {
-                let minimum_word_index = ies
-                    .first()
-                    .unwrap()
-                    .word_index
-                    .saturating_sub(excerpt_buffer);
-
-                let maximum_word_index = std::cmp::min(
-                    ies.last()
-                        .unwrap()
-                        .word_index
-                        .saturating_add(excerpt_buffer),
-                    split_contents.len(),
-                );
-
-                let text = split_contents[minimum_word_index..maximum_word_index].join(" ");
-
-                let mut highlight_ranges: Vec<HighlightRange> = ies
-                    .iter()
-                    .map(|ie| {
-                        let beginning = split_contents[minimum_word_index..ie.word_index]
-                            .join(" ")
-                            .len()
-                            + 1;
-                        HighlightRange {
-                            beginning,
-                            end: beginning + ie.query.len(),
-                        }
-                    })
-                    .collect();
-                // Maybe unneccesary?
-                highlight_ranges.sort_by_key(|hr| hr.beginning);
-
-                let highlighted_character_range = highlight_ranges.last().unwrap().end
-                    - highlight_ranges.first().unwrap().beginning;
-
-                let highlighted_characters_count: usize = highlight_ranges
-                    .iter()
-                    .map(|hr| hr.end - hr.beginning)
-                    .sum();
-
-                let score_modifier = highlighted_character_range - highlighted_characters_count;
-
-                let score = ies
-                    .iter()
-                    .map(|ie| (ie.score as usize))
-                    .sum::<usize>()
-                    .saturating_sub(score_modifier);
-
-                // Since we're mapping from multiple IntermediateExcerpts to one
-                // Excerpt, we have to either combine or filter data. For
-                // `fields` and `internal_annotations`, I'm taking the data from
-                // the first intermediate excerpt in the vector.
-                let fields = {
-                    if let Some(first) = ies.first() {
-                        first.fields.clone()
-                    } else {
-                        HashMap::new()
-                    }
-                };
-
-                let internal_annotations = {
-                    if let Some(first) = ies.first() {
-                        first.internal_annotations.clone()
-                    } else {
-                        Vec::default()
-                    }
-                };
-
-                crate::searcher::Excerpt {
-                    text,
-                    highlight_ranges,
-                    internal_annotations,
-                    score,
-                    fields,
-                }
-            })
-            .collect();
-
-        excerpts.sort_by_key(|e| -(e.score as i16));
-        excerpts.truncate(data.config.excerpts_per_result as usize);
-
-        let split_title: Vec<&str> = entry.title.split_whitespace().collect();
-        let title_highlight_ranges: Vec<HighlightRange> = data
-            .intermediate_excerpts
-            .iter()
-            .filter(|&ie| ie.source == WordListSource::Title)
-            .map(|ie| {
-                let space_offset = if ie.word_index == 0 { 0 } else { 1 };
-                let beginning = split_title[0..ie.word_index].join(" ").len() + space_offset;
-                HighlightRange {
-                    beginning,
-                    end: beginning + ie.query.len(),
-                }
-            })
-            .collect();
-
-        let title_boost_modifier = title_highlight_ranges.len()
-            * match data.config.title_boost {
-                TitleBoost::Minimal => 25,
-                TitleBoost::Moderate => 75,
-                TitleBoost::Large => 150,
-                TitleBoost::Ridiculous => 5000,
-            };
-
-        let score = if let Some(first) = excerpts.first() {
-            first.score
-        } else {
-            0
-        } + title_boost_modifier;
-
-        OutputResult {
-            entry: OutputEntry::from(entry),
-            excerpts,
-            title_highlight_ranges,
-            score,
         }
     }
 }
