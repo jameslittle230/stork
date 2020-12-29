@@ -1,15 +1,16 @@
-use super::frontmatter::parse_frontmatter;
-use super::word_list_generators::returns_word_list_generator;
-use super::{Contents, IndexGenerationError, IntermediateEntry};
+use super::{frontmatter::parse_frontmatter, word_list_generators::WordListGenerationError};
+use super::{word_list_generators::returns_word_list_generator, DocumentError};
+use super::{IndexGenerationError, IntermediateEntry};
 use crate::config::{Config, DataSource, StemmingConfig};
 use rust_stemmers::Algorithm;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 
-pub fn fill_intermediate_entries(
+pub(super) fn fill_intermediate_entries(
     config: &Config,
     intermediate_entries: &mut Vec<IntermediateEntry>,
+    document_errors: &mut Vec<DocumentError>,
 ) -> Result<(), IndexGenerationError> {
     if config.input.files.is_empty() {
         return Err(IndexGenerationError::NoFilesSpecified);
@@ -20,15 +21,32 @@ pub fn fill_intermediate_entries(
     let mut per_file_input_config = config.input.clone();
 
     for stork_file in config.input.files.iter() {
-        let filetype = &stork_file.computed_filetype().unwrap_or_else(|| panic!("Cannot determine a filetype for {}. Please include a filetype field in your config file or use a known file extension.", &stork_file.title));
+        let perhaps_filetype = &stork_file.computed_filetype();
+        let filetype = match perhaps_filetype {
+            Some(filetype) => filetype,
+            None => {
+                document_errors.push(DocumentError {
+                    file: stork_file.clone(),
+                    word_list_generation_error: WordListGenerationError::CannotDetermineFiletype,
+                });
+                continue;
+            }
+        };
 
         let buffer: String = match &stork_file.source {
             DataSource::Contents(contents) => contents.to_string(),
             DataSource::FilePath(path_string) => {
                 let full_pathname = &base_directory.join(&path_string);
-                let file = File::open(&full_pathname).map_err(|_| {
-                    IndexGenerationError::FileNotFoundError(full_pathname.to_owned())
-                })?;
+                let file = match File::open(&full_pathname) {
+                    Ok(file) => file,
+                    Err(_e) => {
+                        document_errors.push(DocumentError {
+                            file: stork_file.clone(),
+                            word_list_generation_error: WordListGenerationError::FileNotFound,
+                        });
+                        continue;
+                    }
+                };
                 let mut buf_reader = BufReader::new(file);
                 let mut buffer = String::new();
                 let _bytes_read = buf_reader.read_to_string(&mut buffer);
@@ -55,22 +73,29 @@ pub fn fill_intermediate_entries(
 
         let (frontmatter_fields, buffer) = parse_frontmatter(&per_file_input_config, &buffer);
 
-        let contents: Contents = returns_word_list_generator(filetype)
-            .create_word_list(&per_file_input_config, buffer.as_str())
-            .map_err(IndexGenerationError::WordListGenerationError)?;
+        let word_list_result = returns_word_list_generator(filetype)
+            .create_word_list(&per_file_input_config, buffer.as_str());
 
-        let mut fields = stork_file.fields.clone();
-        fields.extend(frontmatter_fields.into_iter());
+        match word_list_result {
+            Ok(contents) => {
+                let mut fields = stork_file.fields.clone();
+                fields.extend(frontmatter_fields.into_iter());
 
-        let entry = IntermediateEntry {
-            contents,
-            stem_algorithm,
-            title: stork_file.title.clone(),
-            url: stork_file.url.clone(),
-            fields,
-        };
+                let entry = IntermediateEntry {
+                    contents,
+                    stem_algorithm,
+                    title: stork_file.title.clone(),
+                    url: stork_file.url.clone(),
+                    fields,
+                };
 
-        intermediate_entries.push(entry);
+                intermediate_entries.push(entry);
+            }
+            Err(error) => document_errors.push(DocumentError {
+                file: stork_file.clone(),
+                word_list_generation_error: error,
+            }),
+        }
     }
 
     Ok(())
