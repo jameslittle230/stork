@@ -6,7 +6,7 @@ Impossibly fast web search, made for static sites.
 [![Codecov](https://img.shields.io/codecov/c/gh/jameslittle230/stork)](https://codecov.io/gh/jameslittle230/stork)
 [![Travis (.com)](https://img.shields.io/travis/com/jameslittle230/stork)](https://travis-ci.com/github/jameslittle230/stork)
 
-Stork is two things. First, it's an indexer: it turns your loosely-structured content and builds a search index from that content. Second, it's a Javascript + WebAssembly frontend for that index; Stork will download the index, search through it, and display the best results immediately to your user, as they type. The precomputed index and WebAssembly frontend module make the entire Stork engine very good, and _very_ fast.
+Stork is two things. First, it's an indexer: it indexes your loosely-structured content and creates a file that you can upload to your web server. Second, it's a Javascript + WebAssembly frontend for that index file: Stork will hook into an `<input>` on your web page, download the index you've specified, and display the best search results immediately to your user, as they type. The precomputed index and WebAssembly frontend module make the entire Stork engine very good, and _very_ fast.
 
 Currently in development by [James Little](https://jameslittle.me)
 
