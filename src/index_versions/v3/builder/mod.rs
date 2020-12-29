@@ -27,7 +27,7 @@ extern crate rust_stemmers;
 
 #[derive(Debug)]
 pub enum IndexGenerationError {
-    NoFilesSpecified
+    NoFilesSpecified,
 }
 
 impl Error for IndexGenerationError {}
