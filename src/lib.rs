@@ -63,5 +63,5 @@ pub fn search_with_index(index: &Index, query: &str) -> searcher::SearchOutput {
  * Builds an Index object that can be serialized and parsed later
  */
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
-    builder::build(config)
+    builder::build(config).map(|tuple| tuple.0)
 }

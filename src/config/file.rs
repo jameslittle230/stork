@@ -1,4 +1,5 @@
 use super::{FrontmatterConfig, StemmingConfig};
+use core::fmt;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
@@ -51,6 +52,19 @@ impl File {
         } else {
             None
         }
+    }
+}
+impl fmt::Display for File {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match &self.source {
+                DataSource::FilePath(path) => path,
+                DataSource::Contents(_contents) => &self.title,
+                DataSource::URL(url) => url,
+            }
+        )
     }
 }
 

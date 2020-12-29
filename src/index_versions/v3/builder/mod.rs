@@ -1,5 +1,5 @@
 use super::structs::*;
-use crate::config::Config;
+use crate::config::{Config, File};
 use std::fmt;
 use std::{collections::HashMap, error::Error, path::PathBuf};
 
@@ -28,8 +28,6 @@ extern crate rust_stemmers;
 #[derive(Debug)]
 pub enum IndexGenerationError {
     NoFilesSpecified,
-    FileNotFoundError(PathBuf),
-    WordListGenerationError(WordListGenerationError),
 }
 
 impl Error for IndexGenerationError {}
@@ -40,21 +38,47 @@ impl fmt::Display for IndexGenerationError {
             IndexGenerationError::NoFilesSpecified => {
                 "No files specified in config file".to_string()
             }
-            IndexGenerationError::FileNotFoundError(s) => {
-                format!("File {} not found", s.to_string_lossy())
-            }
-            IndexGenerationError::WordListGenerationError(e) => e.to_string(),
         };
 
         write!(f, "{}", desc)
     }
 }
 
-pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
+pub struct DocumentError {
+    file: File,
+    word_list_generation_error: WordListGenerationError,
+}
+
+impl fmt::Display for DocumentError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Error indexing `{}`: {}",
+            self.file, self.word_list_generation_error
+        )
+    }
+}
+
+pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
     println!("{}", Nudger::from(config).generate_formatted_output());
 
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
-    fill_intermediate_entries(&config, &mut intermediate_entries)?;
+    let mut document_errors: Vec<DocumentError> = Vec::new();
+    fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)?;
+
+    if !document_errors.is_empty() {
+        println!(
+            "{} error{} while indexing files:",
+            document_errors.len(),
+            match document_errors.len() {
+                1 => "",
+                _ => "s",
+            }
+        )
+    }
+    for error in &document_errors {
+        println!("- {}", &error);
+    }
 
     let mut stems: HashMap<String, Vec<String>> = HashMap::new();
     fill_stems(&intermediate_entries, &mut stems);
@@ -72,11 +96,14 @@ pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
         displayed_results_count: config.output.displayed_results_count,
     };
 
-    Ok(Index {
-        entries,
-        containers,
-        config,
-    })
+    Ok((
+        Index {
+            entries,
+            containers,
+            config,
+        },
+        document_errors,
+    ))
 }
 
 fn remove_surrounding_punctuation(input: &str) -> String {
@@ -98,6 +125,7 @@ mod tests {
     use super::*;
     use crate::config::File;
     use crate::config::*;
+
     #[test]
     fn test_not_present_html_selector_fails_gracefully() {
         let config = Config {
@@ -114,6 +142,39 @@ mod tests {
             ..Default::default()
         };
 
-        build(&config).expect_err("Config didn't error when it should have!");
+        assert_eq!(build(&config).unwrap().1.len(), 1);
+
+        assert_eq!(
+            build(&config).unwrap().1.first().unwrap().to_string(),
+            "Error indexing `Title`: HTML selector `.article` is not present in the file."
+        );
+    }
+
+    #[test]
+    fn test_failing_file_does_not_halt_indexing() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![
+                    File {
+                        source: DataSource::Contents("".to_string()),
+                        title: "Title".to_string(),
+                        filetype: Some(Filetype::HTML),
+                        html_selector_override: Some(".article".to_string()),
+                        ..Default::default()
+                    },
+                    File {
+                        source: DataSource::Contents("".to_string()),
+                        title: "Title 2".to_string(),
+                        filetype: Some(Filetype::PlainText),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(build(&config).unwrap().1.len(), 1);
+        assert_eq!(build(&config).unwrap().0.entries.len(), 1);
     }
 }

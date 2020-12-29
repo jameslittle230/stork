@@ -38,7 +38,7 @@ impl WordListGenerator for HTMLWordListGenerator {
         // if the selector _is_ present but there are no words.
         let selector_match_in_document_count = document.select(&selector).count();
         if selector_match_in_document_count == 0 {
-            return Err(WordListGenerationError::SelectorNotPresent);
+            return Err(WordListGenerationError::SelectorNotPresent(selector_string));
         }
 
         let word_list = document
