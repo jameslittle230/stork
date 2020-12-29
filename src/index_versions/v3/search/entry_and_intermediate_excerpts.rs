@@ -25,7 +25,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             .split_whitespace()
             .map(|s| s.to_string())
             .collect();
-        
+
         let mut ies: Vec<&IntermediateExcerpt> = data
             .intermediate_excerpts
             .iter()
@@ -33,7 +33,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             .collect();
 
         // Get rid of intermediate excerpts that refer to the same word index.
-        // But first, sort by score so that only the highest score within the 
+        // But first, sort by score so that only the highest score within the
         // same word index is kept.
         ies.sort_by_cached_key(|ie| ie.score);
         ies.sort_by_cached_key(|ie| ie.word_index);
@@ -183,57 +183,61 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 mod tests {
     use super::*;
 
-    
     #[test]
     fn highlighting_does_not_offset_with_special_characters() {
-        let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts { 
-            entry: Entry { 
-                contents: "AFTER a ‘surprisingly’ unequivocal experience of the inefficiency of the subsisting federal government".to_string(), 
-                title: "Introduction".to_string(), 
-                url: String::default(), 
-                fields: HashMap::default() 
-            }, 
+        let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
+            entry: Entry {
+                contents: "AFTER a \u{2018}surprisingly\u{2019} unequivocal experience of the inefficiency of the subsisting federal government".to_string(),
+                title: "Introduction".to_string(),
+                url: String::default(),
+                fields: HashMap::default(),
+            },
             config: PassthroughConfig::default(),
             intermediate_excerpts: vec![
-                IntermediateExcerpt { 
-                    query: "unequivocal".to_string(), 
-                    entry_index: 0, 
-                    score: 128, 
-                    source: WordListSource::Contents, 
-                    word_index: 3, 
-                    internal_annotations: Vec::default(), 
-                    fields: HashMap::default() 
-                }, 
-                IntermediateExcerpt { 
-                    query: "‘surprisingly’".to_string(), 
-                    entry_index: 0, 
-                    score: 128, 
-                    source: WordListSource::Contents, 
-                    word_index: 2, 
-                    internal_annotations: Vec::default(), 
-                    fields: HashMap::default() 
-                }, ] 
-            };
+                IntermediateExcerpt {
+                    query: "unequivocal".to_string(),
+                    entry_index: 0,
+                    score: 128,
+                    source: WordListSource::Contents,
+                    word_index: 3,
+                    internal_annotations: Vec::default(),
+                    fields: HashMap::default(),
+                },
+                IntermediateExcerpt {
+                    query: "\u{2018}surprisingly\u{2019}".to_string(),
+                    entry_index: 0,
+                    score: 128,
+                    source: WordListSource::Contents,
+                    word_index: 2,
+                    internal_annotations: Vec::default(),
+                    fields: HashMap::default(),
+                },
+            ],
+        };
 
         let output_result = OutputResult::from(entry_and_intermediate_excerpts);
         let excerpt = output_result.excerpts.first().unwrap();
         let excerpt_chars = excerpt.text.chars().collect::<Vec<char>>();
         let first_highlight_range = &excerpt.highlight_ranges.first().unwrap();
-        let computed_first_word = &excerpt_chars[first_highlight_range.beginning..first_highlight_range.end].iter().collect::<String>();
-        let second_highlight_range= &excerpt.highlight_ranges[1];
-        let computed_second_word = &excerpt_chars[second_highlight_range.beginning..second_highlight_range.end].iter().collect::<String>();
+        let computed_first_word = &excerpt_chars
+            [first_highlight_range.beginning..first_highlight_range.end]
+            .iter()
+            .collect::<String>();
+        let second_highlight_range = &excerpt.highlight_ranges[1];
+        let computed_second_word = &excerpt_chars
+            [second_highlight_range.beginning..second_highlight_range.end]
+            .iter()
+            .collect::<String>();
 
         assert_eq!(
-            computed_second_word, 
-            "unequivocal",
+            computed_second_word, "unequivocal",
             "Expected `unequivocal`, got {}",
             computed_second_word
         );
-       
+
         assert_eq!(
-            computed_first_word, 
-            "‘surprisingly’",
-            "Expected `‘surprisingly’`, got {}",
+            computed_first_word, "\u{2018}surprisingly\u{2019}",
+            "Expected `\u{2018}surprisingly\u{2019}`, got {}",
             computed_first_word
         );
     }

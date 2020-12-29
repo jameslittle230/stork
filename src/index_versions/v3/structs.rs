@@ -1,6 +1,9 @@
 use super::scores::*;
-use crate::{common::{Fields, InternalWordAnnotation}, config::OutputConfig};
 use crate::config::TitleBoost;
+use crate::{
+    common::{Fields, InternalWordAnnotation},
+    config::OutputConfig,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -51,7 +54,6 @@ impl Default for PassthroughConfig {
             excerpt_buffer: output_config.excerpt_buffer,
             excerpts_per_result: output_config.excerpts_per_result,
             displayed_results_count: output_config.displayed_results_count,
-
         }
     }
 }
