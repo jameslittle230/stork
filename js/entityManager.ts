@@ -21,7 +21,7 @@ export class EntityManager {
 
     if (status < 200 || status > 299) {
       entity.setDownloadError();
-      throw new Error(`Got a ${status} error from ${entity.url}!`)
+      throw new Error(`Got a ${status} error from ${entity.url}!`);
     }
 
     this.wasmQueue.runAfterWasmLoaded(() => {

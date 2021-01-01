@@ -23,7 +23,7 @@ export function loadIndexFromUrl(
     }
   });
 
-  r.addEventListener("error", e => {
+  r.addEventListener("error", () => {
     console.error(`Could not fetch ${url}`);
     callbacks.error();
   });

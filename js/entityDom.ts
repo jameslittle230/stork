@@ -1,4 +1,3 @@
-import { assert } from "./util";
 import { Result } from "./searchData";
 
 import {
@@ -148,7 +147,7 @@ export class EntityDom {
     if (state.message) {
       setText(this.elements.message, state.message);
     }
-    
+
     if (state.results?.length > 0 && state.resultsVisible) {
       add(this.elements.list, "beforeend", this.elements.output);
 
