@@ -98,7 +98,6 @@ export class EntityDom {
       this.handleKeyDownEvent(e as KeyboardEvent);
     });
 
-    add(this.elements.list, "beforeend", this.elements.output);
     this.elements.list?.addEventListener("mousemove", () => {
       this.hoverSelectEnabled = true;
     });
@@ -143,6 +142,7 @@ export class EntityDom {
     if (this.getQuery().length > 0 && state.resultsVisible) {
       this.elements.output.classList.add("stork-output-visible");
       add(this.elements.message, "beforeend", this.elements.output);
+      add(this.elements.list, "beforeend", this.elements.output);
     }
 
     if (state.message) {
