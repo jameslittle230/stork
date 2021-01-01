@@ -12,7 +12,10 @@ use entry_and_intermediate_excerpts::EntryAndIntermediateExcerpts;
 
 pub fn search(index: &Index, query: &str) -> SearchOutput {
     let normalized_query = query.to_lowercase();
-    let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
+    let words_in_query: Vec<String> = normalized_query
+        .split(|c| c == ' ' || c == '-')
+        .map(|s| s.to_string())
+        .collect();
 
     // Get the containers for each word in the query, and separate them
     // into intermediate excerpts
