@@ -54,22 +54,27 @@ export class EntityDom {
   constructor(name: string, entity: Entity) {
     this.entity = entity;
 
-    const input = document.querySelector(
-      `input[data-stork=${name}]`
-    ) as HTMLInputElement;
-    const output = document.querySelector(
-      `div[data-stork=${name}-output]`
-    ) as HTMLDivElement;
+    const data = [
+      {
+        selector: `input[data-stork="${name}"]`,
+        elementName: "input"
+      },
+      {
+        selector: `div[data-stork="${name}-output"]`,
+        elementName: "output"
+      }
+    ];
 
-    assert(
-      input !== null,
-      `Could not register search box "${name}": input element not found`
-    );
+    const [input, output] = data.map(d => {
+      const element = document.querySelector(d.selector);
+      if (!element) {
+        throw new Error(
+          `Could not register search box "${name}": ${d.elementName} element not found. Make sure an element matches the query selector \`${d.selector}\``
+        );
+      }
 
-    assert(
-      output !== null,
-      `Could not register search box "${name}": input element not found`
-    );
+      return element;
+    }) as [HTMLInputElement, HTMLDivElement];
 
     this.elements = {
       input: input,
