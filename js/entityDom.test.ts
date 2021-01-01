@@ -32,10 +32,10 @@ global.document.querySelector = jest
   .fn()
   .mockImplementation((query: string) => {
     switch (query) {
-      case "input[data-stork=test]":
+      case `input[data-stork="test"]`:
         return mockInputElement;
 
-      case "div[data-stork=test-output]":
+      case `div[data-stork="test-output"]`:
         return mockOutputElement;
     }
   });
