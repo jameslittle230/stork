@@ -15,30 +15,33 @@ export class EntityManager {
   handleLoadedIndex(entity: Entity, event: Event): void {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const { response } = (event as ProgressEvent<
+    const { status, response } = (event as ProgressEvent<
       XMLHttpRequestEventTarget
     >).target;
 
+    if (status < 200 || status > 299) {
+      entity.setDownloadError();
+      throw new Error(`Got a ${status} error from ${entity.url}!`);
+    }
+
     this.wasmQueue.runAfterWasmLoaded(() => {
-      const indexInfo = wasmRegisterIndex(
-        entity.name,
-        new Uint8Array(response)
-      );
+      if (!entity.error) {
+        const indexInfo = wasmRegisterIndex(
+          entity.name,
+          new Uint8Array(response)
+        );
 
-      // Force end progress after index is registered
-      entity.setDownloadProgress(1);
+        entity.setDownloadProgress(1);
+        entity.performSearch(entity.domManager.getQuery());
 
-      entity.performSearch(entity.domManager.getQuery());
-
-      if (entity.config.printIndexInfo) {
-        this.wasmQueue.runAfterWasmLoaded(() => {
+        if (entity.config.printIndexInfo) {
           // eslint-disable-next-line no-console
           console.log({
             name: entity.name,
             sizeInBytes: response.byteLength,
             ...JSON.parse(indexInfo)
           });
-        });
+        }
       }
     });
   }

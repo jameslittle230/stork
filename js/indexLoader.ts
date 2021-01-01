@@ -17,12 +17,13 @@ export function loadIndexFromUrl(
   const r = new XMLHttpRequest();
 
   r.addEventListener("load", e => {
+    // This gets called even if we get a 404 response from the server!
     if (callbacks.load) {
       callbacks.load(e, entity);
     }
   });
 
-  r.addEventListener("error", e => {
+  r.addEventListener("error", () => {
     console.error(`Could not fetch ${url}`);
     callbacks.error();
   });

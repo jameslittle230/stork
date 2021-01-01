@@ -1,4 +1,3 @@
-import { assert } from "./util";
 import { Result } from "./searchData";
 
 import {
@@ -54,22 +53,27 @@ export class EntityDom {
   constructor(name: string, entity: Entity) {
     this.entity = entity;
 
-    const input = document.querySelector(
-      `input[data-stork=${name}]`
-    ) as HTMLInputElement;
-    const output = document.querySelector(
-      `div[data-stork=${name}-output]`
-    ) as HTMLDivElement;
+    const data = [
+      {
+        selector: `input[data-stork="${name}"]`,
+        elementName: "input"
+      },
+      {
+        selector: `div[data-stork="${name}-output"]`,
+        elementName: "output"
+      }
+    ];
 
-    assert(
-      input !== null,
-      `Could not register search box "${name}": input element not found`
-    );
+    const [input, output] = data.map(d => {
+      const element = document.querySelector(d.selector);
+      if (!element) {
+        throw new Error(
+          `Could not register search box "${name}": ${d.elementName} element not found. Make sure an element matches the query selector \`${d.selector}\``
+        );
+      }
 
-    assert(
-      output !== null,
-      `Could not register search box "${name}": input element not found`
-    );
+      return element;
+    }) as [HTMLInputElement, HTMLDivElement];
 
     this.elements = {
       input: input,
@@ -93,7 +97,6 @@ export class EntityDom {
       this.handleKeyDownEvent(e as KeyboardEvent);
     });
 
-    add(this.elements.list, "beforeend", this.elements.output);
     this.elements.list?.addEventListener("mousemove", () => {
       this.hoverSelectEnabled = true;
     });
@@ -143,7 +146,7 @@ export class EntityDom {
     if (state.message) {
       setText(this.elements.message, state.message);
     }
-    // this.elements.message.textContent = state.message;
+
     if (state.results?.length > 0 && state.resultsVisible) {
       add(this.elements.list, "beforeend", this.elements.output);
 
@@ -156,10 +159,6 @@ export class EntityDom {
 
         const listItem = resultToListItem(result, generateOptions);
         add(listItem as HTMLElement, "beforeend", this.elements.list);
-        // const insertedElement = this.elements.list?.appendChild(
-        //   resultToListItem(result, generateOptions) ||
-        //     document.createElement("li")
-        // );
 
         listItem.addEventListener("mousemove", () => {
           if (this.hoverSelectEnabled) {

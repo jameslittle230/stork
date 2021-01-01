@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Federalist Search</title>
+    <title>Stork Test/Development Page</title>
     <link rel="stylesheet" href="/dark.css" />
     <link rel="stylesheet" href="/basic.css" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
@@ -34,28 +34,46 @@
     </style>
   </head>
   <body>
-    <h1>Test Page</h1>
+    <h1>Stork Test Page</h1>
     <div class="search-wrap">
-      <div class="stork-wrapper-basic">
+      <div class="stork-wrapper stork-wrapper-basic">
         <p class="subtitle">Local index</p>
         <input data-stork="federalist" placeholder="liberty" class="stork-input"></input>
         <div data-stork="federalist-output" class="stork-output"></div>
       </div>
-
-      <div style="background-color: #222; color: white; padding: 5em;">
-      
-      <div class="stork-wrapper-dark">
-        <p class="subtitle">Uploaded Index</p>
+     
+      <div class="stork-wrapper stork-wrapper-basic">
+        <p class="subtitle">Published Index</p>
         <input data-stork="federalist-prod" placeholder="liberty" class="stork-input"></input>
         <div data-stork="federalist-prod-output" class="stork-output"></div>
       </div>
 
+      <div style="background-color: #222; color: white; padding: 1em 5em 9em;">
+      
+      <div class="stork-wrapper stork-wrapper-dark">
+        <p class="subtitle">Dark Mode!</p>
+        <input data-stork="federalist-dark" placeholder="liberty" class="stork-input"></input>
+        <div data-stork="federalist-dark-output" class="stork-output"></div>
       </div>
 
-      <div class="stork-wrapper">
+      </div>
+
+      <div class="stork-wrapper stork-wrapper">
         <p class="subtitle">3Blue1Brown</p>
         <input data-stork="threeblue" placeholder="derivative" class="stork-input"></input>
         <div data-stork="threeblue-output" class="stork-output"></div>
+      </div>
+      
+      <div class="stork-wrapper stork-wrapper">
+        <p class="subtitle">Index File Does Not Exist</p>
+        <input data-stork="doesnotexist" placeholder="derivative" class="stork-input"></input>
+        <div data-stork="doesnotexist-output" class="stork-output"></div>
+      </div>
+     
+    <div class="stork-wrapper stork-wrapper">
+        <p class="subtitle">Output Element Doesn't Exist</p>
+        <input data-stork="bad" placeholder="derivative" class="stork-input"></input>
+        <div class="stork-output"></div>
       </div>
     </div>
 
@@ -74,17 +92,11 @@
         }
       });
       
-      stork.register("federalist-prod", "https://files.stork-search.net/federalist.st", {
-        showProgress: true,
-        showScores: false,
-        printIndexInfo: true
-      });
-      
-      stork.register("threeblue", "/3b1b.st", {
-        showProgress: true,
-        showScores: true,
-        printIndexInfo: true
-      });
+      stork.register("federalist-dark", "/federalist.st");
+      stork.register("federalist-prod", "https://files.stork-search.net/federalist.st");
+      stork.register("threeblue", "/3b1b.st");
+      stork.register("doesnotexist", "/doesNotExist.st");
+      stork.register("bad", "/federalist.st");
     </script>
   </body>
 </html>
