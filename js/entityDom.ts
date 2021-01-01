@@ -141,7 +141,6 @@ export class EntityDom {
     if (this.getQuery().length > 0 && state.resultsVisible) {
       this.elements.output.classList.add("stork-output-visible");
       add(this.elements.message, "beforeend", this.elements.output);
-      add(this.elements.list, "beforeend", this.elements.output);
     }
 
     if (state.message) {
