@@ -1,4 +1,4 @@
-use super::super::scores::*;
+use super::{super::scores::*, annotated_words_from_string::AnnotatedWordable};
 use super::{
     remove_surrounding_punctuation, AnnotatedWord, Container, Excerpt, IntermediateEntry,
     SearchResult, WordListSource,
@@ -14,15 +14,7 @@ pub fn fill_containers(
     containers: &mut HashMap<String, Container>,
 ) {
     for (entry_index, entry) in intermediate_entries.iter().enumerate() {
-        let words_in_title: Vec<AnnotatedWord> = entry
-            .title
-            .split_whitespace()
-            .map(|w| AnnotatedWord {
-                word: w.to_string(),
-                ..Default::default()
-            })
-            .collect();
-
+        let words_in_title: Vec<AnnotatedWord> = entry.title.make_annotated_words();
         let words_in_contents: Vec<AnnotatedWord> = entry.contents.word_list.to_owned();
 
         let word_lists = vec![

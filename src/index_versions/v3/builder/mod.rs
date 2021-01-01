@@ -1,21 +1,23 @@
 use super::structs::*;
-use crate::config::{Config, File};
-use std::fmt;
-use std::{collections::HashMap, error::Error, path::PathBuf};
-
-mod fill_intermediate_entries;
-use fill_intermediate_entries::fill_intermediate_entries;
-
-mod fill_stems;
-use fill_stems::fill_stems;
+use crate::config::Config;
+use std::collections::HashMap;
 
 mod fill_containers;
-use fill_containers::fill_containers;
+mod fill_intermediate_entries;
+mod fill_stems;
 
-pub mod word_list_generators;
-use word_list_generators::WordListGenerationError;
+mod annotated_words_from_string;
+pub mod errors;
 
 pub mod intermediate_entry;
+mod word_list_generators;
+
+use fill_containers::fill_containers;
+use fill_intermediate_entries::fill_intermediate_entries;
+use fill_stems::fill_stems;
+
+use errors::{DocumentError, IndexGenerationError};
+
 use intermediate_entry::IntermediateEntry;
 
 pub mod nudger;
@@ -24,40 +26,6 @@ use nudger::Nudger;
 pub mod frontmatter;
 
 extern crate rust_stemmers;
-
-#[derive(Debug)]
-pub enum IndexGenerationError {
-    NoFilesSpecified,
-}
-
-impl Error for IndexGenerationError {}
-
-impl fmt::Display for IndexGenerationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let desc: String = match self {
-            IndexGenerationError::NoFilesSpecified => {
-                "No files specified in config file".to_string()
-            }
-        };
-
-        write!(f, "{}", desc)
-    }
-}
-
-pub struct DocumentError {
-    file: File,
-    word_list_generation_error: WordListGenerationError,
-}
-
-impl fmt::Display for DocumentError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Error indexing `{}`: {}",
-            self.file, self.word_list_generation_error
-        )
-    }
-}
 
 pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
     println!("{}", Nudger::from(config).generate_formatted_output());
