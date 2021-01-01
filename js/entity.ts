@@ -43,7 +43,6 @@ export class Entity {
       return "Filtering...";
     } else if (this.results) {
       if (this.totalResultCount === 0) {
-        console.log(this.wasmQueue);
         return "No files found.";
       } else if (this.totalResultCount === 1) {
         return "1 file found.";
