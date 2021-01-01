@@ -1,6 +1,6 @@
-use std::{error::Error, fmt};
-use crate::config::File;
 use super::word_list_generators::WordListGenerationError;
+use crate::config::File;
+use std::{error::Error, fmt};
 
 #[derive(Debug)]
 pub enum IndexGenerationError {

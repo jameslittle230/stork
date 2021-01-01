@@ -64,7 +64,7 @@ pub fn search_with_index(index: &Index, query: &str) -> searcher::SearchOutput {
  */
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     let (index, document_errors) = builder::build(config)?;
-    
+
     if !document_errors.is_empty() {
         println!(
             "{} error{} while indexing files:",
@@ -78,6 +78,6 @@ pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     for error in &document_errors {
         println!("- {}", &error);
     }
-    
+
     Ok(index)
 }
