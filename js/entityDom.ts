@@ -148,7 +148,7 @@ export class EntityDom {
     if (state.message) {
       setText(this.elements.message, state.message);
     }
-    // this.elements.message.textContent = state.message;
+    
     if (state.results?.length > 0 && state.resultsVisible) {
       add(this.elements.list, "beforeend", this.elements.output);
 
@@ -161,10 +161,6 @@ export class EntityDom {
 
         const listItem = resultToListItem(result, generateOptions);
         add(listItem as HTMLElement, "beforeend", this.elements.list);
-        // const insertedElement = this.elements.list?.appendChild(
-        //   resultToListItem(result, generateOptions) ||
-        //     document.createElement("li")
-        // );
 
         listItem.addEventListener("mousemove", () => {
           if (this.hoverSelectEnabled) {

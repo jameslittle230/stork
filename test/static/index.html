@@ -52,8 +52,8 @@
       
       <div class="stork-wrapper stork-wrapper-dark">
         <p class="subtitle">Dark Mode!</p>
-        <input data-stork="federalist" placeholder="liberty" class="stork-input"></input>
-        <div data-stork="federalist-output" class="stork-output"></div>
+        <input data-stork="federalist-dark" placeholder="liberty" class="stork-input"></input>
+        <div data-stork="federalist-dark-output" class="stork-output"></div>
       </div>
 
       </div>
@@ -66,8 +66,8 @@
       
       <div class="stork-wrapper stork-wrapper">
         <p class="subtitle">Index File Does Not Exist</p>
-        <input data-stork="threeblue" placeholder="derivative" class="stork-input"></input>
-        <div data-stork="threeblue-output" class="stork-output"></div>
+        <input data-stork="doesnotexist" placeholder="derivative" class="stork-input"></input>
+        <div data-stork="doesnotexist-output" class="stork-output"></div>
       </div>
      
     <div class="stork-wrapper stork-wrapper">
@@ -92,11 +92,10 @@
         }
       });
       
+      stork.register("federalist-dark", "/federalist.st");
       stork.register("federalist-prod", "https://files.stork-search.net/federalist.st");
-      
       stork.register("threeblue", "/3b1b.st");
-      stork.register("threeblue", "/doesNotExist.st");
-     
+      stork.register("doesnotexist", "/doesNotExist.st");
       stork.register("bad", "/federalist.st");
     </script>
   </body>
