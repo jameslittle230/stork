@@ -12,7 +12,7 @@ use searcher::SearchError;
 
 pub use index_versions::v3 as LatestVersion;
 use LatestVersion::builder;
-use LatestVersion::builder::IndexGenerationError;
+use LatestVersion::builder::errors::IndexGenerationError;
 use LatestVersion::structs::Index;
 
 use once_cell::sync::OnceCell;
@@ -63,5 +63,21 @@ pub fn search_with_index(index: &Index, query: &str) -> searcher::SearchOutput {
  * Builds an Index object that can be serialized and parsed later
  */
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
-    builder::build(config).map(|tuple| tuple.0)
+    let (index, document_errors) = builder::build(config)?;
+
+    if !document_errors.is_empty() {
+        println!(
+            "{} error{} while indexing files:",
+            document_errors.len(),
+            match document_errors.len() {
+                1 => "",
+                _ => "s",
+            }
+        )
+    }
+    for error in &document_errors {
+        println!("- {}", &error);
+    }
+
+    Ok(index)
 }

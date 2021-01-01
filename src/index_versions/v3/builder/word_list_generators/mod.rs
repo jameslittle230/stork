@@ -1,4 +1,7 @@
-use super::super::structs::{AnnotatedWord, Contents};
+use super::{
+    super::structs::{AnnotatedWord, Contents},
+    annotated_words_from_string::AnnotatedWordable,
+};
 use crate::common::InternalWordAnnotation;
 use crate::config::{Filetype, InputConfig, SRTConfig, SRTTimestampFormat};
 use std::fmt;
@@ -55,13 +58,7 @@ impl WordListGenerator for PlainTextWordListGenerator {
         buffer: &str,
     ) -> Result<Contents, WordListGenerationError> {
         Ok(Contents {
-            word_list: buffer
-                .split_whitespace()
-                .map(|word| AnnotatedWord {
-                    word: word.to_string(),
-                    ..Default::default()
-                })
-                .collect(),
+            word_list: buffer.make_annotated_words(),
         })
     }
 }
@@ -78,25 +75,18 @@ impl WordListGenerator for SRTWordListGenerator {
         let mut word_list: Vec<AnnotatedWord> = Vec::new();
 
         for sub in subs {
-            for word in sub.text.split_whitespace() {
-                word_list.push({
-                    let mut internal_annotations: Vec<InternalWordAnnotation> = vec![];
-                    if config.srt_config.timestamp_linking {
+            let mut annotated_words_for_this_sub =
+                sub.text
+                    .make_annotated_words_with_annotations(|_word, internal_annotations| {
                         internal_annotations.push(InternalWordAnnotation::SRTUrlSuffix(
                             SRTWordListGenerator::build_srt_url_time_suffix(
                                 &sub.start_time,
                                 &config.srt_config,
                             ),
                         ));
-                    }
+                    });
 
-                    AnnotatedWord {
-                        word: word.to_string(),
-                        internal_annotations,
-                        ..Default::default()
-                    }
-                })
-            }
+            word_list.append(&mut annotated_words_for_this_sub);
         }
 
         Ok(Contents { word_list })
