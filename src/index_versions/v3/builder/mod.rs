@@ -49,7 +49,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
     }
 
     if intermediate_entries.is_empty() {
-        return Err(IndexGenerationError::NoValidFiles)
+        return Err(IndexGenerationError::NoValidFiles);
     }
 
     let mut stems: HashMap<String, Vec<String>> = HashMap::new();
@@ -144,17 +144,17 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(build(&config).err().unwrap(), IndexGenerationError::NoValidFiles);
+        assert_eq!(
+            build(&config).err().unwrap(),
+            IndexGenerationError::NoValidFiles
+        );
     }
 
     #[test]
     fn test_failing_file_does_not_halt_indexing() {
         let config = Config {
             input: InputConfig {
-                files: vec![
-                    generate_invalid_file(),
-                    generate_valid_file()
-                ],
+                files: vec![generate_invalid_file(), generate_valid_file()],
                 ..Default::default()
             },
             ..Default::default()
