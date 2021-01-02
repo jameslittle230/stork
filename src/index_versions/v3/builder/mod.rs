@@ -131,7 +131,7 @@ mod tests {
 
         assert_eq!(
             build(&config).unwrap().1.first().unwrap().to_string(),
-            "Error indexing `Title`: HTML selector `.article` is not present in the file."
+            "Error: HTML selector `.article` is not present in the file while indexing `Title`"
         );
     }
     #[test]
