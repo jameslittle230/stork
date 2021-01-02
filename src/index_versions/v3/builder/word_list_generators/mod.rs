@@ -22,11 +22,11 @@ impl fmt::Display for WordListGenerationError {
         let desc: String = match self {
             WordListGenerationError::InvalidSRT => "SRT file could not be parsed".to_string(),
             WordListGenerationError::SelectorNotPresent(selector_string) => format!(
-                "HTML selector `{}` is not present in the file.",
+                "HTML selector `{}` is not present in the file",
                 selector_string
             ),
             WordListGenerationError::FileNotFound => "The file could not be found".to_string(),
-            WordListGenerationError::CannotDetermineFiletype => "Could not determine the filetype. Please use a known file extension or disambiguate the filetype within your configuration file.".to_string()
+            WordListGenerationError::CannotDetermineFiletype => "Could not determine the filetype. Please use a known file extension or disambiguate the filetype within your configuration file".to_string()
         };
         write!(f, "{}", desc)
     }

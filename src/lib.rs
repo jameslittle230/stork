@@ -63,21 +63,6 @@ pub fn search_with_index(index: &Index, query: &str) -> searcher::SearchOutput {
  * Builds an Index object that can be serialized and parsed later
  */
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
-    let (index, document_errors) = builder::build(config)?;
-
-    if !document_errors.is_empty() {
-        println!(
-            "{} error{} while indexing files:",
-            document_errors.len(),
-            match document_errors.len() {
-                1 => "",
-                _ => "s",
-            }
-        )
-    }
-    for error in &document_errors {
-        println!("- {}", &error);
-    }
-
+    let (index, _) = builder::build(config)?;
     Ok(index)
 }

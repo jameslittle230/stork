@@ -48,6 +48,10 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
         println!("- {}", &error);
     }
 
+    if intermediate_entries.is_empty() {
+        return Err(IndexGenerationError::NoValidFiles)
+    }
+
     let mut stems: HashMap<String, Vec<String>> = HashMap::new();
     fill_stems(&intermediate_entries, &mut stems);
 
@@ -94,17 +98,30 @@ mod tests {
     use crate::config::File;
     use crate::config::*;
 
+    fn generate_invalid_file() -> File {
+        File {
+            source: DataSource::Contents("".to_string()),
+            title: "Title".to_string(),
+            filetype: Some(Filetype::HTML),
+            html_selector_override: Some(".article".to_string()),
+            ..Default::default()
+        }
+    }
+
+    fn generate_valid_file() -> File {
+        File {
+            source: DataSource::Contents("".to_string()),
+            title: "Title 2".to_string(),
+            filetype: Some(Filetype::PlainText),
+            ..Default::default()
+        }
+    }
+
     #[test]
     fn test_not_present_html_selector_fails_gracefully() {
         let config = Config {
             input: InputConfig {
-                files: vec![File {
-                    source: DataSource::Contents("".to_string()),
-                    title: "Title".to_string(),
-                    filetype: Some(Filetype::HTML),
-                    html_selector_override: Some(".article".to_string()),
-                    ..Default::default()
-                }],
+                files: vec![generate_invalid_file(), generate_valid_file()],
                 ..Default::default()
             },
             ..Default::default()
@@ -117,25 +134,26 @@ mod tests {
             "Error indexing `Title`: HTML selector `.article` is not present in the file."
         );
     }
+    #[test]
+    fn test_all_invalid_files_return_error() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![generate_invalid_file(), generate_invalid_file()],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(build(&config).err().unwrap(), IndexGenerationError::NoValidFiles);
+    }
 
     #[test]
     fn test_failing_file_does_not_halt_indexing() {
         let config = Config {
             input: InputConfig {
                 files: vec![
-                    File {
-                        source: DataSource::Contents("".to_string()),
-                        title: "Title".to_string(),
-                        filetype: Some(Filetype::HTML),
-                        html_selector_override: Some(".article".to_string()),
-                        ..Default::default()
-                    },
-                    File {
-                        source: DataSource::Contents("".to_string()),
-                        title: "Title 2".to_string(),
-                        filetype: Some(Filetype::PlainText),
-                        ..Default::default()
-                    },
+                    generate_invalid_file(),
+                    generate_valid_file()
                 ],
                 ..Default::default()
             },
