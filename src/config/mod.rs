@@ -64,6 +64,8 @@ pub struct InputConfig {
     pub url_prefix: String,
     pub title_boost: TitleBoost,
     pub stemming: StemmingConfig,
+
+    #[serde(default)]
     pub html_selector: Option<String>,
     pub frontmatter_handling: FrontmatterConfig,
     pub files: Vec<File>,

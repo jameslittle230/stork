@@ -30,7 +30,7 @@ impl WordListGenerator for HTMLWordListGenerator {
         buffer: &str,
     ) -> Result<Contents, WordListGenerationError> {
         let document = Html::parse_document(buffer);
-        let selector_string = (config.html_selector.clone()).unwrap_or_else(|| "main".to_string());
+        let selector_string = (&config.html_selector).clone().unwrap();
         let selector = Selector::parse(selector_string.as_str()).unwrap();
 
         // We could just check to see if the outputted vec at the end of the
@@ -38,7 +38,7 @@ impl WordListGenerator for HTMLWordListGenerator {
         // if the selector _is_ present but there are no words.
         let selector_match_in_document_count = document.select(&selector).count();
         if selector_match_in_document_count == 0 {
-            return Err(WordListGenerationError::SelectorNotPresent(selector_string));
+            return Err(WordListGenerationError::SelectorNotPresent(selector_string.clone()));
         }
 
         let word_list = document
