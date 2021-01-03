@@ -66,18 +66,15 @@ pub(super) fn fill_intermediate_entries(
             StemmingConfig::None => None,
         };
 
-        per_file_input_config.html_selector = Some(
-            vec![
-                &stork_file.html_selector_override,
-                &config.input.html_selector,
-            ]
-            .into_iter()
-            .filter_map(|option| option.clone())
-            .collect::<Vec<String>>()
-            .first()
-            .unwrap_or(&"main".to_string())
-            .clone(),
-        );
+        per_file_input_config.html_selector = vec![
+            &stork_file.html_selector_override,
+            &config.input.html_selector,
+        ]
+        .into_iter()
+        .filter_map(|option| option.to_owned())
+        .collect::<Vec<String>>()
+        .first()
+        .map(|s| s.to_owned());
 
         per_file_input_config.frontmatter_handling = stork_file
             .frontmatter_handling_override
