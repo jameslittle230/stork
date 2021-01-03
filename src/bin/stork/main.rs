@@ -77,10 +77,10 @@ fn build_handler(args: &[String]) {
         Ok(bytes) => bytes,
         Err(e) => {
             eprintln!("Could not generate index: {}", e.to_string());
-            std::process::exit(EXIT_FAILURE); 
+            std::process::exit(EXIT_FAILURE);
         }
     };
-    
+
     let end_time = Instant::now();
     let bytes_per_file_string = format!(
         "{} bytes/entry (average entry size is {} bytes)",

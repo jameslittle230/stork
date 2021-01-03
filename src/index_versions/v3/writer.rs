@@ -1,7 +1,7 @@
 use super::structs::Index;
 use crate::config::Config;
-use std::{error::Error, fmt, fs::File};
 use std::io::{BufWriter, Write};
+use std::{error::Error, fmt, fs::File};
 
 #[derive(Debug)]
 pub enum WriteError {
@@ -13,7 +13,9 @@ impl Error for WriteError {}
 impl fmt::Display for WriteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc: String = match self {
-            WriteError::FileCreateError(filename) => format!("Could not write to file {}!", filename)
+            WriteError::FileCreateError(filename) => {
+                format!("Could not write to file {}!", filename)
+            }
         };
 
         write!(f, "{}", desc)
