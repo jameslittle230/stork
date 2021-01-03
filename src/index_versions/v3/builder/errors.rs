@@ -2,9 +2,10 @@ use super::word_list_generators::WordListGenerationError;
 use crate::config::File;
 use std::{error::Error, fmt};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum IndexGenerationError {
     NoFilesSpecified,
+    NoValidFiles,
 }
 
 impl Error for IndexGenerationError {}
@@ -15,6 +16,7 @@ impl fmt::Display for IndexGenerationError {
             IndexGenerationError::NoFilesSpecified => {
                 "No files specified in config file".to_string()
             }
+            IndexGenerationError::NoValidFiles => "No files could be indexed".to_string(),
         };
 
         write!(f, "{}", desc)
@@ -30,8 +32,8 @@ impl fmt::Display for DocumentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Error indexing `{}`: {}",
-            self.file, self.word_list_generation_error
+            "Error: {} while indexing `{}`",
+            self.word_list_generation_error, self.file
         )
     }
 }
