@@ -1,18 +1,38 @@
 use super::structs::Index;
 use crate::config::Config;
-use std::fs::File;
 use std::io::{BufWriter, Write};
+use std::{error::Error, fmt, fs::File};
+
+#[derive(Debug)]
+pub enum WriteError {
+    FileCreateError(String),
+}
+
+impl Error for WriteError {}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let desc: String = match self {
+            WriteError::FileCreateError(filename) => {
+                format!("Could not write to file {}!", filename)
+            }
+        };
+
+        write!(f, "{}", desc)
+    }
+}
 
 impl Index {
-    pub fn write(&self, config: &Config) -> usize {
+    pub fn write(&self, config: &Config) -> Result<usize, WriteError> {
         let config = &config.output;
-        let file = File::create(&config.filename).unwrap();
+        let file = File::create(&config.filename)
+            .map_err(|_| WriteError::FileCreateError(config.filename.clone()))?;
         let mut bufwriter = BufWriter::new(file);
 
         if config.debug {
-            self.write_debug(&mut bufwriter)
+            Ok(self.write_debug(&mut bufwriter))
         } else {
-            self.write_to_buffer(&mut bufwriter)
+            Ok(self.write_to_buffer(&mut bufwriter))
         }
     }
 

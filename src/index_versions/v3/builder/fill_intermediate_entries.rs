@@ -18,9 +18,10 @@ pub(super) fn fill_intermediate_entries(
 
     let base_directory = Path::new(&config.input.base_directory);
 
-    let mut per_file_input_config = config.input.clone();
-
     for stork_file in config.input.files.iter() {
+        let mut per_file_input_config = config.input.clone();
+        per_file_input_config.files = vec![];
+
         let perhaps_filetype = &stork_file.computed_filetype();
         let filetype = match perhaps_filetype {
             Some(filetype) => filetype,
@@ -65,7 +66,16 @@ pub(super) fn fill_intermediate_entries(
             StemmingConfig::None => None,
         };
 
-        per_file_input_config.html_selector = stork_file.html_selector_override.clone();
+        per_file_input_config.html_selector = vec![
+            &stork_file.html_selector_override,
+            &config.input.html_selector,
+        ]
+        .into_iter()
+        .filter_map(|option| option.to_owned())
+        .collect::<Vec<String>>()
+        .first()
+        .map(|s| s.to_owned());
+
         per_file_input_config.frontmatter_handling = stork_file
             .frontmatter_handling_override
             .clone()

@@ -73,7 +73,14 @@ fn build_handler(args: &[String]) {
     });
 
     let build_time = Instant::now();
-    let bytes_written = index.write(&config);
+    let bytes_written = match index.write(&config) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            eprintln!("Could not generate index: {}", e.to_string());
+            std::process::exit(EXIT_FAILURE);
+        }
+    };
+
     let end_time = Instant::now();
     let bytes_per_file_string = format!(
         "{} bytes/entry (average entry size is {} bytes)",

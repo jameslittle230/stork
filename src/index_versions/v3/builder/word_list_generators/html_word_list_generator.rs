@@ -30,7 +30,9 @@ impl WordListGenerator for HTMLWordListGenerator {
         buffer: &str,
     ) -> Result<Contents, WordListGenerationError> {
         let document = Html::parse_document(buffer);
-        let selector_string = (config.html_selector.clone()).unwrap_or_else(|| "main".to_string());
+        let selector_string = (&config.html_selector)
+            .clone()
+            .unwrap_or_else(|| "main".to_string());
         let selector = Selector::parse(selector_string.as_str()).unwrap();
 
         // We could just check to see if the outputted vec at the end of the
