@@ -118,12 +118,43 @@ You can read more documentation and learn more about customization at the projec
 
 # Development
 
-Dependencies include:
+To build Stork, you'll need:
 
-- Rust, installed from rustup
-- wasm-pack
-- yarn
+- [Rust](https://www.rust-lang.org)
+  - Install Rust using [Rustup](https://rustup.rs).
+  - Stork is developed on the Stable toolchain.
+- [wasm-pack](https://github.com/rustwasm/wasm-pack)
+- [yarn](https://yarnpkg.com)
 
-Run `yarn run` to see all the different build and test options.
+The repository is structured like a [typical Cargo package](https://doc.rust-lang.org/cargo/guide/project-layout.html), with some modifications.
 
-To download the test data source (text file versions of the first 20 Federalist Papers), visit [the Federalist Papers](https://github.com/jameslittle230/federalist) repository.
+- `src` holds the Rust source code
+- `js` holds the Javascript source code
+- `test` holds files used for development, including test indexes and the static files for the development page.
+- `test-assets` hold binary assets required by Stork's functional tests.
+
+You can build the project using either the Rust entrypoint or the Javascript entrypoint. After you've built the project, you'll see three more directories:
+
+- `target` holds Rust build artifacts
+- `pkg` holds WASM build artifacts
+- `dist` holds the final build artifacts and files required for the development server.
+
+If you're interested in extracting the final Stork build artifacts, you can extract the following files after building the project with `yarn build`:
+
+- `/target/release/stork`
+- `/dist/stork.js`
+- `/dist/stork.wasm`
+
+## Building the Project
+
+### Rust
+
+- `cargo build` will build the `stork` executable
+- `cargo run` will run the executable.
+
+### Javascript
+
+- `yarn develop` will build an index, build the WASM, and build the Javascript file all in the development configuration. It will then start a development server.
+- `yarn build` will build all the release assets, including the binary, the WASM, and the Javascript. _(Note: This does not work on M1 Macs because of a lack of wasm-pack compatibility.)_
+
+You can see more Javascript build options by running `yarn run`.
