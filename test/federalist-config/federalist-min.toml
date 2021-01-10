@@ -1,3 +1,5 @@
+# The smallest possible Federalist index
+
 [input]
 base_directory = "test/federalist"
 files = [
