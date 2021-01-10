@@ -46,5 +46,12 @@ wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
 
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "basic"
+harness = false
+
 [profile.release]
 lto = true

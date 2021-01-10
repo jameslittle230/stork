@@ -28,7 +28,10 @@ pub mod frontmatter;
 extern crate rust_stemmers;
 
 pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
-    println!("{}", Nudger::from(config).generate_formatted_output());
+    let nudger = Nudger::from(config);
+    if !nudger.is_empty() {
+        println!("{}", Nudger::from(config).generate_formatted_output());
+    }
 
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
     let mut document_errors: Vec<DocumentError> = Vec::new();

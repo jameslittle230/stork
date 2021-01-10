@@ -44,8 +44,8 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
-    "develop": "yarn build:wasm:dev && yarn build:test-index:federalist && yarn build:js:dev --watch",
-    "build": "yarn install && yarn build:wasm:prod && yarn build:test-index:federalist && yarn build:js:prod",
+    "develop": "./scripts/develop.sh",
+    "build": "./scripts/build.sh",
 
     "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev  -- --no-default-features",
     "build:wasm:prod": "wasm-pack build --target web --out-name stork  -- --no-default-features",
@@ -58,7 +58,9 @@
 
     "lint": "yarn eslint **/*.ts",
     "test": "jest",
-    "serve": "python3 -m http.server --directory ./dist 8025 & open http://127.0.0.1:8025"
+    "serve": "./scripts/serve.sh",
+
+    "clean": "rm -rf target pkg dist coverage node_modules"
   },
   "//": [
     "typescript-estree only supports typescript <3.8.0 as of 2020-05-25. Upgrade the version if possible:",

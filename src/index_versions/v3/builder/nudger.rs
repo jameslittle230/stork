@@ -40,6 +40,10 @@ impl From<&Config> for Nudger {
 }
 
 impl Nudger {
+    pub(super) fn is_empty(&self) -> bool {
+        return self.nudges.is_empty();
+    }
+
     pub(super) fn generate_formatted_output(&self) -> String {
         let mut output: String = "".to_string();
 
