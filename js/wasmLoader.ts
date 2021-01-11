@@ -7,7 +7,7 @@ const wasmUrl = prod
   ? "https://files.stork-search.net/stork.wasm"
   : "http://127.0.0.1:8025/stork.wasm";
 
-export function loadWasm(): WasmQueue {
+export function createWasmQueue(): WasmQueue {
   const queue = new WasmQueue();
   init(wasmUrl).then(() => {
     queue.loaded = true;

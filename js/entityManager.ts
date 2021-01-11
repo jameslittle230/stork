@@ -24,6 +24,10 @@ export class EntityManager {
       throw new Error(`Got a ${status} error from ${entity.url}!`);
     }
 
+    if(!this.wasmQueue) {
+      throw new Error("this.wasmQueue doesn't exist");
+    }
+
     this.wasmQueue.runAfterWasmLoaded(() => {
       if (!entity.error) {
         const indexInfo = wasmRegisterIndex(

@@ -100,6 +100,13 @@
           console.log("Goodbye, input!")
         }
       });
+
+      stork.initialize(); // download WASM
+      stork.downloadIndex("federalist-dark", "/federalist.st"); // download the index
+      stork.attach("federalist-dark"); // hook into HTML on page
+
+
+
       
       stork.register("federalist-dark", "/federalist.st");
       stork.register("federalist-prod", "https://files.stork-search.net/federalist.st", {showCloseButton: false});
