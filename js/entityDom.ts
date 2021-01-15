@@ -183,7 +183,7 @@ export class EntityDom {
       add(this.elements.attribution, "beforeend", this.elements.output);
     }
 
-    if ((query?.length || 0) > 0) {
+    if ((query?.length || 0) > 0 && this.entity.config.showCloseButton) {
       add(this.elements.closeButton, "afterend", this.elements.input);
     }
   }
