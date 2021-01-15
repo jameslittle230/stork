@@ -112,6 +112,12 @@ export class EntityDom {
       this.elements.input.value = "";
       this.elements.input.focus();
       this.render(hiddenInterfaceRenderState);
+      const [m, n] = [
+        this.entity.config.onInputCleared,
+        this.entity.config.onResultsHidden
+      ];
+      m ? m() : null;
+      n ? n() : null;
     });
   }
 
@@ -285,10 +291,17 @@ export class EntityDom {
         break;
 
       case ESC:
-        if (!this.lastRenderState.resultsVisible) {
+        if (this.lastRenderState.resultsVisible) {
+          this.render(hiddenInterfaceRenderState);
+          const m = this.entity.config.onResultsHidden;
+          m ? m() : null;
+        } else if (this.elements.input.value.length > 0) {
           this.elements.input.value = "";
+          this.render(hiddenInterfaceRenderState); // To clear [x] button
+          const m = this.entity.config.onInputCleared;
+          m ? m() : null;
         }
-        this.render(hiddenInterfaceRenderState);
+
         break;
 
       default:
