@@ -9,7 +9,7 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"]
   },
   entry: {
-    index: "./js/main.js"
+    index: "./js/main.ts"
   },
   output: {
     path: dist,

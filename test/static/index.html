@@ -79,34 +79,33 @@
 
     <script src="/stork.js"></script>
     <script>
-      stork.register("federalist", "/federalist.st", {
-        showProgress: true,
-        showScores: true,
-        printIndexInfo: true,
-        onQueryUpdate: (query, results) => {console.log("onQueryUpdate", query, results)},
-        onResultSelected: (query, result) => {
-          console.log("onResultSelected")
-          return new Promise(function(resolve) {
-            setTimeout(() => {
-              console.log("2000 ms complete")
-              resolve()
-            }, 2000);
-          });
-        },
-        onResultsHidden: () => {
-          console.log("Goodbye, results!");
-        },
-        onInputCleared: () => {
-          console.log("Goodbye, input!")
-        }
-      });
-
       stork.initialize(); // download WASM
-      stork.downloadIndex("federalist-dark", "/federalist.st"); // download the index
-      stork.attach("federalist-dark"); // hook into HTML on page
 
+      window.setTimeout(() => {
+        stork.downloadIndex("federalist", "/federalist.st", {
+          showProgress: true,
+          showScores: true,
+          printIndexInfo: true,
+          onQueryUpdate: (query, results) => {console.log(query, results)},
+          onResultSelected: (query, result) => {
+            console.log("Fake analytics log...")
+            return new Promise(function(resolve) {
+              setTimeout(resolve, 2000);
+            });
+          },
+          onResultsHidden: () => {
+            console.log("Goodbye, results!");
+          },
+          onInputCleared: () => {
+            console.log("Goodbye, input!")
+          }
+        });
 
+      }, 1000)
 
+      window.setTimeout(() => {
+        stork.attach("federalist"); // hook into HTML on page
+      }, 2500)
       
       stork.register("federalist-dark", "/federalist.st");
       stork.register("federalist-prod", "https://files.stork-search.net/federalist.st", {showCloseButton: false});
