@@ -83,17 +83,26 @@
         showProgress: true,
         showScores: true,
         printIndexInfo: true,
-        onQueryUpdate: (query, results) => {console.log(query, results)},
+        onQueryUpdate: (query, results) => {console.log("onQueryUpdate", query, results)},
         onResultSelected: (query, result) => {
-          console.log("Fake analytics log...")
+          console.log("onResultSelected")
           return new Promise(function(resolve) {
-            setTimeout(resolve, 2000);
+            setTimeout(() => {
+              console.log("2000 ms complete")
+              resolve()
+            }, 2000);
           });
+        },
+        onResultsHidden: () => {
+          console.log("Goodbye, results!");
+        },
+        onInputCleared: () => {
+          console.log("Goodbye, input!")
         }
       });
       
       stork.register("federalist-dark", "/federalist.st");
-      stork.register("federalist-prod", "https://files.stork-search.net/federalist.st");
+      stork.register("federalist-prod", "https://files.stork-search.net/federalist.st", {showCloseButton: false});
       stork.register("threeblue", "/3b1b.st");
       stork.register("doesnotexist", "/doesNotExist.st");
       stork.register("bad", "/federalist.st");

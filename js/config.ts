@@ -2,18 +2,24 @@ export interface Configuration {
   showProgress: boolean;
   printIndexInfo: boolean;
   showScores: boolean;
+  showCloseButton: boolean;
   minimumQueryLength: number;
   onQueryUpdate?: (query: string, results: unknown) => unknown;
   onResultSelected?: (query: string, result: unknown) => unknown;
+  onResultsHidden?: () => unknown;
+  onInputCleared?: () => unknown;
 }
 
 export const defaultConfig: Readonly<Configuration> = {
   showProgress: true,
   printIndexInfo: false,
   showScores: false,
+  showCloseButton: true,
   minimumQueryLength: 3,
   onQueryUpdate: undefined,
-  onResultSelected: undefined
+  onResultSelected: undefined,
+  onResultsHidden: undefined,
+  onInputCleared: undefined
 };
 
 export function calculateOverriddenConfig(
