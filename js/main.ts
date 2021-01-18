@@ -79,6 +79,22 @@ function register(name: string, url: string, config: Partial<Configuration>) {
 }
 
 function search(name: string, query: string): SearchData {
+  if (!name || !query) {
+    throw new StorkError(
+      "Make sure to call stork.search() with two arguments: the index name and the search query."
+    );
+  }
+
+  if (
+    !entityManager ||
+    !entityManager.entities[name] ||
+    entityManager.entities[name].progress < 1
+  ) {
+    throw new StorkError(
+      "Couldn't find index. Make sure the stork.downloadIndex() promise has resolved before calling stork.search()."
+    );
+  }
+
   return resolveSearch(name, query);
 }
 
