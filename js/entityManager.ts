@@ -96,10 +96,10 @@ export class EntityManager {
   }
 
   public attachToDom(name: string) {
-    if(!this.entities[name]) {
-      throw new Error(`Index ${name} has not been registered!`)
+    if (!this.entities[name]) {
+      throw new Error(`Index ${name} has not been registered!`);
     }
 
-    this.entities[name].attachToDom()
+    this.entities[name].attachToDom();
   }
 }

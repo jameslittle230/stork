@@ -32,10 +32,7 @@ export interface SearchData {
   url_prefix: string;
 }
 
-export function resolveSearch(
-  name: string,
-  query: string
-): SearchData {
+export function resolveSearch(name: string, query: string): SearchData {
   let searchOutput = null;
   let data = null;
 

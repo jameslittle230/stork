@@ -102,8 +102,8 @@ export class EntityDom {
       this.entity.eventListenerFunctions.inputKeydownEvent
     );
 
-    // Then, save new event listener functions to the entity so that we can 
-    // delete those listeners from the corresponding elements when the 
+    // Then, save new event listener functions to the entity so that we can
+    // delete those listeners from the corresponding elements when the
     // EntityDom object is recreated.
     this.entity.eventListenerFunctions = {
       inputInputEvent: (e: InputEvent) => {
