@@ -26,7 +26,6 @@ function initialize(wasmOverrideUrl: String | null = null): Promise<void> {
       wasmQueue.runOnWasmLoadFailure(e => {
         rej(e);
       });
-
     } else if (wasmQueue.state === "failed") {
       rej();
     } else {

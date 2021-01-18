@@ -7,10 +7,10 @@ export default class WasmQueue {
   failureMethod: { (e: Error): void };
 
   /**
-   * Caller should use this to queue up a function to be run only when the 
+   * Caller should use this to queue up a function to be run only when the
    * WASM is loaded. If the WASM is already loaded when this method is called,
    * the function will run immediately.
-   * 
+   *
    * @param fn Function to be run once WASM is loaded
    */
   runAfterWasmLoaded(fn: { (): void; (): void }): void {
@@ -52,7 +52,7 @@ export default class WasmQueue {
   /**
    * WASM loader should use this to signal to the queue that loading the WASM
    * has failed.
-   * 
+   *
    * @param e The error that was recieved while loading the WASM.
    */
   handleWasmFailure(e: Error): void {
