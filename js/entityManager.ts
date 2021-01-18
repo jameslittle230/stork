@@ -68,6 +68,8 @@ export class EntityManager {
       }
 
       if (this.entities[name]) {
+        // TODO: Add a config option to turn this off, if overwriting an index
+        // is expected behavior for you
         console.warn(
           `Search index with name ${name} already exists! Overwriting.`
         );

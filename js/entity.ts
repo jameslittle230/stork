@@ -10,6 +10,7 @@ export class Entity {
   readonly wasmQueue: WasmQueue;
 
   domManager: EntityDom | null;
+  eventListenerFunctions: Record<string, any> = {};
   index: Uint8Array;
   results: Array<Result> = [];
   highlightedResult = 0;
