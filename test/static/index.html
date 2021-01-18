@@ -116,11 +116,11 @@
           });
         },
         onResultsHidden: () => {
-            console.log("Goodbye, results!");
-          },
-          onInputCleared: () => {
-            console.log("Goodbye, input!")
-          }
+          console.log("Goodbye, results!");
+        },
+        onInputCleared: () => {
+          console.log("Goodbye, input!");
+        }
       });
 
       stork.downloadIndex("federalist", "/federalist.st");
@@ -135,7 +135,7 @@
       stork.register(
         "federalist-prod",
         "https://files.stork-search.net/federalist.st",
-        {showCloseButton: false}
+        { showCloseButton: false }
       );
       stork.register("threeblue", "/3b1b.st");
       stork.register("doesnotexist", "/doesNotExist.st");
