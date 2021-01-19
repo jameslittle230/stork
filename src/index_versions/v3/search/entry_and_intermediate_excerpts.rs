@@ -89,8 +89,8 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                         }
                     })
                     .collect();
-                // Maybe unneccesary?
-                highlight_ranges.sort_by_key(|hr| hr.beginning);
+
+                highlight_ranges.sort();
 
                 let highlighted_character_range = highlight_ranges.last().unwrap().end
                     - highlight_ranges.first().unwrap().beginning;
