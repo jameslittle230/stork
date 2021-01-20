@@ -1,6 +1,7 @@
 export interface MockHtmlElement {
   name: string;
   addEventListener: jest.MockedFunction<VoidFunction>;
+  removeEventListener: jest.MockedFunction<VoidFunction>;
   insertAdjacentElement: jest.MockedFunction<VoidFunction>;
   remove: jest.MockedFunction<VoidFunction>;
   scrollIntoView: jest.MockedFunction<VoidFunction>;
@@ -22,6 +23,7 @@ export const createMockHtmlElement = function (): MockHtmlElement {
   return {
     name: "",
     addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
     insertAdjacentElement: jest.fn(),
     remove: jest.fn(),
     appendChild: jest.fn(),
@@ -52,7 +54,7 @@ export const create = jest.fn(
 );
 
 export const add = jest.fn(
-  (child: MockHtmlElement, where: string, parent: MockHtmlElement) => {
+  (child: MockHtmlElement, _where: string, parent: MockHtmlElement) => {
     parent.children.push(child);
   }
 );
@@ -66,5 +68,6 @@ export const setText = jest.fn((element: MockHtmlElement, text: string) => {
 });
 
 export const existsBeyondContainerBounds = jest.fn(
-  (elem: HTMLElement, container: HTMLElement) => true
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (_elem: HTMLElement, _container: HTMLElement) => true
 );

@@ -1,11 +1,15 @@
 import { Entity } from "./entity";
-import { Configuration, calculateOverriddenConfig } from "./config";
+import {
+  Configuration,
+  calculateOverriddenConfig,
+  defaultConfig
+} from "./config";
 import { loadIndexFromUrl } from "./indexLoader";
 import { wasm_register_index as wasmRegisterIndex } from "stork-search";
 import WasmQueue from "./wasmQueue";
 
 export class EntityManager {
-  entities: Array<Entity> = [];
+  entities: Record<string, Entity> = {};
   wasmQueue: WasmQueue;
 
   constructor(wasmQueue: WasmQueue) {
@@ -24,6 +28,10 @@ export class EntityManager {
       throw new Error(`Got a ${status} error from ${entity.url}!`);
     }
 
+    if (!this.wasmQueue) {
+      throw new Error("Internal Error - this.wasmQueue doesn't exist");
+    }
+
     this.wasmQueue.runAfterWasmLoaded(() => {
       if (!entity.error) {
         const indexInfo = wasmRegisterIndex(
@@ -32,7 +40,6 @@ export class EntityManager {
         );
 
         entity.setDownloadProgress(1);
-        entity.performSearch(entity.domManager.getQuery());
 
         if (entity.config.printIndexInfo) {
           // eslint-disable-next-line no-console
@@ -50,21 +57,49 @@ export class EntityManager {
     name: string,
     url: string,
     config: Partial<Configuration>
-  ): void {
-    const fullConfig = calculateOverriddenConfig(config);
-    const entity = new Entity(name, url, fullConfig, this.wasmQueue);
-    if (this.entities.length < 1) {
-      this.entities.push(entity);
+  ): Promise<void> {
+    return new Promise((res, rej) => {
+      let fullConfig = defaultConfig;
+      try {
+        fullConfig = calculateOverriddenConfig(config);
+      } catch (error) {
+        rej(error);
+        return;
+      }
+
+      if (this.entities[name]) {
+        // TODO: Add a config option to turn this off, if overwriting an index
+        // is expected behavior for you
+        console.warn(
+          `Search index with name ${name} already exists! Overwriting.`
+        );
+      }
+
+      if (!this.wasmQueue) {
+        rej(new Error("Internal Stork error"));
+        return;
+      }
+
+      const entity = new Entity(name, url, fullConfig, this.wasmQueue);
+      this.entities[name] = entity;
+
+      loadIndexFromUrl(entity, url, {
+        load: e => this.handleLoadedIndex(entity, e),
+        progress: (progress, entity) => {
+          entity.setDownloadProgress(progress);
+        },
+        error: () => {
+          entity.setDownloadError();
+        }
+      });
+    });
+  }
+
+  public attachToDom(name: string): void {
+    if (!this.entities[name]) {
+      throw new Error(`Index ${name} has not been registered!`);
     }
 
-    loadIndexFromUrl(entity, url, {
-      load: e => this.handleLoadedIndex(entity, e),
-      progress: (progress, entity) => {
-        entity.setDownloadProgress(progress);
-      },
-      error: () => {
-        entity.setDownloadError();
-      }
-    });
+    this.entities[name].attachToDom();
   }
 }

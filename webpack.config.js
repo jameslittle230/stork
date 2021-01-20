@@ -1,6 +1,8 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const { version } = require("./package.json");
+const { DefinePlugin } = require("webpack");
 
 const dist = path.resolve(__dirname, "dist");
 
@@ -9,7 +11,7 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"]
   },
   entry: {
-    index: "./js/main.js"
+    index: "./js/main.ts"
   },
   output: {
     path: dist,
@@ -18,6 +20,9 @@ module.exports = {
   },
   devtool: "inline-source-map",
   plugins: [
+    new DefinePlugin({
+      "process.env.VERSION": JSON.stringify(version)
+    }),
     new CleanWebpackPlugin(),
     new CopyPlugin(
       [

@@ -8,8 +8,9 @@ export class Entity {
   readonly url: string;
   readonly config: Configuration;
   readonly wasmQueue: WasmQueue;
-  readonly domManager: EntityDom;
 
+  domManager: EntityDom | null;
+  eventListenerFunctions: Record<string, (e: Event) => void> = {};
   index: Uint8Array;
   results: Array<Result> = [];
   highlightedResult = 0;
@@ -29,11 +30,14 @@ export class Entity {
     this.url = url;
     this.config = config;
     this.wasmQueue = wasmQueue;
+  }
 
-    this.domManager = new EntityDom(name, this);
+  attachToDom(): void {
+    this.domManager = new EntityDom(this.name, this);
   }
 
   private getCurrentMessage(): string | null {
+    if (!this.domManager) return null;
     const query = this.domManager.getQuery();
     if (this.error) {
       return "Error! Check the browser console.";
@@ -67,6 +71,7 @@ export class Entity {
   }
 
   private render() {
+    if (!this.domManager) return;
     this.domManager.render(this.generateRenderConfig());
   }
 
@@ -130,23 +135,23 @@ export class Entity {
     }
 
     if (query.length >= this.config.minimumQueryLength) {
-      resolveSearch(this.name, query)
-        .then((data: SearchData) => {
-          if (!data) return;
+      try {
+        const data = resolveSearch(this.name, query);
+        // .then((data: SearchData) => {
+        if (!data) return;
 
-          if (process.env.NODE_ENV === "development") {
-            console.log("DEVELOPMENT:", data);
-          }
+        if (process.env.NODE_ENV === "development") {
+          console.log("DEVELOPMENT:", data);
+        }
 
-          this.injestSearchData(data);
+        this.injestSearchData(data);
 
-          if (this.config.onQueryUpdate) {
-            this.config.onQueryUpdate(query, this.getSanitizedResults());
-          }
-        })
-        .catch(e => {
-          console.error(e);
-        });
+        if (this.config.onQueryUpdate) {
+          this.config.onQueryUpdate(query, this.getSanitizedResults());
+        }
+      } catch (error) {
+        console.error(error);
+      }
     } else {
       this.results = [];
       this.render();

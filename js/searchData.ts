@@ -32,10 +32,7 @@ export interface SearchData {
   url_prefix: string;
 }
 
-export async function resolveSearch(
-  name: string,
-  query: string
-): Promise<SearchData> {
+export function resolveSearch(name: string, query: string): SearchData {
   let searchOutput = null;
   let data = null;
 

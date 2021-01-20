@@ -1,3 +1,5 @@
+import { difference } from "./util";
+
 export interface Configuration {
   showProgress: boolean;
   printIndexInfo: boolean;
@@ -25,6 +27,23 @@ export const defaultConfig: Readonly<Configuration> = {
 export function calculateOverriddenConfig(
   overrides: Partial<Configuration>
 ): Configuration {
+  const configKeyDiff = difference(
+    Object.keys(overrides),
+    Object.keys(defaultConfig)
+  );
+
+  if (configKeyDiff.length > 0) {
+    const plural = (count: number, singular: string, plural: string) =>
+      count == 1 ? singular : plural;
+    throw new Error(
+      `Invalid ${plural(
+        configKeyDiff.length,
+        "key",
+        "keys"
+      )} in config object: ${JSON.stringify(Array.from(configKeyDiff))}`
+    );
+  }
+
   const output: Configuration = Object.assign({}, defaultConfig);
 
   for (const key of Object.keys(defaultConfig) as Array<keyof Configuration>) {

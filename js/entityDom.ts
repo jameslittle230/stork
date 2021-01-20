@@ -89,14 +89,45 @@ export class EntityDom {
       })
     };
 
-    this.elements.input.addEventListener("input", e => {
-      this.handleInputEvent(e as InputEvent);
-    });
+    // First, remove saved event listener functions from the element, if they exist.
+    // This makes the EntityDom constructor safe to call multiple times, even if
+    // the elements on the page haven't changed.
+    this.elements.input.removeEventListener(
+      "input",
+      this.entity.eventListenerFunctions.inputInputEvent
+    );
 
-    this.elements.input.addEventListener("keydown", e => {
-      this.handleKeyDownEvent(e as KeyboardEvent);
-    });
+    this.elements.input.removeEventListener(
+      "keydown",
+      this.entity.eventListenerFunctions.inputKeydownEvent
+    );
 
+    // Then, save new event listener functions to the entity so that we can
+    // delete those listeners from the corresponding elements when the
+    // EntityDom object is recreated.
+    this.entity.eventListenerFunctions = {
+      inputInputEvent: (e: InputEvent) => {
+        this.handleInputEvent(e as InputEvent);
+      },
+
+      inputKeydownEvent: (e: KeyboardEvent) => {
+        this.handleKeyDownEvent(e as KeyboardEvent);
+      }
+    };
+
+    // Then, add those newly saved functions as event listeners on the elements.
+    this.elements.input.addEventListener(
+      "input",
+      this.entity.eventListenerFunctions.inputInputEvent
+    );
+
+    this.elements.input.addEventListener(
+      "keydown",
+      this.entity.eventListenerFunctions.inputKeydownEvent
+    );
+
+    // We didn't have to do the remove/add dance with this one because
+    // this listener behavior is already idempotent.
     this.elements.list?.addEventListener("mousemove", () => {
       this.hoverSelectEnabled = true;
     });
