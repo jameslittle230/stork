@@ -29,7 +29,7 @@ export default class WasmQueue {
    * @param fn The function to be called when the WASM fails to load. The function
    * should take an optional Error parameter.
    */
-  runOnWasmLoadFailure(fn: { (e: Error | null): void }) {
+  runOnWasmLoadFailure(fn: { (e: Error | null): void }): void {
     if (this.state === "failed") {
       fn(null);
     } else {

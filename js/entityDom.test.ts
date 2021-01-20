@@ -52,7 +52,7 @@ describe("entitydom", () => {
       new WasmQueue()
     );
     entity.attachToDom();
-    entityDom = entity.domManager!;
+    entityDom = <EntityDom>entity.domManager;
   });
 
   test("entityDom successfully constructed", () => {

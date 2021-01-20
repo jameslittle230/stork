@@ -7,7 +7,7 @@ const DEFAULT_WASM_URL = version
   ? `https://files.stork-search.net/stork-${version}.wasm`
   : `https://files.stork-search.net/stork.wasm`;
 
-export function createWasmQueue(wasmOverrideUrl: String | null): WasmQueue {
+export function createWasmQueue(wasmOverrideUrl: string | null): WasmQueue {
   const wasmUrl = wasmOverrideUrl || DEFAULT_WASM_URL;
   const queue = new WasmQueue();
   init(wasmUrl)

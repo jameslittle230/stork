@@ -14,7 +14,7 @@ class StorkError extends Error {
 let wasmQueue: WasmQueue | null = null;
 let entityManager: EntityManager | null = null;
 
-function initialize(wasmOverrideUrl: String | null = null): Promise<void> {
+function initialize(wasmOverrideUrl: string | null = null): Promise<void> {
   return new Promise((res, rej) => {
     if (!wasmQueue) {
       wasmQueue = createWasmQueue(wasmOverrideUrl);
