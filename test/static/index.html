@@ -100,7 +100,9 @@
 
     <script src="/stork.js"></script>
     <script>
-      stork.initialize(); // download WASM
+      stork.initialize("http://127.0.0.1:8025/stork.wasm").catch(e => {
+        alert(e);
+      }); // download WASM
 
       stork.downloadIndex("federalist", "/federalist.st", {
         showProgress: true,
