@@ -41,7 +41,7 @@ pub struct Excerpt {
     pub fields: Fields,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct HighlightRange {
     pub beginning: usize,
     pub end: usize,

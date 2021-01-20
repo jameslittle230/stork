@@ -89,8 +89,8 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                         }
                     })
                     .collect();
-                // Maybe unneccesary?
-                highlight_ranges.sort_by_key(|hr| hr.beginning);
+
+                highlight_ranges.sort();
 
                 let highlighted_character_range = highlight_ranges.last().unwrap().end
                     - highlight_ranges.first().unwrap().beginning;
@@ -142,7 +142,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         excerpts.truncate(data.config.excerpts_per_result as usize);
 
         let split_title: Vec<&str> = entry.title.split_whitespace().collect();
-        let title_highlight_ranges: Vec<HighlightRange> = data
+        let mut title_highlight_ranges: Vec<HighlightRange> = data
             .intermediate_excerpts
             .iter()
             .filter(|&ie| ie.source == WordListSource::Title)
@@ -155,6 +155,8 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 }
             })
             .collect();
+
+        title_highlight_ranges.sort();
 
         let title_boost_modifier = title_highlight_ranges.len()
             * match data.config.title_boost {
@@ -182,6 +184,46 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn title_highlight_ranges_are_sorted() {
+        let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
+            entry: Entry {
+                contents: "".to_string(),
+                title: "The quick brown fox jumps over the lazy dog".to_string(),
+                url: String::default(),
+                fields: HashMap::default(),
+            },
+            config: PassthroughConfig::default(),
+            intermediate_excerpts: vec![
+                IntermediateExcerpt {
+                    query: "over".to_string(),
+                    entry_index: 0,
+                    score: 128,
+                    source: WordListSource::Title,
+                    word_index: 3,
+                    internal_annotations: Vec::default(),
+                    fields: HashMap::default(),
+                },
+                IntermediateExcerpt {
+                    query: "brown".to_string(),
+                    entry_index: 0,
+                    score: 128,
+                    source: WordListSource::Title,
+                    word_index: 2,
+                    internal_annotations: Vec::default(),
+                    fields: HashMap::default(),
+                },
+            ],
+        };
+        let output_result = OutputResult::from(entry_and_intermediate_excerpts);
+        let title_highlight_ranges = output_result.title_highlight_ranges;
+        println!("{:?}", title_highlight_ranges);
+        assert!(
+            title_highlight_ranges[0].beginning <= title_highlight_ranges[1].beginning,
+            format!("Title highlight ranges were not sorted! [0].beginning is {} while [1].beginning is {}", title_highlight_ranges[0].beginning, title_highlight_ranges[1].beginning)
+        );
+    }
 
     #[test]
     fn highlighting_does_not_offset_with_special_characters() {
