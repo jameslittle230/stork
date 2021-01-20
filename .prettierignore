@@ -1,0 +1,5 @@
+# exclude everything
+/*
+
+# except js
+!/js
