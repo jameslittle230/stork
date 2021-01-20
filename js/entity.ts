@@ -10,7 +10,7 @@ export class Entity {
   readonly wasmQueue: WasmQueue;
 
   domManager: EntityDom | null;
-  eventListenerFunctions: Record<string, any> = {};
+  eventListenerFunctions: Record<string, (e: Event) => void> = {};
   index: Uint8Array;
   results: Array<Result> = [];
   highlightedResult = 0;
@@ -32,7 +32,7 @@ export class Entity {
     this.wasmQueue = wasmQueue;
   }
 
-  attachToDom() {
+  attachToDom(): void {
     this.domManager = new EntityDom(this.name, this);
   }
 

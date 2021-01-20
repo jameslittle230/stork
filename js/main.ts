@@ -29,7 +29,7 @@ function initialize(): Promise<void> {
 
 function downloadIndex(name: string, url: string, config = {}): Promise<void> {
   return new Promise((res, rej) => {
-    var message = null;
+    let message = null;
 
     if (typeof name !== "string") {
       message = "Index registration name must be a string.";
@@ -58,7 +58,7 @@ function downloadIndex(name: string, url: string, config = {}): Promise<void> {
   });
 }
 
-function attach(name: string) {
+function attach(name: string): void {
   if (!entityManager) {
     throw new StorkError(
       "Make sure to call stork.downloadIndex() successfully before calling stork.attach()"
@@ -72,10 +72,19 @@ function attach(name: string) {
   }
 }
 
-function register(name: string, url: string, config: Partial<Configuration>) {
-  initialize();
-  downloadIndex(name, url, config);
+function register(
+  name: string,
+  url: string,
+  config: Partial<Configuration>
+): Promise<void> {
+  const initPromise = initialize();
+  const donwloadPromise = downloadIndex(name, url, config);
   attach(name);
+
+  // This silly then block turns a [(void), (void)] into a (void), which is
+  // only necessary to make Typescript happy.
+  // You begin to wonder if you write Typescript code, or if Typescript code writes you.
+  return Promise.all([initPromise, donwloadPromise]).then();
 }
 
 function search(name: string, query: string): SearchData {

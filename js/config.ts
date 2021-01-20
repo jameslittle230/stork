@@ -27,7 +27,7 @@ export const defaultConfig: Readonly<Configuration> = {
 export function calculateOverriddenConfig(
   overrides: Partial<Configuration>
 ): Configuration {
-  let configKeyDiff = difference(
+  const configKeyDiff = difference(
     Object.keys(overrides),
     Object.keys(defaultConfig)
   );

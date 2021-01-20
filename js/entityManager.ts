@@ -59,7 +59,7 @@ export class EntityManager {
     config: Partial<Configuration>
   ): Promise<void> {
     return new Promise((res, rej) => {
-      var fullConfig = defaultConfig;
+      let fullConfig = defaultConfig;
       try {
         fullConfig = calculateOverriddenConfig(config);
       } catch (error) {
@@ -95,7 +95,7 @@ export class EntityManager {
     });
   }
 
-  public attachToDom(name: string) {
+  public attachToDom(name: string): void {
     if (!this.entities[name]) {
       throw new Error(`Index ${name} has not been registered!`);
     }
