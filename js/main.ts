@@ -1,5 +1,4 @@
 import { Configuration } from "./config";
-import { createWasmQueue } from "./wasmLoader";
 import { EntityManager } from "./entityManager";
 import WasmQueue from "./wasmQueue";
 import { resolveSearch, SearchData } from "./searchData";
@@ -17,15 +16,9 @@ let entityManager: EntityManager | null = null;
 function initialize(wasmOverrideUrl: string | null = null): Promise<void> {
   return new Promise((res, rej) => {
     if (!wasmQueue) {
-      wasmQueue = createWasmQueue(wasmOverrideUrl);
-
-      wasmQueue.runAfterWasmLoaded(() => {
-        res();
-      });
-
-      wasmQueue.runOnWasmLoadFailure(e => {
-        rej(e);
-      });
+      wasmQueue = new WasmQueue(wasmOverrideUrl)
+        .runAfterWasmLoaded(res)
+        .runOnWasmLoadFailure(rej);
     } else if (wasmQueue.state === "failed") {
       rej();
     } else {

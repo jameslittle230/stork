@@ -41,7 +41,7 @@ export class Entity {
     const query = this.domManager.getQuery();
     if (this.error) {
       return "Error! Check the browser console.";
-    } else if (this.progress < 1 || !this.wasmQueue.loaded) {
+    } else if (this.progress < 1 || !this.wasmQueue.wasmIsLoaded) {
       return "Loading...";
     } else if (query?.length < this.config.minimumQueryLength) {
       return "Filtering...";
@@ -129,7 +129,7 @@ export class Entity {
   }
 
   performSearch(query: string): void {
-    if (!this.wasmQueue.loaded || this.error) {
+    if (!this.wasmQueue.wasmIsLoaded || this.error) {
       this.render();
       return;
     }
