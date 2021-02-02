@@ -9,10 +9,10 @@ use test_server::serve;
 mod display_timings;
 use display_timings::*;
 
-use std::fs::File;
 use std::io::{BufReader, Read};
 use std::time::Instant;
 use std::{env, error::Error};
+use std::{fs::File, io};
 use stork::config::Config;
 use stork::LatestVersion::structs::Index;
 
@@ -51,7 +51,7 @@ USAGE:
 
 fn main() {
     let mut a = Argparse::new();
-    a.register("build", build_handler, 1);
+    a.register_range("build", build_handler, 0..2);
     a.register("test", test_handler, 1);
     a.register("search", search_handler, 2);
     a.register_help(&help_text());
@@ -67,8 +67,23 @@ pub fn build_index(config_path: &str) -> Result<(Config, Index), Box<dyn Error>>
 fn build_handler(args: &[String]) {
     let start_time = Instant::now();
 
-    let (config, index) = build_index(&args[2]).unwrap_or_else(|e| {
-        eprintln!("Could not generate index: {}", e.to_string());
+    let config = {
+        match &args.get(2) {
+            Some(config_path) => Config::from_file(std::path::PathBuf::from(config_path)),
+            None => {
+                let mut stdin_buffer = String::new();
+                let _ = io::stdin().read_to_end(&mut stdin_buffer);
+                Config::from_string(stdin_buffer)
+            }
+        }
+    }
+    .unwrap_or_else(|error| {
+        eprintln!("Could not read configuration file: {}", error.to_string());
+        std::process::exit(EXIT_FAILURE);
+    });
+
+    let index = stork::build(&config).unwrap_or_else(|error| {
+        eprintln!("Could not generate index: {}", error.to_string());
         std::process::exit(EXIT_FAILURE);
     });
 

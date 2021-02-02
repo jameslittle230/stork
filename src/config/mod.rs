@@ -41,7 +41,11 @@ impl Config {
     pub fn from_file(path: std::path::PathBuf) -> Result<Config, ConfigReadErr> {
         let contents =
             fs::read_to_string(&path).map_err(|_| ConfigReadErr::UnreadableFile(path))?;
-        toml::from_str(&contents).map_err(ConfigReadErr::UnparseableInput)
+        Config::from_string(contents)
+    }
+
+    pub fn from_string(str: String) -> Result<Config, ConfigReadErr> {
+        toml::from_str(&str).map_err(ConfigReadErr::UnparseableInput)
     }
 }
 
