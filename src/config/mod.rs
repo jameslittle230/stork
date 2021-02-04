@@ -46,7 +46,7 @@ impl Config {
 
     pub fn from_string(str: String) -> Result<Config, ConfigReadErr> {
         if str.is_empty() {
-return            Err(ConfigReadErr::EmptyString)
+                       return Err(ConfigReadErr::EmptyString);
         }
         toml::from_str(&str).map_err(ConfigReadErr::UnparseableInput)
     }
