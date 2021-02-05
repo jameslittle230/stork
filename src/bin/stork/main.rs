@@ -4,15 +4,16 @@ mod argparse;
 use argparse::Argparse;
 
 mod test_server;
+use atty::Stream;
 use test_server::serve;
 
 mod display_timings;
 use display_timings::*;
 
-use std::fs::File;
+use std::env;
 use std::io::{BufReader, Read};
 use std::time::Instant;
-use std::{env, error::Error};
+use std::{fs::File, io};
 use stork::config::Config;
 use stork::LatestVersion::structs::Index;
 
@@ -51,26 +52,48 @@ USAGE:
 
 fn main() {
     let mut a = Argparse::new();
-    a.register("build", build_handler, 1);
+    a.register_range("build", build_handler, 0..2);
     a.register("test", test_handler, 1);
     a.register("search", search_handler, 2);
     a.register_help(&help_text());
     std::process::exit(a.exec(env::args().collect()));
 }
 
-pub fn build_index(config_path: &str) -> Result<(Config, Index), Box<dyn Error>> {
-    let config = Config::from_file(std::path::PathBuf::from(config_path))?;
-    let index = stork::build(&config)?;
-    Ok((config, index))
+pub fn build_index(optional_config_path: Option<&String>) -> (Config, Index) {
+    // Potential refactor: this method could return a result instead of
+    // std::process::exiting when there's a failure.
+
+    let config = {
+        match optional_config_path {
+            Some(config_path) => Config::from_file(std::path::PathBuf::from(config_path)),
+            None => {
+                let mut stdin_buffer = String::new();
+                if atty::isnt(Stream::Stdin) {
+                    let _ = io::stdin().read_to_string(&mut stdin_buffer);
+                } else {
+                    eprintln!("stork --build doesn't support interactive stdin! Pipe in a stream instead.")
+                }
+                Config::from_string(stdin_buffer)
+            }
+        }
+    }
+    .unwrap_or_else(|error| {
+        eprintln!("Could not read configuration: {}", error.to_string());
+        std::process::exit(EXIT_FAILURE);
+    });
+
+    let index = stork::build(&config).unwrap_or_else(|error| {
+        eprintln!("Could not generate index: {}", error.to_string());
+        std::process::exit(EXIT_FAILURE);
+    });
+
+    (config, index)
 }
 
 fn build_handler(args: &[String]) {
     let start_time = Instant::now();
 
-    let (config, index) = build_index(&args[2]).unwrap_or_else(|e| {
-        eprintln!("Could not generate index: {}", e.to_string());
-        std::process::exit(EXIT_FAILURE);
-    });
+    let (config, index) = build_index(args.get(2));
 
     let build_time = Instant::now();
     let bytes_written = match index.write(&config) {
@@ -107,11 +130,7 @@ fn build_handler(args: &[String]) {
 }
 
 fn test_handler(args: &[String]) {
-    let (_, index) = build_index(&args[2]).unwrap_or_else(|e| {
-        eprintln!("Could not generate index: {}", e.to_string());
-        std::process::exit(EXIT_FAILURE);
-    });
-
+    let (_, index) = build_index(args.get(2));
     let _r = serve(index);
 }
 

@@ -34,6 +34,7 @@ scraper = "0.12.0"
 frontmatter = "0.4.0"
 markdown = "0.3.0"
 once_cell = "1"
+atty = "0.2"
 futures = {version = "0.3", optional = true}
 hyper = {version = "0.13", optional = true}
 tokio = { version = "0.2", features = ["full"], optional = true }

@@ -1,5 +1,5 @@
 use super::{ExitCode, EXIT_FAILURE, EXIT_SUCCESS};
-use std::fmt;
+use std::{convert::TryInto, fmt, ops::Range};
 
 pub struct Argparse {
     commands: Vec<Command>,
@@ -14,15 +14,14 @@ struct Command {
 
 enum ValueOrRange {
     Value(u8),
-    Range(u8, u8),
+    Range(Range<u8>),
 }
 
 impl fmt::Display for ValueOrRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ValueOrRange::Value(val) => write!(f, "{}", val),
-
-            ValueOrRange::Range(min, max) => write!(f, "between {} and {}", min, max),
+            ValueOrRange::Range(range) => write!(f, "between {} and {}", range.start, range.end),
         }
     }
 }
@@ -44,19 +43,11 @@ impl Argparse {
     }
 
     #[allow(dead_code)]
-    pub fn register_range(&mut self, cmd_name: &str, action: fn(&[String]), args_range: (u8, u8)) {
-        let min = std::cmp::min(args_range.0, args_range.1);
-        let max = std::cmp::max(args_range.0, args_range.1);
-        let number_of_args = if min == max {
-            ValueOrRange::Value(min)
-        } else {
-            ValueOrRange::Range(min, max)
-        };
-
+    pub fn register_range(&mut self, cmd_name: &str, action: fn(&[String]), args_range: Range<u8>) {
         self.commands.push(Command {
             name: cmd_name.to_string(),
             action,
-            number_of_args,
+            number_of_args: ValueOrRange::Range(args_range),
         })
     }
 
@@ -74,13 +65,10 @@ impl Argparse {
 
         for command in &self.commands {
             if args[1] == ["--", &command.name].concat() {
-                let number_of_args = args.len() - 2;
-                let valid = match command.number_of_args {
-                    ValueOrRange::Value(val) => (number_of_args as u8) == val,
-
-                    ValueOrRange::Range(min, max) => {
-                        (number_of_args as u8) >= min && (number_of_args as u8) <= max
-                    }
+                let number_of_args: u8 = (args.len() - 2).try_into().unwrap();
+                let valid = match &command.number_of_args {
+                    ValueOrRange::Value(val) => number_of_args == val.to_owned(),
+                    ValueOrRange::Range(range) => range.contains(&number_of_args),
                 };
 
                 if !valid {
