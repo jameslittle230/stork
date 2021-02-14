@@ -15,6 +15,8 @@ pub enum WordListGenerationError {
     FileNotFound,
     CannotDetermineFiletype,
     SelectorNotPresent(String),
+    WebPageNotFetched,
+    UnknownContentType,
 }
 
 impl fmt::Display for WordListGenerationError {
@@ -26,7 +28,9 @@ impl fmt::Display for WordListGenerationError {
                 selector_string
             ),
             WordListGenerationError::FileNotFound => "The file could not be found".to_string(),
-            WordListGenerationError::CannotDetermineFiletype => "Could not determine the filetype. Please use a known file extension or disambiguate the filetype within your configuration file".to_string()
+            WordListGenerationError::CannotDetermineFiletype => "Could not determine the filetype. Please use a known file extension or disambiguate the filetype within your configuration file".to_string(),
+            WordListGenerationError::WebPageNotFetched => "The web page could not be fetched".to_string(),
+            WordListGenerationError::UnknownContentType => todo!(),
         };
         write!(f, "{}", desc)
     }
