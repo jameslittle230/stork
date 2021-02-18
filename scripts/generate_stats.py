@@ -1,28 +1,49 @@
 import os
-import humanize
 import subprocess
+import json
 
+# Step 1: Build the project from scratch
+subprocess.run(["./scripts/build.sh"])
+
+# Step 2: get file sizes for various distributed files
 files = [
     './dist/federalist.st',
     './dist/stork.wasm',
     './dist/stork.js'
 ]
 
-for file in files:
-    filesize_int = os.path.getsize(file)
+sizes = dict([(file.split('./dist/')[1], float(os.path.getsize(file))/1000) for file in files])
 
-    name_print = file.split('/')[-1]
-    filesize_print = humanize.naturalsize(filesize_int, format='%.2f')
+# Step 3: Run benchmarks and get mean runtime, in nanoseconds
+run_bench_cmd = subprocess.run(
+    ["cargo", "criterion", "--message-format=json", "search::federalist::liberty"],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.DEVNULL,
+    text=True
+)
 
-    print(f"{name_print}\t{filesize_print}")
+grep_for_success_cmd = subprocess.run(
+    ["grep", "benchmark-complete"],
+    input=run_bench_cmd.stdout,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.DEVNULL,
+    text=True
+)
 
-times = []
-for i in range(10):
-    completed_process = subprocess.run(
-        ["cargo", "run", "--", "--search", "./dist/federalist.st", "liber old world"], capture_output=True)
-    time_string = completed_process.stderr.splitlines(
-    )[-1].decode('utf-8').split(' ')[-2].split('s')[0]
-    times.append(float(time_string))
 
-time_print = sum(times) / len(times)
-print(f"search duration (10-run mean)\t{time_print:.3f} seconds")
+jq_cmd = subprocess.run(
+    ["jq", ".mean.estimate"],
+    input=grep_for_success_cmd.stdout,
+    capture_output=True,
+    text=True
+)
+
+bench_time_ns = float(jq_cmd.stdout)
+bench_time_ms = bench_time_ns / 1000000
+
+# Step 4: Print out results
+sizes.update({
+    "search::federalist::liberty": bench_time_ms
+})
+
+print(json.dumps(sizes, indent=2))
