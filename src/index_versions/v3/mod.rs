@@ -1,4 +1,6 @@
+#[cfg(feature = "build")]
 pub mod builder;
+
 pub mod reader;
 pub mod scores;
 pub mod search;

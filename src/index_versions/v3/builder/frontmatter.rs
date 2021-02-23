@@ -1,8 +1,6 @@
-extern crate frontmatter as fm;
-use fm::{parse_and_find_content, Yaml};
-
 use crate::common::Fields;
 use crate::config::{FrontmatterConfig, InputConfig};
+use frontmatter::{parse_and_find_content, Yaml};
 use std::collections::HashMap;
 
 pub fn parse_frontmatter(config: &InputConfig, buffer: &str) -> (Fields, Box<String>) {

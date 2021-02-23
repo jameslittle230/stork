@@ -1,23 +1,18 @@
 extern crate stork_search as stork;
 
-mod argparse;
-use argparse::Argparse;
-
-mod test_server;
-use atty::Stream;
-use test_server::serve;
-
-mod display_timings;
-use display_timings::*;
-
 use std::env;
+use std::fs::File;
 use std::io::{BufReader, Read};
 use std::time::Instant;
-use std::{fs::File, io};
-use stork::config::Config;
-use stork::LatestVersion::structs::Index;
+
+mod argparse;
+mod display_timings;
+mod test_server;
 
 use num_format::{Locale, ToFormattedString};
+
+use stork::config::Config;
+use stork::LatestVersion::structs::Index;
 
 pub type ExitCode = i32;
 pub const EXIT_SUCCESS: ExitCode = 0;
@@ -51,7 +46,7 @@ USAGE:
 }
 
 fn main() {
-    let mut a = Argparse::new();
+    let mut a = argparse::Argparse::new();
     a.register_range("build", build_handler, 0..2);
     a.register("test", test_handler, 1);
     a.register("search", search_handler, 2);
@@ -59,7 +54,16 @@ fn main() {
     std::process::exit(a.exec(env::args().collect()));
 }
 
+#[cfg(not(feature = "build"))]
+pub fn build_index(_config: Option<&String>) -> (Config, Index) {
+    println!("Stork was not compiled with support for building indexes. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
+    panic!()
+}
+
+#[cfg(feature = "build")]
 pub fn build_index(optional_config_path: Option<&String>) -> (Config, Index) {
+    use atty::Stream;
+    use std::io;
     // Potential refactor: this method could return a result instead of
     // std::process::exiting when there's a failure.
 
@@ -131,7 +135,7 @@ fn build_handler(args: &[String]) {
 
 fn test_handler(args: &[String]) {
     let (_, index) = build_index(args.get(2));
-    let _r = serve(index);
+    let _r = test_server::serve(index);
 }
 
 fn search_handler(args: &[String]) {

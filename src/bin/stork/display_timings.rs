@@ -21,7 +21,7 @@ macro_rules! display_timings {
     ($( $t: expr),*) => {
         vec![
             $(
-                TimingStatistic {
+                $crate::display_timings::TimingStatistic {
                 duration: $t.0,
                 description: $t.1.to_string()
                 },

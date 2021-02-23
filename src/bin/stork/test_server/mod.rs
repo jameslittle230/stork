@@ -1,5 +1,4 @@
 extern crate stork_search as stork;
-
 use stork::LatestVersion::structs::Index;
 
 #[cfg(not(feature = "test-server"))]

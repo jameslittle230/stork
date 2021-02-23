@@ -2,8 +2,9 @@ use crate::config::InputConfig;
 
 use super::super::{AnnotatedWord, Contents};
 use super::{WordListGenerationError, WordListGenerator};
+use markdown;
 use scraper::{Html, Selector};
-extern crate markdown;
+// extern crate markdown;
 
 pub(super) struct MarkdownWordListGenerator {}
 
