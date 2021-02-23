@@ -42,7 +42,7 @@ global.document.querySelector = jest
 describe("entitydom", () => {
   let entity: Entity;
   let entityDom: EntityDom;
-  
+
   beforeEach(() => {
     entity = new Entity("test", "https://google.com", defaultConfig);
     entity.attachToDom();
