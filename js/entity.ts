@@ -1,47 +1,51 @@
 import { Configuration } from "./config";
 import { Result, SearchData, resolveSearch } from "./searchData";
-import WasmQueue from "./wasmQueue";
 import { EntityDom, RenderState } from "./entityDom";
+import { wasm_register_index } from "stork-search";
+import StorkError from "./storkError";
+
+export type EntityState = "initialized" | "loading" | "ready" | "error";
 
 export class Entity {
   readonly name: string;
   readonly url: string;
   readonly config: Configuration;
-  readonly wasmQueue: WasmQueue;
+
+  private _state: EntityState = "initialized";
+
+  downloadProgress = 0;
+
+  index: Uint8Array;
+  results: Array<Result> = [];
+  totalResultCount = 0;
 
   domManager: EntityDom | null;
   eventListenerFunctions: Record<string, (e: Event) => void> = {};
-  index: Uint8Array;
-  results: Array<Result> = [];
   highlightedResult = 0;
-  progress = 0;
-  error = false;
-  totalResultCount = 0;
   resultsVisible = false;
   hoverSelectEnabled = true;
 
-  constructor(
-    name: string,
-    url: string,
-    config: Configuration,
-    wasmQueue: WasmQueue
-  ) {
+  constructor(name: string, url: string, config: Configuration) {
     this.name = name;
     this.url = url;
     this.config = config;
-    this.wasmQueue = wasmQueue;
   }
 
-  attachToDom(): void {
-    this.domManager = new EntityDom(this.name, this);
+  public get state(): EntityState {
+    return this._state;
+  }
+
+  public set state(value: EntityState) {
+    this._state = value;
+    this.render();
   }
 
   private getCurrentMessage(): string | null {
     if (!this.domManager) return null;
     const query = this.domManager.getQuery();
-    if (this.error) {
+    if (this.state === "error") {
       return "Error! Check the browser console.";
-    } else if (this.progress < 1 || !this.wasmQueue.wasmIsLoaded) {
+    } else if (this.state != "ready") {
       return "Loading...";
     } else if (query?.length < this.config.minimumQueryLength) {
       return "Filtering...";
@@ -65,14 +69,35 @@ export class Entity {
       showScores: this.config.showScores,
       message: this.getCurrentMessage(),
       showProgress: this.config.showProgress,
-      progress: this.progress,
-      error: this.error
+      progress: this.downloadProgress,
+      state: this.state
     };
   }
 
   private render() {
     if (!this.domManager) return;
     this.domManager.render(this.generateRenderConfig());
+  }
+
+  registerIndex(data: Uint8Array): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const indexInfo = JSON.parse(wasm_register_index(this.name, data));
+      if (indexInfo.error) {
+        reject(new StorkError(indexInfo.error));
+      } else {
+        if (this.config.printIndexInfo) {
+          console.log(indexInfo);
+        }
+
+        this.state = "ready";
+        resolve(indexInfo);
+      }
+    });
+  }
+
+  attachToDom(): void {
+    this.domManager = new EntityDom(this.name, this);
+    this.render();
   }
 
   injestSearchData(data: SearchData): void {
@@ -114,47 +139,41 @@ export class Entity {
     return results;
   }
 
-  setDownloadProgress(percentage: number): void {
-    this.error = false;
-    this.progress = percentage;
+  setDownloadProgress = (percentage: number): void => {
+    this.state = "loading";
+    this.downloadProgress = percentage;
     if (this.config.showProgress) {
       this.render();
     }
-  }
+  };
 
   setDownloadError(): void {
-    this.progress = 1;
-    this.error = true;
-    this.render();
+    this.state = "error";
   }
 
   performSearch(query: string): void {
-    if (!this.wasmQueue.wasmIsLoaded || this.error) {
+    if (this.state !== "ready") {
       this.render();
       return;
     }
 
-    if (query.length >= this.config.minimumQueryLength) {
-      try {
-        const data = resolveSearch(this.name, query);
-        // .then((data: SearchData) => {
-        if (!data) return;
-
-        if (process.env.NODE_ENV === "development") {
-          console.log("DEVELOPMENT:", data);
-        }
-
-        this.injestSearchData(data);
-
-        if (this.config.onQueryUpdate) {
-          this.config.onQueryUpdate(query, this.getSanitizedResults());
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
+    if (query.length <= this.config.minimumQueryLength) {
       this.results = [];
       this.render();
+      return;
+    }
+
+    try {
+      const data = resolveSearch(this.name, query);
+      if (!data) return;
+
+      this.injestSearchData(data);
+
+      if (this.config.onQueryUpdate) {
+        this.config.onQueryUpdate(query, this.getSanitizedResults());
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 }

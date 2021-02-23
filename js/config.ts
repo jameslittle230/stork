@@ -1,4 +1,5 @@
-import { difference } from "./util";
+import StorkError from "./storkError";
+import { difference, plural } from "./util";
 
 export interface Configuration {
   showProgress: boolean;
@@ -6,6 +7,7 @@ export interface Configuration {
   showScores: boolean;
   showCloseButton: boolean;
   minimumQueryLength: number;
+  forceOverwrite: boolean;
   onQueryUpdate?: (query: string, results: unknown) => unknown;
   onResultSelected?: (query: string, result: unknown) => unknown;
   onResultsHidden?: () => unknown;
@@ -18,6 +20,7 @@ export const defaultConfig: Readonly<Configuration> = {
   showScores: false,
   showCloseButton: true,
   minimumQueryLength: 3,
+  forceOverwrite: false,
   onQueryUpdate: undefined,
   onResultSelected: undefined,
   onResultsHidden: undefined,
@@ -26,22 +29,16 @@ export const defaultConfig: Readonly<Configuration> = {
 
 export function calculateOverriddenConfig(
   overrides: Partial<Configuration>
-): Configuration {
+): Configuration | StorkError {
   const configKeyDiff = difference(
     Object.keys(overrides),
     Object.keys(defaultConfig)
   );
 
   if (configKeyDiff.length > 0) {
-    const plural = (count: number, singular: string, plural: string) =>
-      count == 1 ? singular : plural;
-    throw new Error(
-      `Invalid ${plural(
-        configKeyDiff.length,
-        "key",
-        "keys"
-      )} in config object: ${JSON.stringify(Array.from(configKeyDiff))}`
-    );
+    const keys = plural(configKeyDiff.length, "key", "keys");
+    const invalidKeys = JSON.stringify(configKeyDiff);
+    return new StorkError(`Invalid ${keys} in config object: ${invalidKeys}`);
   }
 
   const output: Configuration = Object.assign({}, defaultConfig);
@@ -50,7 +47,7 @@ export function calculateOverriddenConfig(
     const overrideVal = overrides[key];
     if (overrideVal !== undefined) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      // @ts-ignore
       output[key] = overrideVal;
     }
   }

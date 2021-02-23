@@ -1,4 +1,5 @@
 import { wasm_search } from "stork-search";
+import StorkError from "./storkError";
 
 export interface HighlightRange {
   beginning: number;
@@ -44,18 +45,18 @@ export function resolveSearch(name: string, query: string): SearchData {
   } catch (e) {
     // Data has come back improperly, even beyond an error in Rust-land.
     // analytics.log(e)
-    throw Error(
+    throw new StorkError(
       "Could not parse data from wasm_search. If you see this, please file a bug: https://jil.im/storkbug " +
         searchOutput
     );
   }
 
   if (!data) {
-    throw Error("Data was an empty object");
+    throw new StorkError("Data was an empty object");
   }
 
   if (data.error) {
-    throw Error(`Could not perform search: the WASM binary failed to return search results.
+    throw new StorkError(`Could not perform search: the WASM binary failed to return search results.
     You might not be serving your search index properly.
     If you think this is an error, please file a bug: https://jil.im/storkbug
     

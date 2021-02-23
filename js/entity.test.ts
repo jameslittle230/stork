@@ -1,29 +1,18 @@
 import { Entity } from "./entity";
 import { defaultConfig } from "./config";
-import WasmQueue from "./wasmQueue";
 jest.mock("./wasmQueue");
 jest.mock("./entityDom");
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 jest.mock("stork-search", () => {}, { virtual: true });
 
 test("Can successfully generate an entity", () => {
-  const entity = new Entity(
-    "test",
-    "https://google.com",
-    defaultConfig,
-    new WasmQueue()
-  );
+  const entity = new Entity("test", "https://google.com", defaultConfig);
   expect(entity).toBeTruthy();
   entity.attachToDom();
 });
 
 test("Injest search data maps url values and calls render", () => {
-  const entity = new Entity(
-    "test",
-    "https://google.com",
-    defaultConfig,
-    new WasmQueue()
-  );
+  const entity = new Entity("test", "https://google.com", defaultConfig);
   entity.attachToDom();
   entity.injestSearchData({
     results: [
@@ -52,23 +41,19 @@ test("Injest search data maps url values and calls render", () => {
 });
 
 test("Set download progress should render only if the entity's config shows the progress", () => {
-  const entity = new Entity(
-    "test",
-    "https://google.com",
-    { ...defaultConfig, showProgress: false },
-    new WasmQueue()
-  );
+  const entity = new Entity("test", "https://google.com", {
+    ...defaultConfig,
+    showProgress: false
+  });
   entity.attachToDom();
 
   entity.setDownloadProgress(20);
-  expect(entity.domManager?.render as jest.Mock).not.toHaveBeenCalled();
+  expect(entity.domManager?.render as jest.Mock).toHaveBeenCalledTimes(2);
 
-  const entity_2 = new Entity(
-    "test",
-    "https://google.com",
-    { ...defaultConfig, showProgress: true },
-    new WasmQueue()
-  );
+  const entity_2 = new Entity("test", "https://google.com", {
+    ...defaultConfig,
+    showProgress: true
+  });
   entity_2.attachToDom();
 
   entity_2.setDownloadProgress(20);
