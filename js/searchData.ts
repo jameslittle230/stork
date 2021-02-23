@@ -24,7 +24,7 @@ export interface Result {
   entry: Entry;
   excerpts: Array<Excerpt>;
   score: number;
-  title_highlight_ranges?: Array<number>;
+  title_highlight_ranges?: Array<HighlightRange>;
 }
 
 export interface SearchData {

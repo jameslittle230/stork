@@ -8,12 +8,10 @@ jest.mock("stork-search", () => {}, { virtual: true });
 test("Can successfully generate an entity", () => {
   const entity = new Entity("test", "https://google.com", defaultConfig);
   expect(entity).toBeTruthy();
-  entity.attachToDom();
 });
 
-test("Injest search data maps url values and calls render", () => {
+test("Injest search data maps url values", () => {
   const entity = new Entity("test", "https://google.com", defaultConfig);
-  entity.attachToDom();
   entity.injestSearchData({
     results: [
       {
@@ -34,28 +32,43 @@ test("Injest search data maps url values and calls render", () => {
     total_hit_count: 0,
     url_prefix: ""
   });
-  // result.entry.url is appended with result.excerpts[0].suffix; this might
-  // be a footgun.
+
   expect(entity.results[0].entry.url).toEqual("https://google.com#suffix");
+});
+
+test("Changing an entity's state calls render", () => {
+  const entity = new Entity("test", "https://google.com", defaultConfig);
+  entity.attachToDom();
+  entity.state = "loading";
   expect(entity.domManager?.render as jest.Mock).toHaveBeenCalled();
 });
 
 test("Set download progress should render only if the entity's config shows the progress", () => {
-  const entity = new Entity("test", "https://google.com", {
-    ...defaultConfig,
-    showProgress: false
+  const entities = [false, true].map(showProgress => {
+    const entity = new Entity("test", "https://google.com", {
+      ...defaultConfig,
+      showProgress
+    });
+    entity.attachToDom();
+    entity.setDownloadProgress(20);
+    return entity;
   });
+
+  const [e1_render_calls, e2_render_calls] = entities.map(
+    e => (e.domManager?.render as jest.Mock).mock.calls.length
+  );
+
+  // Entity 2's domManager has one more render call than entity 1's.
+  expect(e2_render_calls - e1_render_calls).toEqual(1);
+});
+
+test("Errored download calls render with an error", () => {
+  const entity = new Entity("test", "https://google.com", defaultConfig);
   entity.attachToDom();
+  entity.setDownloadError();
 
-  entity.setDownloadProgress(20);
-  expect(entity.domManager?.render as jest.Mock).toHaveBeenCalledTimes(2);
-
-  const entity_2 = new Entity("test", "https://google.com", {
-    ...defaultConfig,
-    showProgress: true
-  });
-  entity_2.attachToDom();
-
-  entity_2.setDownloadProgress(20);
-  expect(entity_2.domManager?.render as jest.Mock).toHaveBeenCalled();
+  const lastCall = (entity.domManager?.render as jest.Mock).mock.calls[1][0];
+  console.log(lastCall);
+  expect(lastCall.state).toEqual("error");
+  expect(lastCall.message.toLowerCase()).toContain("error");
 });
