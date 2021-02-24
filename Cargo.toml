@@ -18,7 +18,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["build", "test-server"]
 build = ["srtparse", "scraper", "frontmatter", "markdown", "atty", "mime", "reqwest"]
-test-server = ["futures", "hyper", "tokio"]
+test-server = ["build", "futures", "hyper", "tokio"]
 
 [dependencies]
 toml = "0.5"
@@ -42,11 +42,12 @@ hyper = {version = "0.14", features = ["server"], optional = true}
 tokio = { version = "1.2", features = ["full"], optional = true }
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 
+[package.metadata.wasm-pack.profile.release]
+
 # wasm-opt is out of date in wasm-bindgen, so we have to manually
 # enable the "mutable globals" feature so wasm-opt doesn't reject
 # the wasm blob that gets generated.
 # See: https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
-[package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
 
 [dev-dependencies]
@@ -57,4 +58,13 @@ name = "basic"
 harness = false
 
 [profile.release]
-lto = true
+
+# This config option gives LLVM more opportunities to inline and prune functions,
+# which makes the WASM binary smaller. Adding this was inspired by
+# https://rustwasm.github.io/book/reference/code-size.html
+#
+# 2021-02-24: Starting with commit 7800aedfbb6b0e97a075cf6924077db2ddff7939,
+# keeping this option in the full release build configuration means that 
+# `cargo build --release` mysteriously fails on the benchmark machine, so 
+# I commented it out.
+# lto = true
