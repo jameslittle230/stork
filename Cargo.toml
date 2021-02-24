@@ -63,7 +63,7 @@ harness = false
 # which makes the WASM binary smaller. Adding this was inspired by
 # https://rustwasm.github.io/book/reference/code-size.html
 #
-# 2021-02-24: Starting with commit 7800aedfbb6b0e97a075cf6924077db2ddff7939,
+# @TODO 2021-02-24: Starting with commit 7800aedfbb6b0e97a075cf6924077db2ddff7939,
 # keeping this option in the full release build configuration means that 
 # `cargo build --release` mysteriously fails on the benchmark machine, so 
 # I commented it out.

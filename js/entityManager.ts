@@ -24,9 +24,17 @@ export class EntityManager {
         return;
       }
 
+<<<<<<< HEAD
       if (this.entities[name] && !fullConfig.forceOverwrite) {
         throw new StorkError(
           `You're registering an index named \`${name}\`, but that already exists. If this is expected, set forceOverwrite to true in your Javascript config to allow overwriting indexes.`
+=======
+      if (this.entities[name]) {
+        // @TODO: Add a config option to turn this off, if overwriting an index
+        // is expected behavior for you
+        console.warn(
+          `Search index with name ${name} already exists! Overwriting.`
+>>>>>>> e4baf2c... todo comments
         );
       }
 
