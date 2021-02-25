@@ -48,23 +48,12 @@ impl From<&Config> for Nudger {
 }
 
 impl Nudger {
-    pub(super) fn is_empty(&self) -> bool {
-        self.nudges.is_empty()
-    }
-
-    pub(super) fn generate_formatted_output(&self) -> String {
-        let mut output: String = "".to_string();
-
-        if !&self.nudges.is_empty() {
-            output.push_str(&"Config warnings:".yellow());
-        }
+    pub(super) fn print(&self) {
+        eprintln!("{}", "Config Warnings:".yellow());
 
         for nudge in &self.nudges {
-            output.push('\n');
-            output.push_str(nudge.description())
+            eprintln!("{}", nudge.description());
         }
-
-        output
     }
 }
 

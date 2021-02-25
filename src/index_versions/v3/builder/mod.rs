@@ -30,18 +30,15 @@ use nudger::Nudger;
 pub mod frontmatter;
 
 pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
-    let nudger = Nudger::from(config);
-    if !nudger.is_empty() {
-        println!("{}", Nudger::from(config).generate_formatted_output());
-    }
+    Nudger::from(config).print();
 
     let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
     let mut document_errors: Vec<DocumentError> = Vec::new();
     fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)?;
 
     if !document_errors.is_empty() {
-        println!(
-            "{} {} error{} while indexing files. Your index was still generated, and the erroring files were omitted.",
+        eprintln!(
+            "{} {} error{} while indexing files. Your index was still generated, though the erroring files were omitted.",
             "Warning:".yellow(),
             document_errors.len(),
             match document_errors.len() {
@@ -51,7 +48,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
         )
     }
     for error in &document_errors {
-        println!("{}", &error);
+        eprintln!("{}", &error);
     }
 
     if intermediate_entries.is_empty() {
