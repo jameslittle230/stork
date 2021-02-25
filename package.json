@@ -60,6 +60,8 @@
     "test": "jest",
     "serve": "./scripts/serve.sh",
 
+    "clippy": "cargo clean && cargo clippy -- --W clippy::pedantic -A clippy::upper_case_acronyms",
+
     "clean": "rm -rf target pkg dist coverage node_modules"
   },
   "//": [

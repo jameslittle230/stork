@@ -1,4 +1,4 @@
-use super::structs::*;
+use super::structs::{Container, Entry, Index, PassthroughConfig};
 use crate::config::Config;
 use std::collections::HashMap;
 

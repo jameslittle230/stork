@@ -1,11 +1,15 @@
-use super::{super::scores::*, annotated_words_from_string::AnnotatedWordable};
+use super::{
+    super::scores::{PREFIX_SCORE, STEM_SCORE},
+    annotated_words_from_string::AnnotatedWordable,
+};
+
 use super::{
     remove_surrounding_punctuation, AnnotatedWord, Container, Excerpt, IntermediateEntry,
     SearchResult, WordListSource,
 };
 use crate::config::Config;
 use rust_stemmers::Stemmer;
-use std::{collections::HashMap, ops::Range};
+use std::{collections::HashMap, convert::TryInto, ops::Range};
 
 pub fn fill_containers(
     config: &Config,
@@ -111,7 +115,7 @@ fn fill_other_containers_alias_maps_with_prefixes(
 
         let _alias_score = alises_map
             .entry(normalized_word.to_string())
-            .or_insert(PREFIX_SCORE - (chars.len() - n) as u8);
+            .or_insert(PREFIX_SCORE - ((chars.len() - n).try_into().unwrap_or(0)));
     }
 }
 
