@@ -153,7 +153,7 @@ pub enum SRTTimestampFormat {
 
 #[cfg(test)]
 mod tests {
-    use super::Config;
+    use super::{Config, DataSource};
     use toml::de::Error;
 
     #[test]
@@ -235,18 +235,22 @@ files = [{title = "Derp"}]
     }
 
     #[test]
-    fn file_with_title_and_url_not_allowed() {
+    fn file_with_title_and_url_not_allowed() -> Result<(), Error> {
         let contents = r#"
 [[input.files]]
 title = "Derp"
 url = "blorp"
     "#;
-        let result: Result<Config, Error> = toml::from_str(contents);
+        let config: Config = toml::from_str(contents)?;
+        let file = config.input.files.first().unwrap();
+        assert!(file.explicit_source.is_none());
+        assert!(if let DataSource::URL(generated_url) = file.source() {
+            generated_url == "blorp"
+        } else {
+            false
+        });
 
-        match result {
-        Result::Ok(_r) => panic!("Config creation didn't fail with a file object that only had a title. File objects should have a title, url, and data source."),
-        Result::Err(_e) => ()
-    }
+        Ok(())
     }
 
     #[test]

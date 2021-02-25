@@ -27,7 +27,7 @@ pub(super) fn fill_intermediate_entries(
     );
 
     let url_file_count: u32 = config.input.files.iter().fold(0, |acc, file| {
-        if let DataSource::URL(_) = file.source {
+        if let DataSource::URL(_) = file.source() {
             acc + 1
         } else {
             acc
@@ -65,7 +65,7 @@ pub(super) fn fill_intermediate_entries(
         &progress_bar.set_message(message);
         &progress_bar.tick();
 
-        let buffer: String = match &stork_file.source {
+        let buffer: String = match &stork_file.source() {
             DataSource::Contents(contents) => contents.to_string(),
 
             DataSource::FilePath(path_string) => {
@@ -175,7 +175,7 @@ pub(super) fn fill_intermediate_entries(
         };
 
         let filetype_from_extension = {
-            match &stork_file.source {
+            match &stork_file.source() {
                 DataSource::FilePath(path_string) => get_filetype_from_extension(&path_string),
                 _ => None,
             }

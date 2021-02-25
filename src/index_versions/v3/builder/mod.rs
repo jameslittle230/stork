@@ -103,7 +103,7 @@ mod tests {
 
     fn generate_invalid_file_missing_selector() -> File {
         File {
-            source: DataSource::Contents("".to_string()),
+            explicit_source: Some(DataSource::Contents("".to_string())),
             title: "Missing Selector".to_string(),
             filetype: Some(Filetype::HTML),
             html_selector_override: Some(".article".to_string()),
@@ -113,7 +113,7 @@ mod tests {
 
     fn generate_invalid_file_empty_contents() -> File {
         File {
-            source: DataSource::Contents("".to_string()),
+            explicit_source: Some(DataSource::Contents("".to_string())),
             title: "Empty Contents".to_string(),
             filetype: Some(Filetype::PlainText),
             ..Default::default()
@@ -122,7 +122,7 @@ mod tests {
 
     fn generate_valid_file() -> File {
         File {
-            source: DataSource::Contents("This is contents".to_string()),
+            explicit_source: Some(DataSource::Contents("This is contents".to_string())),
             title: "Successful File".to_string(),
             filetype: Some(Filetype::PlainText),
             ..Default::default()
