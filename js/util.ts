@@ -11,3 +11,9 @@ export function difference<T>(arr1: Array<T>, arr2: Array<T>): Array<T> {
   const diff = new Set(Array.from(set1).filter(x => !set2.has(x)));
   return Array.from(diff);
 }
+
+export const plural = (
+  count: number,
+  singular: string,
+  plural: string
+): string => (count == 1 ? singular : plural);

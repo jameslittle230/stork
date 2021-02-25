@@ -1,6 +1,5 @@
 import { Entity } from "./entity";
 import { defaultConfig } from "./config";
-import WasmQueue from "./wasmQueue";
 import { EntityDom } from "./entityDom";
 import { JSDOM } from "jsdom";
 import { add } from "./dom";
@@ -43,14 +42,9 @@ global.document.querySelector = jest
 describe("entitydom", () => {
   let entity: Entity;
   let entityDom: EntityDom;
-  // Applies only to tests in this describe block
+
   beforeEach(() => {
-    entity = new Entity(
-      "test",
-      "https://google.com",
-      defaultConfig,
-      new WasmQueue()
-    );
+    entity = new Entity("test", "https://google.com", defaultConfig);
     entity.attachToDom();
     entityDom = <EntityDom>entity.domManager;
   });
@@ -89,7 +83,7 @@ describe("entitydom", () => {
       showScores: true,
       progress: 0.5,
       message: "sup",
-      error: false
+      state: "ready"
     });
 
     // message, results list, list item, attribution, close button
@@ -123,7 +117,7 @@ describe("entitydom", () => {
       showScores: true,
       progress: 0.5,
       message: "sup",
-      error: false
+      state: "ready"
     });
 
     // message, results list, list item, attribution, close button
@@ -145,7 +139,7 @@ describe("entitydom", () => {
       showProgress: true,
       showScores: true,
       progress: 0.5,
-      error: false,
+      state: "ready",
       message: "sup",
       results: [
         {

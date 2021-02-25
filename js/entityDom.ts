@@ -7,7 +7,7 @@ import {
   setText,
   existsBeyondContainerBounds
 } from "./dom";
-import { Entity } from "./entity";
+import { Entity, EntityState } from "./entity";
 import { ListItemDisplayOptions, resultToListItem } from "./resultToListItem";
 
 interface ElementMap {
@@ -26,8 +26,8 @@ export interface RenderState {
   showScores: boolean;
   message: string | null;
   showProgress: boolean;
-  progress: number | null;
-  error: boolean;
+  progress: number;
+  state: EntityState;
 }
 
 const hiddenInterfaceRenderState: RenderState = {
@@ -37,7 +37,7 @@ const hiddenInterfaceRenderState: RenderState = {
   message: null,
   showProgress: false,
   progress: 1,
-  error: false
+  state: "ready"
 };
 
 export class EntityDom {
@@ -137,7 +137,9 @@ export class EntityDom {
 
     setText(this.elements.closeButton, "×");
 
-    add(this.elements.progress, "afterend", this.elements.input);
+    if (this.entity.config.showProgress) {
+      add(this.elements.progress, "afterend", this.elements.input);
+    }
 
     this.elements.closeButton?.addEventListener("click", () => {
       this.elements.input.value = "";
@@ -164,14 +166,30 @@ export class EntityDom {
     this.clearDom();
     this.lastRenderState = state;
 
-    if (state.showProgress && state.progress && state.progress < 1) {
-      this.elements.progress.style.width = `${state.progress * 100}%`;
-    } else if (state.showProgress) {
-      this.elements.progress.style.width = `100%`;
-      this.elements.progress.style.opacity = "0";
+    if (state.showProgress) {
+      const getFakeProgress = (): number => {
+        switch (state.state) {
+          case "ready":
+          case "error":
+            return 1;
+          case "initialized":
+          case "loading":
+            return state.progress * 0.9 + 0.05;
+        }
+      };
+
+      const progress = getFakeProgress();
+
+      if (progress < 1) {
+        this.elements.progress.style.width = `${progress * 100}%`;
+        this.elements.progress.style.opacity = "1";
+      } else {
+        this.elements.progress.style.width = `100%`;
+        this.elements.progress.style.opacity = "0";
+      }
     }
 
-    if (state.error) {
+    if (state.state === "error") {
       this.elements.input.classList.add("stork-error");
     }
 

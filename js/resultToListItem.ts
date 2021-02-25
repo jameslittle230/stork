@@ -17,14 +17,14 @@ export function resultToListItem(
     <div style="display: flex; justify-content: space-between">
       <p class="stork-title">${highlight(
         result.entry.title,
-        result.title_highlight_ranges
+        result.title_highlight_ranges || []
       )}</p>
       ${options.showScores ? `<code><b>${result.score}</b></code>` : ""}
     </div>
       ${result.excerpts
         .map(
           e => `<div style="display: flex; justify-content: space-between"><p class="stork-excerpt">
-        ...${highlight(e.text, e.highlight_ranges)}...
+        ...${highlight(e.text, e.highlight_ranges || [])}...
         </p>
         ${options.showScores ? `<code>${e.score}</code>` : ""}
         </div>`

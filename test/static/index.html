@@ -100,8 +100,11 @@
 
     <script src="/stork.js"></script>
     <script>
-      stork.initialize("http://127.0.0.1:8025/stork.wasm").catch(e => {
-        alert(e);
+      stork.initialize();
+      stork.initialize("http://127.0.0.1:8025/stork.wasm").then(() => {
+        console.log("Finished downloading WASM")
+      }).catch(e => {
+        console.error(e);
       }); // download WASM
 
       stork.downloadIndex("federalist", "/federalist.st", {
@@ -123,25 +126,33 @@
         onInputCleared: () => {
           console.log("Goodbye, input!");
         }
-      });
+      }).then(() => {
+        console.log("Finished downloading index");
+      }).catch(e => {
+        console.error(e);
+      })
 
-      stork.downloadIndex("federalist", "/federalist.st");
+      stork.downloadIndex("federalist", "/federalist.st", {}).then(() => {
+        console.log("Finished downloading index");
+      }).catch(e => {
+        console.error(e);
+      })
 
       stork.attach("federalist"); // hook into HTML on page
       window.setTimeout(() => {
         console.log("Attaching a second time...");
         stork.attach("federalist"); // hook into HTML on page
-      }, 3000);
+      }, 2500);
 
-      stork.register("federalist-dark", "/federalist.st");
-      stork.register(
-        "federalist-prod",
-        "https://files.stork-search.net/federalist.st",
-        { showCloseButton: false }
-      );
-      stork.register("threeblue", "/3b1b.st");
-      stork.register("doesnotexist", "/doesNotExist.st");
-      stork.register("bad", "/federalist.st");
+      // stork.register("federalist-dark", "/federalist.st");
+      // stork.register(
+      //   "federalist-prod",
+      //   "https://files.stork-search.net/federalist.st",
+      //   { showCloseButton: false }
+      // );
+      // stork.register("threeblue", "/3b1b.st");
+      // stork.register("doesnotexist", "/doesNotExist.st");
+      // stork.register("bad", "/federalist.st");
     </script>
   </body>
 </html>
