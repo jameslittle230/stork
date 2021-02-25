@@ -2,11 +2,12 @@ use super::{frontmatter::parse_frontmatter, word_list_generators::WordListGenera
 use super::{word_list_generators::returns_word_list_generator, DocumentError};
 use super::{IndexGenerationError, IntermediateEntry};
 use crate::config::{Config, DataSource, Filetype, StemmingConfig};
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator, ProgressStyle};
 use mime::Mime;
 use rust_stemmers::Algorithm;
-use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
+use std::{convert::TryInto, fs::File};
 
 pub(super) fn fill_intermediate_entries(
     config: &Config,
@@ -19,10 +20,50 @@ pub(super) fn fill_intermediate_entries(
 
     let base_directory = Path::new(&config.input.base_directory);
 
-    for stork_file in config.input.files.iter() {
+    let progress_bar = ProgressBar::new((config.input.files.len()).try_into().unwrap()).with_style(
+        ProgressStyle::default_bar()
+            .template("[{elapsed}] {bar:40.cyan/blue} {pos}/{len} | {msg}")
+            .progress_chars("##-"),
+    );
+
+    let url_file_count: u32 = config.input.files.iter().fold(0, |acc, file| {
+        if let DataSource::URL(_) = file.source {
+            acc + 1
+        } else {
+            acc
+        }
+    });
+
+    let progress_bar_draw_target = {
+        match url_file_count {
+            0 => ProgressDrawTarget::hidden(),
+            _ => ProgressDrawTarget::stderr_nohz(),
+        }
+    };
+
+    progress_bar.set_draw_target(progress_bar_draw_target);
+
+    for stork_file in config
+        .input
+        .files
+        .iter()
+        .progress_with(progress_bar.to_owned())
+    {
         let mut per_file_input_config = config.input.clone();
         let mut file_mime: Option<Mime> = Option::None;
         per_file_input_config.files = vec![];
+
+        let message = &mut stork_file.title.clone();
+        let truncation_prefix = "...";
+        let truncation_length = 21;
+
+        if message.len() > truncation_length {
+            message.truncate(truncation_length - truncation_prefix.len());
+            message.push_str(truncation_prefix)
+        }
+
+        &progress_bar.set_message(message);
+        &progress_bar.tick();
 
         let buffer: String = match &stork_file.source {
             DataSource::Contents(contents) => contents.to_string(),
@@ -49,6 +90,11 @@ pub(super) fn fill_intermediate_entries(
                 let mut cont_with_parsed_mime = || -> Result<String, WordListGenerationError> {
                     let mut resp = reqwest::blocking::get(url)
                         .map_err(|_| WordListGenerationError::WebPageNotFetched)?;
+
+                    let _status = resp
+                        .error_for_status_ref()
+                        .map_err(|_| WordListGenerationError::WebPageNotFetched)?;
+
                     let mime_type: Mime = resp
                         .headers()
                         .get(reqwest::header::CONTENT_TYPE)
@@ -162,6 +208,14 @@ pub(super) fn fill_intermediate_entries(
 
         match word_list_result {
             Ok(contents) => {
+                if contents.word_list.is_empty() {
+                    document_errors.push(DocumentError {
+                        file: stork_file.clone(),
+                        word_list_generation_error: WordListGenerationError::EmptyWordList,
+                    });
+
+                    continue;
+                }
                 let mut fields = stork_file.fields.clone();
                 fields.extend(frontmatter_fields.into_iter());
 
