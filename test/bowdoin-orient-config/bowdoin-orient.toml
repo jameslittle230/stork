@@ -1,0 +1,41 @@
+[input]
+html_selector = "main > article.post > .single__content"
+
+[[input.files]]
+src_url = "https://bowdoinorient.com/2021/02/19/from-zoom-hangouts-to-soup-cans-bowdoins-crew-team-gets-creative-during-social-distancing/"
+url = "https://bowdoinorient.com/2021/02/19/from-zoom-hangouts-to-soup-cans-bowdoins-crew-team-gets-creative-during-social-distancing/"
+title = "From Zoom hangouts to soup cans: Bowdoin’s crew team gets creative during social distancing"
+
+[[input.files]]
+src_url = "https://bowdoinorient.com/2021/02/19/pond-hockey-until-watson-opens-womens-hockey-stays-focused-on-virtual-team-bonding/"
+url = "https://bowdoinorient.com/2021/02/19/pond-hockey-until-watson-opens-womens-hockey-stays-focused-on-virtual-team-bonding/"
+title = "Pond hockey: until Watson opens women’s hockey stays focused on virtual team bonding"
+
+[[input.files]]
+src_url = "https://bowdoinorient.com/2021/02/19/embracing-technology-and-social-media-bowdoin-athletics-masters-new-tools-for-recruiting/"
+url = "https://bowdoinorient.com/2021/02/19/embracing-technology-and-social-media-bowdoin-athletics-masters-new-tools-for-recruiting/"
+title = "Embracing technology and social media, Bowdoin athletics masters new tools for recruiting"
+
+[[input.files]]
+src_url = "https://bowdoinorient.com/2021/02/19/bowdoin-health-services-manages-in-person-visits-and-testing-looks-to-vaccinate-students/"
+url = "https://bowdoinorient.com/2021/02/19/bowdoin-health-services-manages-in-person-visits-and-testing-looks-to-vaccinate-students/"
+title = "Bowdoin Health Services manages in-person visits and testing, looks to vaccinate students"
+
+[[input.files]]
+src_url = "https://bowdoinorient.com/2021/02/18/students-reflect-on-their-decisions-to-take-personal-leaves-of-absence/"
+url = "https://bowdoinorient.com/2021/02/18/students-reflect-on-their-decisions-to-take-personal-leaves-of-absence/"
+title = "Students reflect on their decisions to take personal leaves of absence"
+
+[[input.files]]
+src_url = "https://bowdoinorient.com/2021/02/18/college-reports-125-conduct-violations-during-fall-semester-launches-covid-conduct-dashboard/"
+url = "https://bowdoinorient.com/2021/02/18/college-reports-125-conduct-violations-during-fall-semester-launches-covid-conduct-dashboard/"
+title = "College reports 125 conduct violations during fall semester; launches COVID conduct dashboard"
+
+[[input.files]]
+src_url = "https://bowdoinorient.com/2020/02/18/college-reports-125-conduct-violations-during-fall-semester-launches-covid-conduct-dashboard/"
+url = "https://bowdoinorient.com/2020/02/18/college-reports-125-conduct-violations-during-fall-semester-launches-covid-conduct-dashboard/"
+title = "This URL does not exist."
+
+[output]
+# debug = true
+filename = "bowdoin-orient.st"

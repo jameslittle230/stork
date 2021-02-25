@@ -11,8 +11,6 @@ use config::Config;
 use searcher::SearchError;
 
 pub use index_versions::v3 as LatestVersion;
-use LatestVersion::builder;
-use LatestVersion::builder::errors::IndexGenerationError;
 use LatestVersion::structs::Index;
 
 use once_cell::sync::OnceCell;
@@ -59,10 +57,21 @@ pub fn search_with_index(index: &Index, query: &str) -> searcher::SearchOutput {
     LatestVersion::search::search(index, query)
 }
 
+#[cfg(not(feature = "build"))]
+pub fn build_index(_config: Option<&String>) -> (Config, Index) {
+    println!("Stork was not compiled with support for building indexes. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
+    panic!()
+}
+
 /**
  * Builds an Index object that can be serialized and parsed later
  */
+#[cfg(feature = "build")]
+use LatestVersion::builder::errors::IndexGenerationError;
+
+#[cfg(feature = "build")]
 pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
+    use LatestVersion::builder;
     let (index, _) = builder::build(config)?;
     Ok(index)
 }

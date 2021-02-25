@@ -1,5 +1,4 @@
 extern crate stork_search as stork;
-
 use stork::LatestVersion::structs::Index;
 
 #[cfg(not(feature = "test-server"))]
@@ -11,11 +10,11 @@ pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(feature = "test-server")]
 pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
     use hyper::service::{make_service_fn, service_fn};
-    use hyper::{Body, Request, Response, Server, StatusCode};
+    use hyper::{server::Server, Body, Request, Response, StatusCode};
     use std::convert::Infallible;
     use tokio::runtime::Runtime;
 
-    let mut rt = Runtime::new()?;
+    let rt = Runtime::new()?;
     let mut index_binary: Vec<u8> = Vec::new();
     index.write_to_buffer(&mut index_binary);
 

@@ -221,7 +221,9 @@ mod tests {
         println!("{:?}", title_highlight_ranges);
         assert!(
             title_highlight_ranges[0].beginning <= title_highlight_ranges[1].beginning,
-            format!("Title highlight ranges were not sorted! [0].beginning is {} while [1].beginning is {}", title_highlight_ranges[0].beginning, title_highlight_ranges[1].beginning)
+            "Title highlight ranges were not sorted! [0].beginning is {} while [1].beginning is {}",
+            title_highlight_ranges[0].beginning,
+            title_highlight_ranges[1].beginning
         );
     }
 

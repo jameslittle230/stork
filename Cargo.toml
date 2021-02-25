@@ -16,35 +16,40 @@ exclude = ['/dist/', 'node_modules/', '/test/', '/test-assets/',]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["test-server"]
-test-server = ["futures", "hyper", "tokio"]
+default = ["build", "test-server"]
+build = ["srtparse", "scraper", "frontmatter", "markdown", "atty", "mime", "reqwest", "indicatif"]
+test-server = ["build", "futures", "hyper", "tokio"]
 
 [dependencies]
 toml = "0.5"
 serde = { version = "1.0", features = ["derive"] }
-bincode = "1.2.1"
-rmp-serde = "0.14.3"
+bincode = "1.2.1" # V2 index serialization
+rmp-serde = "0.14.3" # V3 index serialization
 serde_json = "1.0"
 console_error_panic_hook = "0.1.6"
 num-format = "0.4.0"
 rust-stemmers = "1.2.0"
-srtparse = "0.2.0"
-htmlescape = "0.3.1"
-scraper = "0.12.0"
-frontmatter = "0.4.0"
-markdown = "0.3.0"
-once_cell = "1"
-atty = "0.2"
+once_cell = "1.5.2"
+indicatif = {version = "0.15.0", optional = true}
+# colored = {version = "2.0.0", optional = true}
+srtparse = {version = "0.2.0", optional = true}
+scraper = {version = "0.12.0", optional = true}
+frontmatter = {version = "0.4.0", optional = true}
+markdown = {version = "0.3.0", optional = true}
+atty = {version = "0.2", optional = true}
+mime = {version = "0.3.16", optional = true}
+reqwest = { version = "0.11", features = ["blocking", "json"], optional = true} # for loading document contents from URLs
 futures = {version = "0.3", optional = true}
-hyper = {version = "0.13", optional = true}
-tokio = { version = "0.2", features = ["full"], optional = true }
+hyper = {version = "0.14", features = ["server"], optional = true}
+tokio = { version = "1.2", features = ["full"], optional = true }
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+
+[package.metadata.wasm-pack.profile.release]
 
 # wasm-opt is out of date in wasm-bindgen, so we have to manually
 # enable the "mutable globals" feature so wasm-opt doesn't reject
 # the wasm blob that gets generated.
 # See: https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
-[package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
 
 [dev-dependencies]
@@ -55,4 +60,13 @@ name = "basic"
 harness = false
 
 [profile.release]
-lto = true
+
+# This config option gives LLVM more opportunities to inline and prune functions,
+# which makes the WASM binary smaller. Adding this was inspired by
+# https://rustwasm.github.io/book/reference/code-size.html
+#
+# @TODO 2021-02-24: Starting with commit 7800aedfbb6b0e97a075cf6924077db2ddff7939,
+# keeping this option in the full release build configuration means that 
+# `cargo build --release` mysteriously fails on the benchmark machine, so 
+# I commented it out.
+# lto = true
