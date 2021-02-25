@@ -1,4 +1,4 @@
-use crate::index_versions::*;
+use crate::index_versions::{v2, v3};
 use crate::IndexFromFile;
 use serde::Serialize;
 use std::convert::TryInto;
@@ -105,7 +105,7 @@ impl fmt::Display for IndexParseError {
     }
 }
 /**
- * Used to send metadata from WASM to JS. Derived from a ParsedIndex and
+ * Used to send metadata from WASM to JS. Derived from a `ParsedIndex` and
  * eventually serialized to JSON.
  */
 #[derive(Serialize)]
@@ -152,7 +152,11 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
                 return Err(IndexParseError::BadVersionSize(version_size, size_problem));
             }
 
-            if index.len() <= (std::mem::size_of::<u64>() + version_size as usize) {
+            if index.len()
+                <= (std::mem::size_of::<u64>() as u64 + version_size)
+                    .try_into()
+                    .unwrap()
+            {
                 return Err(IndexParseError::FileTooShort);
             }
 

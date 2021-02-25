@@ -1,4 +1,7 @@
-use super::structs::{Container, Entry, Index, PassthroughConfig};
+use super::structs::{
+    AnnotatedWord, Container, Contents, Entry, Excerpt, Index, PassthroughConfig, SearchResult,
+    WordListSource,
+};
 use crate::config::Config;
 use std::collections::HashMap;
 
@@ -12,6 +15,7 @@ pub mod errors;
 pub mod intermediate_entry;
 mod word_list_generators;
 
+use colored::Colorize;
 use fill_containers::fill_containers;
 use fill_intermediate_entries::fill_intermediate_entries;
 use fill_stems::fill_stems;
@@ -25,8 +29,6 @@ use nudger::Nudger;
 
 pub mod frontmatter;
 
-extern crate rust_stemmers;
-
 pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
     let nudger = Nudger::from(config);
     if !nudger.is_empty() {
@@ -39,7 +41,8 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
 
     if !document_errors.is_empty() {
         println!(
-            "{} error{} while indexing files:",
+            "{} {} error{} while indexing files. Your index was still generated, and the erroring files were omitted.",
+            "Warning:".yellow(),
             document_errors.len(),
             match document_errors.len() {
                 1 => "",
@@ -48,7 +51,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
         )
     }
     for error in &document_errors {
-        println!("- {}", &error);
+        println!("{}", &error);
     }
 
     if intermediate_entries.is_empty() {
@@ -184,9 +187,12 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(
-            build(&config).err().unwrap(),
-            IndexGenerationError::NoValidFiles
+        assert!(
+            if let Some(IndexGenerationError::NoValidFiles) = build(&config).err() {
+                true
+            } else {
+                false
+            }
         );
     }
 

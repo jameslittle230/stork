@@ -9,7 +9,7 @@ use std::fmt;
 pub mod html_word_list_generator;
 use html_word_list_generator::{HTMLWordListGenerator, MarkdownWordListGenerator};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum WordListGenerationError {
     InvalidSRT,
     FileNotFound,
@@ -102,10 +102,9 @@ impl WordListGenerator for SRTWordListGenerator {
 impl SRTWordListGenerator {
     fn build_srt_url_time_suffix(time: &srtparse::Time, srt_config: &SRTConfig) -> String {
         let time_string = match srt_config.timestamp_format {
-            SRTTimestampFormat::NumberOfSeconds => ((time.hours as usize) * 3600
-                + (time.minutes as usize) * 60
-                + (time.seconds as usize))
-                .to_string(),
+            SRTTimestampFormat::NumberOfSeconds => {
+                ((time.hours) * 3600 + (time.minutes) * 60 + (time.seconds)).to_string()
+            }
         };
 
         srt_config

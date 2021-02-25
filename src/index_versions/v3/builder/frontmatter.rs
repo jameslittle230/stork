@@ -15,24 +15,20 @@ pub fn parse_frontmatter(config: &InputConfig, buffer: &str) -> (Fields, Box<Str
             }
         }
         FrontmatterConfig::Parse => {
-            if let Ok((yaml, text)) = parse_and_find_content(&buffer) {
-                if let Some(yaml) = yaml {
-                    if let Yaml::Hash(map) = yaml {
-                        let fields = map
-                            .into_iter()
-                            .map(|(k, v)| {
-                                (
-                                    k.into_string().unwrap_or_else(|| "".to_string()),
-                                    v.clone().into_string().unwrap_or_else(|| {
-                                        v.into_i64()
-                                            .map_or("default".to_string(), |i| i.to_string())
-                                    }),
-                                )
-                            })
-                            .collect();
-                        return (fields, Box::new(text.trim().to_string()));
-                    }
-                }
+            if let Ok((Some(Yaml::Hash(map)), text)) = parse_and_find_content(&buffer) {
+                let fields = map
+                    .into_iter()
+                    .map(|(k, v)| {
+                        (
+                            k.into_string().unwrap_or_else(|| "".to_string()),
+                            v.clone().into_string().unwrap_or_else(|| {
+                                v.into_i64()
+                                    .map_or("default".to_string(), |i| i.to_string())
+                            }),
+                        )
+                    })
+                    .collect();
+                return (fields, Box::new(text.trim().to_string()));
             }
 
             default_output

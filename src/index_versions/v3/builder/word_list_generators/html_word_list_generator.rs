@@ -2,9 +2,7 @@ use crate::config::InputConfig;
 
 use super::super::{AnnotatedWord, Contents};
 use super::{WordListGenerationError, WordListGenerator};
-use markdown;
 use scraper::{Html, Selector};
-// extern crate markdown;
 
 pub(super) struct MarkdownWordListGenerator {}
 
@@ -46,19 +44,18 @@ impl WordListGenerator for HTMLWordListGenerator {
 
         let word_list = document
             .select(&selector)
-            .map(|elem_ref| {
+            .flat_map(|elem_ref| {
                 elem_ref.text().map(|w| {
                     w.to_string()
                         .split_whitespace()
-                        .map(|str| str.to_string())
+                        .map(ToString::to_string)
                         .collect::<Vec<String>>()
                 })
             })
-            .flatten() // Multiple text nodes within selectors
             .flatten() // Multiple words within text node
             .map(|word| AnnotatedWord {
                 word,
-                ..Default::default()
+                ..AnnotatedWord::default()
             })
             .collect::<Vec<AnnotatedWord>>();
 

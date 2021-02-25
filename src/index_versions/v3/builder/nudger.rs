@@ -1,3 +1,5 @@
+use colored::Colorize;
+
 use crate::config::Config;
 
 /**
@@ -17,12 +19,14 @@ pub(super) struct Nudger {
 #[derive(Debug, PartialEq)]
 enum Nudge {
     InputSurroundingWordCount,
+    OutputFile,
 }
 
 impl Nudge {
     fn description(&self) -> &str {
         match self {
-            Nudge::InputSurroundingWordCount => "`input.surrounding_word_count` is deprecated and has no effect. Please use output.excerpt_buffer instead."
+            Nudge::InputSurroundingWordCount => "The config option `input.surrounding_word_count` is deprecated and has no effect. Please use output.excerpt_buffer instead.",
+            Nudge::OutputFile => "The config option `output.filename` is deprecated and has no effect. Please use the --output command line option instead."
         }
     }
 }
@@ -35,20 +39,24 @@ impl From<&Config> for Nudger {
             nudges.push(Nudge::InputSurroundingWordCount)
         }
 
+        if !config.output.UNUSED_filename.is_empty() {
+            nudges.push(Nudge::OutputFile)
+        }
+
         Nudger { nudges }
     }
 }
 
 impl Nudger {
     pub(super) fn is_empty(&self) -> bool {
-        return self.nudges.is_empty();
+        self.nudges.is_empty()
     }
 
     pub(super) fn generate_formatted_output(&self) -> String {
         let mut output: String = "".to_string();
 
         if !&self.nudges.is_empty() {
-            output.push_str("== Config Warnings ==");
+            output.push_str(&"Config warnings:".yellow());
         }
 
         for nudge in &self.nudges {

@@ -1,4 +1,4 @@
-use super::super::structs::*;
+use super::super::structs::{EntryIndex, Score, WordListSource};
 use crate::common::{Fields, InternalWordAnnotation};
 use std::cmp::Ordering;
 

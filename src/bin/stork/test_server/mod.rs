@@ -8,15 +8,14 @@ pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[cfg(feature = "test-server")]
-pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
+pub fn serve(index: &Index, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     use hyper::service::{make_service_fn, service_fn};
     use hyper::{server::Server, Body, Request, Response, StatusCode};
     use std::convert::Infallible;
     use tokio::runtime::Runtime;
 
     let rt = Runtime::new()?;
-    let mut index_binary: Vec<u8> = Vec::new();
-    index.write_to_buffer(&mut index_binary);
+    let index_bytes: Vec<u8> = index.to_bytes();
 
     rt.block_on(async {
         // For every connection, we must make a `Service` to handle all
@@ -25,7 +24,7 @@ pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
             // This is the `Service` that will handle the connection.
             // `service_fn` is a helper to convert a function that
             // returns a Response into a `Service`.
-            let bytes = index_binary.clone();
+            let bytes = index_bytes.clone();
             async move {
                 Ok::<_, Infallible>(service_fn(move |request: Request<Body>| {
                     let bytes_2 = bytes.clone();
@@ -48,11 +47,11 @@ pub fn serve(index: Index) -> Result<(), Box<dyn std::error::Error>> {
             }
         });
 
-        let addr = ([127, 0, 0, 1], 1612).into();
+        let addr = ([127, 0, 0, 1], port).into();
         let server = Server::bind(&addr).serve(make_svc);
         let graceful = server.with_graceful_shutdown(shutdown_signal());
 
-        println!("Serving from http://{}\nPress ctrl-C to exit.", addr);
+        println!("Open <http://{}> in your web browser to visit the test page.\nPress ctrl-C to stop the server.", addr);
 
         if let Err(e) = graceful.await {
             eprintln!("server error: {}", e);

@@ -10,7 +10,7 @@ pub fn fill_stems(
         let contents = &entry.contents;
 
         if let Some(stem_algorithm) = entry.stem_algorithm {
-            for annotated_word in contents.word_list.iter() {
+            for annotated_word in &contents.word_list {
                 let normalized_word =
                     remove_surrounding_punctuation(&annotated_word.word.to_lowercase());
                 let stem = Stemmer::create(stem_algorithm)

@@ -62,8 +62,8 @@ pub(super) fn fill_intermediate_entries(
             message.push_str(truncation_prefix)
         }
 
-        &progress_bar.set_message(message);
-        &progress_bar.tick();
+        progress_bar.set_message(message);
+        progress_bar.tick();
 
         let buffer: String = match &stork_file.source {
             DataSource::Contents(contents) => contents.to_string(),
@@ -98,7 +98,7 @@ pub(super) fn fill_intermediate_entries(
                     let mime_type: Mime = resp
                         .headers()
                         .get(reqwest::header::CONTENT_TYPE)
-                        .ok_or_else(|| WordListGenerationError::UnknownContentType)?
+                        .ok_or(WordListGenerationError::UnknownContentType)?
                         .to_str()
                         .map_err(|_| WordListGenerationError::UnknownContentType)?
                         .parse()
@@ -139,10 +139,10 @@ pub(super) fn fill_intermediate_entries(
             &config.input.html_selector,
         ]
         .into_iter()
-        .filter_map(|option| option.to_owned())
+        .filter_map(ToOwned::to_owned)
         .collect::<Vec<String>>()
         .first()
-        .map(|s| s.to_owned());
+        .map(ToOwned::to_owned);
 
         per_file_input_config.frontmatter_handling = stork_file
             .frontmatter_handling_override
@@ -151,25 +151,20 @@ pub(super) fn fill_intermediate_entries(
 
         let (frontmatter_fields, buffer) = parse_frontmatter(&per_file_input_config, &buffer);
 
-        let filetype_from_mime = file_mime
-            .map(|mime| match (mime.type_(), mime.subtype()) {
-                (mime::TEXT, mime::PLAIN) => Some(Filetype::PlainText),
-                (mime::TEXT, mime::HTML) => Some(Filetype::HTML),
-                _ => None,
-            })
-            .flatten();
+        let filetype_from_mime = file_mime.and_then(|mime| match (mime.type_(), mime.subtype()) {
+            (mime::TEXT, mime::PLAIN) => Some(Filetype::PlainText),
+            (mime::TEXT, mime::HTML) => Some(Filetype::HTML),
+            _ => None,
+        });
 
         let get_filetype_from_extension = |path_string: &str| {
             let path = Path::new(&path_string);
             let ext_str = path.extension()?.to_str()?;
             match String::from(ext_str).to_ascii_lowercase().as_ref() {
-                "html" => Some(Filetype::HTML),
-                "htm" => Some(Filetype::HTML),
+                "html" | "htm" => Some(Filetype::HTML),
                 "srt" => Some(Filetype::SRTSubtitle),
                 "txt" => Some(Filetype::PlainText),
-                "md" => Some(Filetype::Markdown),
-                "mdown" => Some(Filetype::Markdown),
-                "markdown" => Some(Filetype::Markdown),
+                "markdown" | "mdown" | "md" => Some(Filetype::Markdown),
                 _ => None,
             }
         };
@@ -192,15 +187,14 @@ pub(super) fn fill_intermediate_entries(
         .filter_map(|opt| opt)
         .collect::<Vec<Filetype>>();
 
-        let filetype = match ordered_filetype_choices.last() {
-            Some(filetype) => filetype,
-            None => {
-                document_errors.push(DocumentError {
-                    file: stork_file.clone(),
-                    word_list_generation_error: WordListGenerationError::CannotDetermineFiletype,
-                });
-                continue;
-            }
+        let filetype = if let Some(filetype) = ordered_filetype_choices.last() {
+            filetype
+        } else {
+            document_errors.push(DocumentError {
+                file: stork_file.clone(),
+                word_list_generation_error: WordListGenerationError::CannotDetermineFiletype,
+            });
+            continue;
         };
 
         let word_list_result = returns_word_list_generator(&filetype)
@@ -234,6 +228,12 @@ pub(super) fn fill_intermediate_entries(
                 word_list_generation_error: error,
             }),
         }
+    }
+
+    if config.input.break_on_file_error && !document_errors.is_empty() {
+        return Err(IndexGenerationError::DocumentErrors(
+            document_errors.clone(),
+        ));
     }
 
     Ok(())

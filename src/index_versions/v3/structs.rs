@@ -1,4 +1,4 @@
-use super::scores::*;
+use super::scores::MATCHED_WORD_SCORE;
 use crate::config::TitleBoost;
 use crate::{
     common::{Fields, InternalWordAnnotation},
@@ -69,8 +69,8 @@ pub(super) struct Entry {
 /**
  * A Container holds:
  *
- * - a HashMap of EntryIndexes to SearchResults
- * - a HashMap of AliasTargets to scores
+ * - a `HashMap` of `EntryIndexes` to `SearchResults`
+ * - a `HashMap` of `AliasTargets` to scores
  *
  * Each valid query should return a single Container. It is possible to derive
  * all search results for a given query from a single container.

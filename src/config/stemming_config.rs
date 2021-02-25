@@ -21,13 +21,13 @@ impl Default for StemmingConfig {
 impl TryFrom<&String> for StemmingConfig {
     type Error = toml::de::Error;
     fn try_from(value: &String) -> Result<Self, Self::Error> {
-        if value == "none" || value == "None" {
-            return Ok(StemmingConfig::None);
-        }
-
         #[derive(Deserialize, Debug)]
         struct TempAlgStructure {
             lang: Algorithm,
+        }
+
+        if value == "none" || value == "None" {
+            return Ok(StemmingConfig::None);
         }
 
         toml::from_str(format!("lang = \"{}\"", value).as_str())

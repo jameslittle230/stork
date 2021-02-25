@@ -1,9 +1,7 @@
 use super::scores::STOPWORD_SCORE;
 use super::structs::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
 use crate::common::STOPWORDS;
-use crate::searcher::{
-    parse, Excerpt, HighlightRange, OutputEntry, OutputResult, SearchError, SearchOutput,
-};
+use crate::searcher::{HighlightRange, OutputEntry, OutputResult, SearchError, SearchOutput};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
