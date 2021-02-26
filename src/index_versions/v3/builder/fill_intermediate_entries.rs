@@ -62,8 +62,8 @@ pub(super) fn fill_intermediate_entries(
             message.push_str(truncation_prefix)
         }
 
-        &progress_bar.set_message(message);
-        &progress_bar.tick();
+        progress_bar.set_message(message);
+        progress_bar.tick();
 
         let buffer: String = match &stork_file.source() {
             DataSource::Contents(contents) => contents.to_string(),
@@ -163,13 +163,10 @@ pub(super) fn fill_intermediate_entries(
             let path = Path::new(&path_string);
             let ext_str = path.extension()?.to_str()?;
             match String::from(ext_str).to_ascii_lowercase().as_ref() {
-                "html" => Some(Filetype::HTML),
-                "htm" => Some(Filetype::HTML),
+                "html" | "htm" => Some(Filetype::HTML),
                 "srt" => Some(Filetype::SRTSubtitle),
                 "txt" => Some(Filetype::PlainText),
-                "md" => Some(Filetype::Markdown),
-                "mdown" => Some(Filetype::Markdown),
-                "markdown" => Some(Filetype::Markdown),
+                "markdown" | "mdown" | "md" => Some(Filetype::Markdown),
                 _ => None,
             }
         };
