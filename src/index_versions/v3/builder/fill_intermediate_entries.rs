@@ -27,7 +27,7 @@ pub(super) fn fill_intermediate_entries(
     );
 
     let url_file_count: u32 = config.input.files.iter().fold(0, |acc, file| {
-        if let DataSource::URL(_) = file.source {
+        if let DataSource::URL(_) = file.source() {
             acc + 1
         } else {
             acc
@@ -62,10 +62,10 @@ pub(super) fn fill_intermediate_entries(
             message.push_str(truncation_prefix)
         }
 
-        &progress_bar.set_message(message);
-        &progress_bar.tick();
+        progress_bar.set_message(message);
+        progress_bar.tick();
 
-        let buffer: String = match &stork_file.source {
+        let buffer: String = match &stork_file.source() {
             DataSource::Contents(contents) => contents.to_string(),
 
             DataSource::FilePath(path_string) => {
@@ -163,19 +163,16 @@ pub(super) fn fill_intermediate_entries(
             let path = Path::new(&path_string);
             let ext_str = path.extension()?.to_str()?;
             match String::from(ext_str).to_ascii_lowercase().as_ref() {
-                "html" => Some(Filetype::HTML),
-                "htm" => Some(Filetype::HTML),
+                "html" | "htm" => Some(Filetype::HTML),
                 "srt" => Some(Filetype::SRTSubtitle),
                 "txt" => Some(Filetype::PlainText),
-                "md" => Some(Filetype::Markdown),
-                "mdown" => Some(Filetype::Markdown),
-                "markdown" => Some(Filetype::Markdown),
+                "markdown" | "mdown" | "md" => Some(Filetype::Markdown),
                 _ => None,
             }
         };
 
         let filetype_from_extension = {
-            match &stork_file.source {
+            match &stork_file.source() {
                 DataSource::FilePath(path_string) => get_filetype_from_extension(&path_string),
                 _ => None,
             }

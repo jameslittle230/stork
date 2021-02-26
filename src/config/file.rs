@@ -9,8 +9,10 @@ type Fields = HashMap<String, String>;
 pub struct File {
     pub title: String,
     pub url: String,
+
+    /// Implicit source will take from the destination URL
     #[serde(flatten)]
-    pub source: DataSource,
+    pub explicit_source: Option<DataSource>,
 
     pub id: Option<String>,
     #[serde(default)]
@@ -29,12 +31,21 @@ pub struct File {
     pub fields: Fields,
 }
 
+impl File {
+    pub fn source(&self) -> DataSource {
+        match &self.explicit_source {
+            Some(source) => source.clone(),
+            None => DataSource::URL(self.url.clone()),
+        }
+    }
+}
+
 impl fmt::Display for File {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{}",
-            match &self.source {
+            match &self.source() {
                 DataSource::FilePath(path) => path,
                 DataSource::Contents(_contents) => &self.title,
                 DataSource::URL(url) => url,
