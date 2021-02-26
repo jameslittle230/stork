@@ -235,7 +235,7 @@ files = [{title = "Derp"}]
     }
 
     #[test]
-    fn file_with_title_and_url_not_allowed() -> Result<(), Error> {
+    fn file_with_title_and_url_assumes_url_is_source() -> Result<(), Error> {
         let contents = r#"
 [[input.files]]
 title = "Derp"
@@ -243,12 +243,16 @@ url = "blorp"
     "#;
         let config: Config = toml::from_str(contents)?;
         let file = config.input.files.first().unwrap();
+
         assert!(file.explicit_source.is_none());
-        assert!(if let DataSource::URL(generated_url) = file.source() {
-            generated_url == "blorp"
-        } else {
-            false
-        });
+        assert!(
+            if let DataSource::URL(generated_url) = file.source() {
+                generated_url == "blorp"
+            } else {
+                false
+            },
+            "URL in computed source is not the same URL as was in the config file!"
+        );
 
         Ok(())
     }
