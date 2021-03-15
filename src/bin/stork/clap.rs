@@ -13,10 +13,18 @@ pub fn app() -> App<'static, 'static> {
         .version(crate_version!())
         .author("James Little <https://jameslittle.me>")
         .about("https://stork-search.net - Impossibly fast web search, made for static sites.")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
+        // .setting(AppSettings::SubcommandRequiredElseHelp)
         .setting(AppSettings::VersionlessSubcommands)
-        .arg(Arg::with_name("timing"))
-        .arg(Arg::with_name("quiet").short("q"))
+        .arg(Arg::with_name("timing").short("t").long("timing"))
+        .arg(Arg::with_name("quiet").short("q").long("quiet"))
+        .arg(Arg::with_name("build").takes_value(true).long("build"))
+        .arg(Arg::with_name("test").takes_value(true).long("test"))
+        .arg(
+            Arg::with_name("search")
+                .takes_value(true)
+                .long("search")
+                .min_values(2),
+        )
         .subcommand(
             SubCommand::with_name("build")
                 .about("Builds an index from a configuration and writes it to a file")

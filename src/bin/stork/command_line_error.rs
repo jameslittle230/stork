@@ -15,6 +15,7 @@ pub enum StorkCommandLineError {
     InvalidPort(String, ParseIntError),
     ServerError,
     SearchError,
+    InvalidCommandLineArguments,
 }
 
 impl Display for StorkCommandLineError {
@@ -40,6 +41,7 @@ impl Display for StorkCommandLineError {
             }
             StorkCommandLineError::ServerError => "Couldn't start web server".to_string(),
             StorkCommandLineError::SearchError => "Couldn't search".to_string(),
+            StorkCommandLineError::InvalidCommandLineArguments => todo!(),
         };
 
         f.write_str(data.as_str())

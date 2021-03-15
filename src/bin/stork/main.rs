@@ -34,7 +34,29 @@ fn main() {
         ("build", Some(submatches)) => build_handler(submatches),
         ("search", Some(submatches)) => search_handler(submatches),
         ("test", Some(submatches)) => test_handler(submatches),
-        _ => panic!("oops"),
+
+        // Delete when releasing 2.0.0
+        (_, _) => {
+            // @TODO: Nudge user to use new style command line interface
+            if let Some(input_file) = app_matches.value_of("build") {
+                let new_matches =
+                    app().get_matches_from(vec!["stork", "build", "--input", input_file]);
+                build_handler(&new_matches)
+            } else if let Some(values_iter) = app_matches.values_of("search") {
+                let values: Vec<&str> = values_iter.collect();
+                let new_matches = app().get_matches_from(vec![
+                    "stork", "search", "--input", values[0], "--query", values[1],
+                ]);
+                search_handler(&new_matches)
+            } else if let Some(input_file) = app_matches.value_of("test") {
+                let new_matches =
+                    app().get_matches_from(vec!["stork", "test", "--input", input_file]);
+                test_handler(&new_matches)
+            } else {
+                app().print_help();
+                Err(StorkCommandLineError::InvalidCommandLineArguments)
+            }
+        }
     };
 
     if let Err(error) = result {
