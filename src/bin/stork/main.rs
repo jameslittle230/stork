@@ -31,51 +31,30 @@ fn main() {
     let app_matches = app().get_matches();
 
     let result = match app_matches.subcommand() {
-        ("build", Some(submatches)) => build_handler(submatches),
-        ("search", Some(submatches)) => search_handler(submatches),
-        ("test", Some(submatches)) => test_handler(submatches),
+        ("build", Some(submatches)) => build_handler(submatches, &app_matches),
+        ("search", Some(submatches)) => search_handler(submatches, &app_matches),
+        ("test", Some(submatches)) => test_handler(submatches, &app_matches),
 
         // Delete when releasing 2.0.0
         (_, _) => {
             // @TODO: Nudge user to use new style command line interface
             if let Some(input_file) = app_matches.value_of("build") {
-                let new_matches = {
-                    let new_style_argmatches =
-                        app().get_matches_from(vec!["stork", "build", "--input", input_file]);
-
-                    new_style_argmatches
-                        .subcommand_matches("build")
-                        .unwrap()
-                        .clone()
-                };
-
-                build_handler(&new_matches)
+                let global_matches =
+                    app().get_matches_from(vec!["stork", "build", "--input", input_file]);
+                let submatches = global_matches.subcommand_matches("build").unwrap();
+                build_handler(&submatches, &global_matches)
             } else if let Some(values_iter) = app_matches.values_of("search") {
                 let values: Vec<&str> = values_iter.collect();
-                let new_matches = {
-                    let new_style_argmatches = app().get_matches_from(vec![
-                        "stork", "search", "--input", values[0], "--query", values[1],
-                    ]);
-
-                    new_style_argmatches
-                        .subcommand_matches("search")
-                        .unwrap()
-                        .clone()
-                };
-
-                search_handler(&new_matches)
+                let global_matches = app().get_matches_from(vec![
+                    "stork", "search", "--input", values[0], "--query", values[1],
+                ]);
+                let submatches = global_matches.subcommand_matches("search").unwrap();
+                search_handler(&submatches, &global_matches)
             } else if let Some(input_file) = app_matches.value_of("test") {
-                let new_matches = {
-                    let new_style_argmatches =
-                        app().get_matches_from(vec!["stork", "test", "--input", input_file]);
-
-                    new_style_argmatches
-                        .subcommand_matches("search")
-                        .unwrap()
-                        .clone()
-                };
-
-                test_handler(&new_matches)
+                let global_matches =
+                    app().get_matches_from(vec!["stork", "test", "--input", input_file]);
+                let submatches = global_matches.subcommand_matches("search").unwrap();
+                test_handler(&submatches, &global_matches)
             } else {
                 let _ = app().print_help();
                 Err(StorkCommandLineError::InvalidCommandLineArguments)
@@ -159,7 +138,10 @@ fn write_index_bytes(path: &str, bytes: &[u8]) -> Result<usize, StorkCommandLine
         .map_err(StorkCommandLineError::WriteError)
 }
 
-fn build_handler(submatches: &ArgMatches) -> Result<(), StorkCommandLineError> {
+fn build_handler(
+    submatches: &ArgMatches,
+    global_matches: &ArgMatches,
+) -> Result<(), StorkCommandLineError> {
     let start_time = Instant::now();
 
     let index = build_index(submatches.value_of("config").unwrap())?;
@@ -177,7 +159,7 @@ fn build_handler(submatches: &ArgMatches) -> Result<(), StorkCommandLineError> {
         path,
     );
 
-    if submatches.is_present("timing") {
+    if global_matches.is_present("timing") {
         eprintln!(
             "{}",
             display_timings![
@@ -191,7 +173,10 @@ fn build_handler(submatches: &ArgMatches) -> Result<(), StorkCommandLineError> {
     Ok(())
 }
 
-fn search_handler(submatches: &ArgMatches) -> Result<(), StorkCommandLineError> {
+fn search_handler(
+    submatches: &ArgMatches,
+    global_matches: &ArgMatches,
+) -> Result<(), StorkCommandLineError> {
     let start_time = Instant::now();
 
     let path = submatches.value_of("index").unwrap();
@@ -209,7 +194,7 @@ fn search_handler(submatches: &ArgMatches) -> Result<(), StorkCommandLineError> 
 
     println!("{}", serde_json::to_string_pretty(&results).unwrap());
 
-    if submatches.is_present("timing") {
+    if global_matches.is_present("timing") {
         eprintln!(
             "{}",
             display_timings![
@@ -223,7 +208,10 @@ fn search_handler(submatches: &ArgMatches) -> Result<(), StorkCommandLineError> 
     Ok(())
 }
 
-fn test_handler(submatches: &ArgMatches) -> Result<(), StorkCommandLineError> {
+fn test_handler(
+    submatches: &ArgMatches,
+    _global_matches: &ArgMatches,
+) -> Result<(), StorkCommandLineError> {
     let port_string = submatches.value_of("port").unwrap();
     let port = port_string
         .parse()
