@@ -39,21 +39,45 @@ fn main() {
         (_, _) => {
             // @TODO: Nudge user to use new style command line interface
             if let Some(input_file) = app_matches.value_of("build") {
-                let new_matches =
-                    app().get_matches_from(vec!["stork", "build", "--input", input_file]);
+                let new_matches = {
+                    let new_style_argmatches =
+                        app().get_matches_from(vec!["stork", "build", "--input", input_file]);
+
+                    new_style_argmatches
+                        .subcommand_matches("build")
+                        .unwrap()
+                        .clone()
+                };
+
                 build_handler(&new_matches)
             } else if let Some(values_iter) = app_matches.values_of("search") {
                 let values: Vec<&str> = values_iter.collect();
-                let new_matches = app().get_matches_from(vec![
-                    "stork", "search", "--input", values[0], "--query", values[1],
-                ]);
+                let new_matches = {
+                    let new_style_argmatches = app().get_matches_from(vec![
+                        "stork", "search", "--input", values[0], "--query", values[1],
+                    ]);
+
+                    new_style_argmatches
+                        .subcommand_matches("search")
+                        .unwrap()
+                        .clone()
+                };
+
                 search_handler(&new_matches)
             } else if let Some(input_file) = app_matches.value_of("test") {
-                let new_matches =
-                    app().get_matches_from(vec!["stork", "test", "--input", input_file]);
+                let new_matches = {
+                    let new_style_argmatches =
+                        app().get_matches_from(vec!["stork", "test", "--input", input_file]);
+
+                    new_style_argmatches
+                        .subcommand_matches("search")
+                        .unwrap()
+                        .clone()
+                };
+
                 test_handler(&new_matches)
             } else {
-                app().print_help();
+                let _ = app().print_help();
                 Err(StorkCommandLineError::InvalidCommandLineArguments)
             }
         }
