@@ -111,7 +111,7 @@ impl Default for InputConfig {
 #[allow(non_snake_case)]
 pub struct OutputConfig {
     #[serde(rename = "filename")]
-    pub UNUSED_filename: String,
+    pub UNUSED_filename: Option<String>,
     pub debug: bool,
     pub excerpt_buffer: u8,
     pub excerpts_per_result: u8,
@@ -121,7 +121,7 @@ pub struct OutputConfig {
 impl Default for OutputConfig {
     fn default() -> Self {
         OutputConfig {
-            UNUSED_filename: "output.st".to_string(),
+            UNUSED_filename: None,
             debug: false,
             excerpt_buffer: 8,
             excerpts_per_result: 5,

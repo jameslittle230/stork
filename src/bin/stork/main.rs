@@ -57,7 +57,9 @@ fn main() {
                 test_handler(&submatches, &global_matches)
             } else {
                 let _ = app().print_help();
-                Err(StorkCommandLineError::InvalidCommandLineArguments)
+                Err(StorkCommandLineError::InvalidCommandLineArguments(
+                    "Invalid subcommand, expected one of `build`, `search`, or `test`".to_string(),
+                ))
             }
         }
     };
@@ -144,10 +146,26 @@ fn build_handler(
 ) -> Result<(), StorkCommandLineError> {
     let start_time = Instant::now();
 
-    let index = build_index(submatches.value_of("config").unwrap())?;
+    let config_file_path = submatches.value_of("config").unwrap();
+    let command_path = submatches.value_of("output");
+
+    let index = build_index(config_file_path)?;
     let build_time = Instant::now();
 
-    let path = submatches.value_of("output").unwrap();
+    let string = read_from_path(config_file_path).ok().unwrap();
+    let config = Config::from_string(&string).ok().unwrap();
+
+    let config_output_path: Option<&str> = config.output.UNUSED_filename.as_deref();
+
+    let path = match (command_path, config_output_path) {
+        (None, None) => Err(StorkCommandLineError::InvalidCommandLineArguments(
+            "Make sure you specify an output file for your index by adding the --output command line option."
+                .to_string(),
+        )),
+        (Some(command), _) => Ok(command),
+        (None, Some(config)) => Ok(config),
+    }?;
+
     let index_bytes = index.to_bytes();
     let bytes_written = write_index_bytes(path, &index_bytes)?;
 

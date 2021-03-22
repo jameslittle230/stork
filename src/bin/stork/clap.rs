@@ -33,8 +33,7 @@ pub fn app() -> App<'static, 'static> {
                     Arg::with_name("output")
                         .short("o")
                         .long("output")
-                        .help("The path of the index file that will be written")
-                        .default_value("./index.st"),
+                        .help("The path of the index file that will be written"),
                 )
                 .display_order(1),
         )

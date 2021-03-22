@@ -39,7 +39,7 @@ impl From<&Config> for Nudger {
             nudges.push(Nudge::InputSurroundingWordCount)
         }
 
-        if !config.output.UNUSED_filename.is_empty() {
+        if config.output.UNUSED_filename.is_some() {
             nudges.push(Nudge::OutputFile)
         }
 
@@ -49,7 +49,9 @@ impl From<&Config> for Nudger {
 
 impl Nudger {
     pub(super) fn print(&self) {
-        eprintln!("{}", "Config Warnings:".yellow());
+        if !self.nudges.is_empty() {
+            eprintln!("{}", "Config Warnings:".yellow());
+        }
 
         for nudge in &self.nudges {
             eprintln!("{}", nudge.description());
