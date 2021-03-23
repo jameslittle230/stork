@@ -37,13 +37,39 @@ fn main() {
 
         // Delete when releasing 2.0.0
         (_, _) => {
-            // @TODO: Nudge user to use new style command line interface
+            fn print_nudging_string(errant_command: &str) {
+                eprintln!("{} The command line interface has been updated: please use `stork {}` instead of `stork --{}`. See `stork --help` for more.", "Warning:".yellow(), errant_command, errant_command)
+            }
             if let Some(input_file) = app_matches.value_of("build") {
-                let global_matches =
-                    app().get_matches_from(vec!["stork", "build", "--input", input_file]);
-                let submatches = global_matches.subcommand_matches("build").unwrap();
-                build_handler(&submatches, &global_matches)
+                print_nudging_string("build");
+
+                let config = Config::from_file(input_file.into());
+                match config
+                    .map_err(|_| StorkCommandLineError::IndexReadError)
+                    .and_then(|config| {
+                        config.output.UNUSED_filename.ok_or(
+                            StorkCommandLineError::InvalidCommandLineArguments("Noo!".to_string()),
+                        )
+                    }) {
+                    Ok(output_file) => {
+                        let global_matches = app().get_matches_from(vec![
+                            "stork",
+                            "build",
+                            "--input",
+                            input_file,
+                            "--output",
+                            &output_file,
+                        ]);
+                        let submatches = global_matches.subcommand_matches("build").unwrap();
+                        build_handler(&submatches, &global_matches)
+                    }
+                    Err(e) => {
+                        eprintln!("Nooooo!");
+                        Err(e)
+                    }
+                }
             } else if let Some(values_iter) = app_matches.values_of("search") {
+                print_nudging_string("search");
                 let values: Vec<&str> = values_iter.collect();
                 let global_matches = app().get_matches_from(vec![
                     "stork", "search", "--input", values[0], "--query", values[1],
@@ -51,6 +77,7 @@ fn main() {
                 let submatches = global_matches.subcommand_matches("search").unwrap();
                 search_handler(&submatches, &global_matches)
             } else if let Some(input_file) = app_matches.value_of("test") {
+                print_nudging_string("test");
                 let global_matches =
                     app().get_matches_from(vec!["stork", "test", "--input", input_file]);
                 let submatches = global_matches.subcommand_matches("search").unwrap();
@@ -146,35 +173,19 @@ fn build_handler(
 ) -> Result<(), StorkCommandLineError> {
     let start_time = Instant::now();
 
-    let config_file_path = submatches.value_of("config").unwrap();
-    let command_path = submatches.value_of("output");
-
-    let index = build_index(config_file_path)?;
+    let index = build_index(submatches.value_of("config").unwrap())?;
+    let output_path = submatches.value_of("output").unwrap();
     let build_time = Instant::now();
 
-    let string = read_from_path(config_file_path).ok().unwrap();
-    let config = Config::from_string(&string).ok().unwrap();
-
-    let config_output_path: Option<&str> = config.output.UNUSED_filename.as_deref();
-
-    let path = match (command_path, config_output_path) {
-        (None, None) => Err(StorkCommandLineError::InvalidCommandLineArguments(
-            "Make sure you specify an output file for your index by adding the --output command line option."
-                .to_string(),
-        )),
-        (Some(command), _) => Ok(command),
-        (None, Some(config)) => Ok(config),
-    }?;
-
     let index_bytes = index.to_bytes();
-    let bytes_written = write_index_bytes(path, &index_bytes)?;
+    let bytes_written = write_index_bytes(output_path, &index_bytes)?;
 
     let end_time = Instant::now();
 
     eprintln!(
         "Index built, {} bytes written to {}.",
         bytes_written.to_formatted_string(&Locale::en),
-        path,
+        output_path,
     );
 
     if global_matches.is_present("timing") {

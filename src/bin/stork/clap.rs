@@ -15,15 +15,31 @@ pub fn app() -> App<'static, 'static> {
         .about("https://stork-search.net - Impossibly fast web search, made for static sites.")
         // .setting(AppSettings::SubcommandRequiredElseHelp)
         .setting(AppSettings::VersionlessSubcommands)
-        .arg(Arg::with_name("timing").short("t").long("timing"))
-        .arg(Arg::with_name("quiet").short("q").long("quiet"))
-        .arg(Arg::with_name("build").takes_value(true).long("build"))
-        .arg(Arg::with_name("test").takes_value(true).long("test"))
+        .arg(
+            Arg::with_name("timing")
+                .short("t")
+                .long("timing")
+                .help("Displays information on the command line about how long an operation took"),
+        )
+        // .arg(Arg::with_name("quiet").short("q").long("quiet"))
+        .arg(
+            Arg::with_name("build")
+                .takes_value(true)
+                .long("build")
+                .hidden(true),
+        )
+        .arg(
+            Arg::with_name("test")
+                .takes_value(true)
+                .long("test")
+                .hidden(true),
+        )
         .arg(
             Arg::with_name("search")
                 .takes_value(true)
                 .long("search")
-                .min_values(2),
+                .min_values(2)
+                .hidden(true),
         )
         .subcommand(
             SubCommand::with_name("build")
@@ -33,6 +49,8 @@ pub fn app() -> App<'static, 'static> {
                     Arg::with_name("output")
                         .short("o")
                         .long("output")
+                        .takes_value(true)
+                        .required(true)
                         .help("The path of the index file that will be written"),
                 )
                 .display_order(1),
@@ -77,5 +95,5 @@ pub fn app() -> App<'static, 'static> {
                 )
                 .display_order(3),
         )
-        .subcommand(SubCommand::with_name("explore-index"))
+    // .subcommand(SubCommand::with_name("explore-index"))
 }
