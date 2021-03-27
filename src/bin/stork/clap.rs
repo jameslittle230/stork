@@ -61,6 +61,7 @@ pub fn app() -> App<'static, 'static> {
                 .arg(
                     Arg::with_name("index")
                         .short("i")
+                        .long("index")
                         .takes_value(true)
                         .help("The path of the index file that should be searched.")
                         .required(true),
@@ -68,6 +69,7 @@ pub fn app() -> App<'static, 'static> {
                 .arg(
                     Arg::with_name("query")
                         .short("q")
+                        .long("query")
                         .takes_value(true)
                         .help("The search query to look up")
                         .required(true),
@@ -96,4 +98,59 @@ pub fn app() -> App<'static, 'static> {
                 .display_order(3),
         )
     // .subcommand(SubCommand::with_name("explore-index"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::app;
+
+    #[test]
+    fn valid_command_line_input_parses() {
+        let valid_inputs = vec![
+            "stork build -i something.toml -o something.st",
+            "stork build --input something.toml --output something.st",
+            "stork search --index something.st --query my-query",
+            "stork search --index - --query -",
+            "stork --timing search --index - --query -",
+            "stork -t search --index - --query -",
+            "stork search --index something.st --query my-query --json",
+            "stork search -i something.st -q my-query",
+            "stork -t search --index something.st --query my-query --json",
+            "stork --timing search -i something.st -q my-query",
+            "stork test -p 1620 -i something.st",
+            "stork test -i something.st -p 1620",
+            "stork test -i something.st",
+            "stork --build something.toml",
+        ];
+
+        for input in valid_inputs {
+            app()
+                .get_matches_from_safe(input.split(" "))
+                .unwrap_or_else(|e| panic!("Error with input {:?}: {}", &input, e));
+        }
+    }
+    #[test]
+    fn invalid_command_line_input_fails_to_parse() {
+        let invalid_inputs = vec![
+            "stork build -i something.toml",
+            "stork build --input something.toml",
+            "stork search -i something.st -j my-query -j",
+            "stork --build something.toml --input asdf",
+            "stork --build something.toml --output asdf",
+            "stork search --index something.st",
+            "stork search --query my-query",
+            "stork search --index - --query - --timing",
+            "stork search --index - --query - -t",
+            "stork search --index - -t --query -",
+            "stork search --index - --timing --query -",
+        ];
+
+        for input in invalid_inputs {
+            assert!(
+                app().get_matches_from_safe(input.split(" ")).is_err(),
+                "{} seemed to be a valid input",
+                input
+            )
+        }
+    }
 }
