@@ -121,6 +121,8 @@ mod tests {
             "stork test -i something.st -p 1620",
             "stork test -i something.st",
             "stork --build something.toml",
+            "stork --search something.toml my-query",
+            "stork --test something.st",
         ];
 
         for input in valid_inputs {
