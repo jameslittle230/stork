@@ -87,17 +87,4 @@ mod tests {
         let generated = Nudger::from(&Config::default());
         assert_eq!(intended, generated)
     }
-
-    #[test]
-    fn nudge_description() {
-        let intended = "== Config Warnings ==\n`input.surrounding_word_count` is deprecated and has no effect. Please use output.excerpt_buffer instead."
-            .to_string();
-
-        let generated = Nudger {
-            nudges: vec![Nudge::InputSurroundingWordCount],
-        }
-        .generate_formatted_output();
-
-        assert_eq!(intended, generated)
-    }
 }

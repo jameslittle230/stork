@@ -13,7 +13,7 @@ pub fn app() -> App<'static, 'static> {
         .version(crate_version!())
         .author("James Little <https://jameslittle.me>")
         .about("https://stork-search.net - Impossibly fast web search, made for static sites.")
-        // .setting(AppSettings::SubcommandRequiredElseHelp)
+        // .setting(AppSettings::SubcommandRequiredElseHelp) // TODO: When 2.0.0 is released, uncomment this
         .setting(AppSettings::VersionlessSubcommands)
         .arg(
             Arg::with_name("timing")
@@ -21,7 +21,6 @@ pub fn app() -> App<'static, 'static> {
                 .long("timing")
                 .help("Displays information on the command line about how long an operation took"),
         )
-        // .arg(Arg::with_name("quiet").short("q").long("quiet"))
         .arg(
             Arg::with_name("build")
                 .takes_value(true)
@@ -97,7 +96,6 @@ pub fn app() -> App<'static, 'static> {
                 )
                 .display_order(3),
         )
-    // .subcommand(SubCommand::with_name("explore-index"))
 }
 
 #[cfg(test)]

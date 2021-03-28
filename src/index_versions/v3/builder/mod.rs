@@ -130,7 +130,7 @@ mod tests {
     }
 
     #[test]
-    fn test_missing_html_selector_fails_gracefully() {
+    fn missing_html_selector_fails_gracefully() {
         let config = Config {
             input: InputConfig {
                 files: vec![
@@ -144,14 +144,17 @@ mod tests {
 
         assert_eq!(build(&config).unwrap().1.len(), 1);
 
-        assert_eq!(
-            build(&config).unwrap().1.first().unwrap().to_string(),
-            "Error: HTML selector `.article` is not present in the file while indexing `Missing Selector`"
-        );
+        assert!(build(&config)
+            .unwrap()
+            .1
+            .first()
+            .unwrap()
+            .to_string()
+            .contains("HTML selector `.article` is not present in the file"));
     }
 
     #[test]
-    fn test_empty_contents_fails_gracefully() {
+    fn empty_contents_fails_gracefully() {
         let config = Config {
             input: InputConfig {
                 files: vec![
@@ -165,10 +168,13 @@ mod tests {
 
         assert_eq!(build(&config).unwrap().1.len(), 1);
 
-        assert_eq!(
-            build(&config).unwrap().1.first().unwrap().to_string(),
-            "Error: No words in word list while indexing `Empty Contents`"
-        );
+        assert!(build(&config)
+            .unwrap()
+            .1
+            .first()
+            .unwrap()
+            .to_string()
+            .contains("No words in word list"));
     }
 
     #[test]
