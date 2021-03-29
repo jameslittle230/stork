@@ -53,7 +53,7 @@ pub fn wasm_search(name: &str, query: &str) -> String {
 
 #[wasm_bindgen]
 pub fn wasm_stork_version() -> String {
-    return env!("CARGO_PKG_VERSION").to_string();
+    env!("CARGO_PKG_VERSION").to_string()
 }
 
 #[cfg(test)]
