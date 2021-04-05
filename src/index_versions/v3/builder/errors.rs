@@ -1,8 +1,35 @@
-use colored::Colorize;
-
-use super::word_list_generators::WordListGenerationError;
 use crate::config::File;
+use colored::Colorize;
 use std::{error::Error, fmt};
+
+#[derive(Debug, Clone)]
+pub enum WordListGenerationError {
+    InvalidSRT,
+    FileNotFound,
+    CannotDetermineFiletype,
+    SelectorNotPresent(String),
+    WebPageNotFetched,
+    UnknownContentType,
+    EmptyWordList,
+}
+
+impl fmt::Display for WordListGenerationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let desc: String = match self {
+            WordListGenerationError::InvalidSRT => "SRT file could not be parsed".to_string(),
+            WordListGenerationError::SelectorNotPresent(selector_string) => format!(
+                "HTML selector `{}` is not present in the file",
+                selector_string
+            ),
+            WordListGenerationError::FileNotFound => "The file could not be found".to_string(),
+            WordListGenerationError::CannotDetermineFiletype => "Could not determine the filetype. Please use a known file extension or disambiguate the filetype within your configuration file".to_string(),
+            WordListGenerationError::WebPageNotFetched => "The web page could not be fetched".to_string(),
+            WordListGenerationError::UnknownContentType => "Content-Type is not present or invalid".to_string(),
+            WordListGenerationError::EmptyWordList => "No words in word list".to_string(),
+        };
+        write!(f, "{}", desc)
+    }
+}
 
 #[derive(Debug)]
 pub enum IndexGenerationError {
@@ -26,16 +53,18 @@ impl fmt::Display for IndexGenerationError {
                 if errors.len() == 1 { "error" } else {"errors"},
                 errors
                     .iter()
-                    .map(|e| e.to_string())
+                    .map(ToString::to_string)
                     .collect::<Vec<String>>()
                     .join("\n")
             )
-            .to_string(),
         };
 
         write!(f, "{}", desc)
     }
 }
+/**
+ * Associates a `WordListGenerationError` with a `File`.
+ */
 #[derive(Debug, Clone)]
 pub struct DocumentError {
     pub file: File,

@@ -8,7 +8,7 @@ use std::{
 };
 use std::{io::Read, process::exit};
 
-use colored::*;
+use colored::Colorize;
 
 mod clap;
 mod command_line_error;
@@ -48,7 +48,7 @@ fn main() {
                     .map_err(|_| StorkCommandLineError::IndexReadError)
                     .and_then(|config| {
                         config.output.UNUSED_filename.ok_or(
-                            StorkCommandLineError::InvalidCommandLineArguments("Noo!".to_string()),
+                            StorkCommandLineError::InvalidCommandLineArguments("You've used the old-style command line interface (`stork --build`) with an index file that is missing an output filename, so the output location of your index is ambiguous.".to_string()),
                         )
                     }) {
                     Ok(output_file) => {
@@ -64,7 +64,6 @@ fn main() {
                         build_handler(&submatches, &global_matches)
                     }
                     Err(e) => {
-                        eprintln!("Nooooo!");
                         Err(e)
                     }
                 }

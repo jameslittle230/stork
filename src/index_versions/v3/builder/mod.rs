@@ -1,5 +1,5 @@
 use super::structs::{
-    AnnotatedWord, Container, Contents, Entry, Excerpt, Index, PassthroughConfig, SearchResult,
+    AnnotatedWord, Container, Entry, Excerpt, Index, PassthroughConfig, SearchResult,
     WordListSource,
 };
 use crate::config::Config;
@@ -11,28 +11,24 @@ mod fill_stems;
 
 mod annotated_words_from_string;
 pub mod errors;
-
 pub mod intermediate_entry;
-mod word_list_generators;
 
 use colored::Colorize;
 use fill_containers::fill_containers;
 use fill_intermediate_entries::fill_intermediate_entries;
 use fill_stems::fill_stems;
 
-use errors::{DocumentError, IndexGenerationError};
+use errors::{DocumentError, IndexGenerationError, WordListGenerationError};
 
-use intermediate_entry::IntermediateEntry;
+use intermediate_entry::NormalizedEntry;
 
 pub mod nudger;
 use nudger::Nudger;
 
-pub mod frontmatter;
-
 pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
     Nudger::from(config).print();
 
-    let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
+    let mut intermediate_entries: Vec<NormalizedEntry> = Vec::new();
     let mut document_errors: Vec<DocumentError> = Vec::new();
     fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)?;
 

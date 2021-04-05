@@ -1,13 +1,13 @@
-use super::{remove_surrounding_punctuation, IntermediateEntry};
+use super::{remove_surrounding_punctuation, NormalizedEntry};
 use rust_stemmers::Stemmer;
 use std::collections::HashMap;
 
 pub fn fill_stems(
-    intermediate_entries: &[IntermediateEntry],
+    intermediate_entries: &[NormalizedEntry],
     stems: &mut HashMap<String, Vec<String>>,
 ) {
     for entry in intermediate_entries {
-        let contents = &entry.contents;
+        let contents = &entry.annotated_word_list;
 
         if let Some(stem_algorithm) = entry.stem_algorithm {
             for annotated_word in &contents.word_list {

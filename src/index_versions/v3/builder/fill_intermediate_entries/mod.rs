@@ -1,0 +1,171 @@
+use super::{DocumentError, WordListGenerationError};
+
+mod data_source_readers;
+use data_source_readers::read_from_data_source;
+
+mod word_list_generators;
+use word_list_generators::create_word_list;
+
+mod frontmatter;
+use self::frontmatter::parse_frontmatter;
+
+use super::{IndexGenerationError, NormalizedEntry};
+use crate::config::{Config, DataSource, File, Filetype, InputConfig, StemmingConfig};
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator, ProgressStyle};
+use std::{collections::HashMap, convert::TryInto};
+
+pub struct ReadResult {
+    pub(super) buffer: String,
+    pub(super) filetype: Option<Filetype>,
+
+    #[allow(dead_code)]
+    pub(super) frontmatter_fields: Option<HashMap<String, String>>,
+}
+
+impl ReadResult {
+    fn extract_frontmatter(&self, config: &ReaderConfig) -> Self {
+        let handling = config
+            .file
+            .frontmatter_handling_override
+            .as_ref()
+            .unwrap_or(&config.global.frontmatter_handling);
+        let (frontmatter_fields, buffer) = parse_frontmatter(handling, &self.buffer);
+        ReadResult {
+            buffer: buffer.to_string(),
+            filetype: self.filetype.clone(),
+            frontmatter_fields: Some(frontmatter_fields),
+        }
+    }
+}
+
+pub struct ReaderConfig {
+    pub global: InputConfig,
+    pub file: File,
+}
+
+impl ReaderConfig {
+    fn get_stem_algorithm(&self) -> Option<rust_stemmers::Algorithm> {
+        let current_stem_config = self
+            .file
+            .stemming_override
+            .as_ref()
+            .unwrap_or(&self.global.stemming);
+
+        match current_stem_config {
+            StemmingConfig::Language(alg) => Some(alg.to_owned()),
+            StemmingConfig::None => None,
+        }
+    }
+}
+
+pub(super) fn fill_intermediate_entries(
+    config: &Config,
+    intermediate_entries: &mut Vec<NormalizedEntry>,
+    document_errors: &mut Vec<DocumentError>,
+) -> Result<(), IndexGenerationError> {
+    if config.input.files.is_empty() {
+        return Err(IndexGenerationError::NoFilesSpecified);
+    }
+
+    let progress_bar = build_progress_bar(&config);
+
+    for stork_file in config
+        .input
+        .files
+        .iter()
+        .progress_with(progress_bar.to_owned())
+    {
+        let reader_config = ReaderConfig {
+            global: config.input.clone(),
+            file: stork_file.clone(),
+        };
+
+        tick_progress_bar_with_filename(&progress_bar, &stork_file.title);
+
+        let intermediate_entry_result: Result<NormalizedEntry, WordListGenerationError> =
+            || -> Result<NormalizedEntry, WordListGenerationError> {
+                let read_result = read_from_data_source(&reader_config)?;
+                let annotated_word_list = create_word_list(&reader_config, &read_result)?;
+
+                if annotated_word_list.word_list.is_empty() {
+                    return Err(WordListGenerationError::EmptyWordList);
+                }
+
+                Ok(NormalizedEntry {
+                    annotated_word_list,
+                    stem_algorithm: reader_config.get_stem_algorithm(),
+                    title: stork_file.title.clone(),
+                    url: stork_file.url.clone(),
+                    fields: reader_config.file.fields,
+                })
+            }();
+
+        match intermediate_entry_result {
+            Ok(ie) => {
+                intermediate_entries.push(ie);
+            }
+
+            Err(e) => {
+                let document_error = DocumentError {
+                    file: stork_file.clone(),
+                    word_list_generation_error: e,
+                };
+
+                if config.input.break_on_file_error {
+                    return Err(IndexGenerationError::DocumentErrors(vec![document_error]));
+                }
+
+                document_errors.push(document_error)
+            }
+        };
+    }
+
+    if config.input.break_on_file_error && !document_errors.is_empty() {
+        return Err(IndexGenerationError::DocumentErrors(
+            document_errors.clone(),
+        ));
+    }
+
+    Ok(())
+}
+
+fn build_progress_bar(config: &Config) -> ProgressBar {
+    let progress_bar = ProgressBar::new((config.input.files.len()).try_into().unwrap()).with_style(
+        ProgressStyle::default_bar()
+            .template("[{elapsed}] {bar:40.cyan/blue} {pos}/{len} | {msg}")
+            .progress_chars("##-"),
+    );
+
+    let url_file_count: u32 = config.input.files.iter().fold(0, |acc, file| {
+        if let DataSource::URL(_) = file.source {
+            acc + 1
+        } else {
+            acc
+        }
+    });
+
+    let progress_bar_draw_target = {
+        match url_file_count {
+            0 => ProgressDrawTarget::hidden(),
+            _ => ProgressDrawTarget::stderr_nohz(),
+        }
+    };
+
+    progress_bar.set_draw_target(progress_bar_draw_target);
+
+    progress_bar
+}
+
+fn tick_progress_bar_with_filename(progress_bar: &ProgressBar, filename: &str) {
+    let mut message = filename.to_string();
+    let truncation_prefix = "...";
+    let truncation_length = 21;
+
+    if message.len() > truncation_length {
+        message.truncate(truncation_length - truncation_prefix.len());
+        message.push_str(truncation_prefix)
+    }
+
+    progress_bar.set_message(&message);
+    progress_bar.tick();
+}
