@@ -5,14 +5,20 @@ import { loadWasm } from "./loaders/wasmLoader";
 import { resolveSearch, SearchData } from "./searchData";
 import StorkError from "./storkError";
 import { validateIndexParams } from "./validators/indexParamValidator";
+import { wasm_stork_version } from "stork-search";
+
+// Holds the URL of the currently loaded WASM blob, or `null` if the WASM
+// hasn't been loaded yet.
+let loadedWasmUrl: string | null = null;
 
 const wasmQueue: WasmQueue = new WasmQueue();
 const entityManager: EntityManager = new EntityManager(wasmQueue);
 
 function initialize(wasmOverrideUrl: string | null = null): Promise<void> {
   return loadWasm(wasmOverrideUrl)
-    .then(() => {
+    .then(fromUrl => {
       wasmQueue.flush();
+      loadedWasmUrl = fromUrl;
     })
     .catch(e => {
       // Send error to entity manager
@@ -71,4 +77,15 @@ function search(name: string, query: string): SearchData {
   return resolveSearch(name, query);
 }
 
-export { initialize, downloadIndex, attach, search, register };
+function debug(): Record<string, unknown> {
+  return {
+    wasmQueueMethods: wasmQueue.queue.length,
+    loadedWasmUrl: loadedWasmUrl,
+    indexes: entityManager.entities,
+    indexCount: Object.keys(entityManager.entities).length,
+    jsStorkVersion: process.env.VERSION,
+    wasmStorkVersion: wasm_stork_version()
+  };
+}
+
+export { initialize, downloadIndex, attach, search, register, debug };

@@ -51,6 +51,11 @@ pub fn wasm_search(name: &str, query: &str) -> String {
     WasmOutput::from(search_from_cache(name, query)).0
 }
 
+#[wasm_bindgen]
+pub fn wasm_stork_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
 #[cfg(test)]
 mod tests {
 
