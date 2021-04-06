@@ -7,7 +7,7 @@ pub mod url_data_source_reader;
 pub fn read_from_data_source(
     reader_config: &ReaderConfig,
 ) -> Result<ReadResult, WordListGenerationError> {
-    match &reader_config.file.source {
+    match &reader_config.file.source() {
         DataSource::Contents(contents) => Ok(ReadResult {
             buffer: contents.to_owned(),
             filetype: reader_config

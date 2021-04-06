@@ -146,7 +146,7 @@ fn build_progress_bar(config: &Config) -> ProgressBar {
     );
 
     let url_file_count: u32 = config.input.files.iter().fold(0, |acc, file| {
-        if let DataSource::URL(_) = file.source {
+        if let DataSource::URL(_) = file.source() {
             acc + 1
         } else {
             acc
@@ -182,7 +182,7 @@ fn tick_progress_bar_with_filename(progress_bar: &ProgressBar, filename: &str) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        config::{Config, File, InputConfig, OutputConfig},
+        config::{Config, DataSource, File, InputConfig, OutputConfig},
         LatestVersion::builder::{
             errors::{DocumentError, IndexGenerationError, WordListGenerationError},
             intermediate_entry::NormalizedEntry,
@@ -193,7 +193,8 @@ mod tests {
 
     #[test]
     fn break_on_file_error_breaks() {
-        let invalid_file = File::default(); // Empty word list error
+        let mut invalid_file = File::default();
+        invalid_file.explicit_source = Some(DataSource::Contents("".to_string())); // Empty word list error
         let mut input = InputConfig::default();
         input.files = vec![invalid_file];
         input.break_on_file_error = true;
@@ -219,7 +220,8 @@ mod tests {
 
     #[test]
     fn false_break_on_file_error_does_not_break() {
-        let invalid_file = File::default(); // Empty word list error
+        let mut invalid_file = File::default();
+        invalid_file.explicit_source = Some(DataSource::Contents("".to_string())); // Empty word list error
         let mut input = InputConfig::default();
         input.files = vec![invalid_file];
         input.break_on_file_error = false;
