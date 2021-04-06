@@ -178,3 +178,64 @@ fn tick_progress_bar_with_filename(progress_bar: &ProgressBar, filename: &str) {
     progress_bar.set_message(&message);
     progress_bar.tick();
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        config::{Config, File, InputConfig, OutputConfig},
+        LatestVersion::builder::{
+            errors::{DocumentError, IndexGenerationError, WordListGenerationError},
+            intermediate_entry::NormalizedEntry,
+        },
+    };
+
+    use super::fill_intermediate_entries;
+
+    #[test]
+    fn break_on_file_error_breaks() {
+        let invalid_file = File::default(); // Empty word list error
+        let mut input = InputConfig::default();
+        input.files = vec![invalid_file];
+        input.break_on_file_error = true;
+        let output = OutputConfig::default();
+        let config = Config { input, output };
+
+        let mut intermediate_entries: Vec<NormalizedEntry> = vec![];
+        let mut document_errors: Vec<DocumentError> = vec![];
+
+        let r = fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)
+            .err()
+            .unwrap();
+        if let IndexGenerationError::DocumentErrors(vec) = r {
+            let word_list_generation_error = &vec[0].word_list_generation_error;
+            assert_eq!(
+                word_list_generation_error,
+                &WordListGenerationError::EmptyWordList
+            )
+        } else {
+            assert!(false, "Result is {:?}", r);
+        }
+    }
+
+    #[test]
+    fn false_break_on_file_error_does_not_break() {
+        let invalid_file = File::default(); // Empty word list error
+        let mut input = InputConfig::default();
+        input.files = vec![invalid_file];
+        input.break_on_file_error = false;
+        let output = OutputConfig::default();
+        let config = Config { input, output };
+
+        let mut intermediate_entries: Vec<NormalizedEntry> = vec![];
+        let mut document_errors: Vec<DocumentError> = vec![];
+
+        let result =
+            fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors);
+        assert!(result.is_ok());
+        assert_eq!(document_errors.len(), 1);
+        assert_eq!(
+            document_errors[0].word_list_generation_error,
+            WordListGenerationError::EmptyWordList
+        );
+    }
+}

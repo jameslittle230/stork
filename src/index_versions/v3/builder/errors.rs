@@ -2,7 +2,7 @@ use crate::config::File;
 use colored::Colorize;
 use std::{error::Error, fmt};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WordListGenerationError {
     InvalidSRT,
     FileNotFound,
