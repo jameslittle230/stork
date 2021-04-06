@@ -26,7 +26,7 @@ impl AnnotatedWordable for str {
                 AnnotatedWord {
                     word: w.to_string(),
                     internal_annotations,
-                    ..Default::default()
+                    ..AnnotatedWord::default()
                 }
             })
             .collect()

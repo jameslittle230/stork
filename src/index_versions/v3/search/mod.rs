@@ -1,7 +1,7 @@
-use super::scores::*;
-use super::structs::*;
+use super::scores::STOPWORD_SCORE;
+use super::structs::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
 use crate::common::STOPWORDS;
-use crate::searcher::*;
+use crate::searcher::{OutputEntry, OutputResult, SearchOutput};
 use std::collections::HashMap;
 
 pub mod intermediate_excerpt;
@@ -14,7 +14,7 @@ pub fn search(index: &Index, query: &str) -> SearchOutput {
     let normalized_query = query.to_lowercase();
     let words_in_query: Vec<String> = normalized_query
         .split(|c| c == ' ' || c == '-')
-        .map(|s| s.to_string())
+        .map(ToString::to_string)
         .collect();
 
     // Get the containers for each word in the query, and separate them
@@ -23,8 +23,7 @@ pub fn search(index: &Index, query: &str) -> SearchOutput {
         .iter()
         .flat_map(|word| index.containers.get_key_value(word))
         .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
-        .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
-        .flatten()
+        .flat_map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
         .collect();
 
     for mut ie in &mut intermediate_excerpts {
@@ -83,7 +82,7 @@ impl ContainerWithQuery {
     fn get_intermediate_excerpts(&self, index: &Index) -> Vec<IntermediateExcerpt> {
         let mut output = vec![];
         // Put container's results in output
-        for (entry_index, result) in self.results.iter() {
+        for (entry_index, result) in &self.results {
             for excerpt in result.excerpts.to_owned() {
                 output.push(IntermediateExcerpt {
                     query: self.query.to_string(),
@@ -98,7 +97,7 @@ impl ContainerWithQuery {
         }
 
         // Put alias containers' results in output
-        for (alias_target, alias_score) in self.aliases.iter() {
+        for (alias_target, alias_score) in &self.aliases {
             if let Some(target_container) = index.containers.get(alias_target) {
                 for (entry_index, result) in target_container.results.to_owned() {
                     for excerpt in result.excerpts.to_owned() {

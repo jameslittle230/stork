@@ -1,22 +1,22 @@
-use super::super::structs::Contents;
+use super::super::structs::AnnotatedWordList;
 use super::super::structs::Entry;
 use crate::common::Fields;
 
 extern crate rust_stemmers;
 use rust_stemmers::Algorithm;
 
-pub struct IntermediateEntry {
-    pub(super) contents: Contents,
+pub struct NormalizedEntry {
+    pub(super) annotated_word_list: AnnotatedWordList,
     pub(super) stem_algorithm: Option<Algorithm>,
     pub(super) title: String,
     pub(super) url: String,
     pub(super) fields: Fields,
 }
 
-impl From<&IntermediateEntry> for Entry {
-    fn from(ie: &IntermediateEntry) -> Self {
+impl From<&NormalizedEntry> for Entry {
+    fn from(ie: &NormalizedEntry) -> Self {
         Entry {
-            contents: ie.contents.get_full_text(),
+            contents: ie.annotated_word_list.get_full_text(),
             title: ie.title.clone(),
             url: ie.url.clone(),
             fields: ie.fields.clone(),
@@ -26,7 +26,7 @@ impl From<&IntermediateEntry> for Entry {
 
 #[cfg(test)]
 mod tests {
-    use super::IntermediateEntry;
+    use super::NormalizedEntry;
     use crate::index_versions::v3::structs::*;
     use std::collections::HashMap;
 
@@ -44,8 +44,8 @@ mod tests {
             fields: fields.clone(),
         };
 
-        let generated = Entry::from(&IntermediateEntry {
-            contents: Contents { word_list: vec![] },
+        let generated = Entry::from(&NormalizedEntry {
+            annotated_word_list: AnnotatedWordList { word_list: vec![] },
             stem_algorithm: None,
             title: "My Title".to_string(),
             url: "https://example.com".to_string(),

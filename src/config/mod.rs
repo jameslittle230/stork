@@ -41,10 +41,10 @@ impl Config {
     pub fn from_file(path: std::path::PathBuf) -> Result<Config, ConfigReadErr> {
         let contents =
             fs::read_to_string(&path).map_err(|_| ConfigReadErr::UnreadableFile(path))?;
-        Config::from_string(contents)
+        Config::from_string(&contents)
     }
 
-    pub fn from_string(str: String) -> Result<Config, ConfigReadErr> {
+    pub fn from_string(str: &str) -> Result<Config, ConfigReadErr> {
         if str.is_empty() {
             return Err(ConfigReadErr::EmptyString);
         }
@@ -71,11 +71,10 @@ pub struct InputConfig {
     pub url_prefix: String,
     pub title_boost: TitleBoost,
     pub stemming: StemmingConfig,
-
-    #[serde(default)]
     pub html_selector: Option<String>,
     pub frontmatter_handling: FrontmatterConfig,
     pub files: Vec<File>,
+    pub break_on_file_error: bool,
     pub srt_config: SRTConfig,
     pub minimum_indexed_substring_length: u8,
     pub minimum_index_ideographic_substring_length: u8,
@@ -84,16 +83,17 @@ pub struct InputConfig {
 impl Default for InputConfig {
     fn default() -> Self {
         InputConfig {
-            UNUSED_surrounding_word_count: Default::default(),
-            base_directory: Default::default(),
-            url_prefix: Default::default(),
-            title_boost: Default::default(),
-            stemming: Default::default(),
-            html_selector: Default::default(),
-            frontmatter_handling: Default::default(),
-            files: Default::default(),
-            srt_config: Default::default(),
+            UNUSED_surrounding_word_count: Option::default(),
+            base_directory: String::default(),
+            url_prefix: String::default(),
+            title_boost: TitleBoost::default(),
+            stemming: StemmingConfig::default(),
+            html_selector: Option::default(),
+            frontmatter_handling: FrontmatterConfig::default(),
+            files: Vec::default(),
+            srt_config: SRTConfig::default(),
 
+            break_on_file_error: false,
             minimum_indexed_substring_length: 3,
             minimum_index_ideographic_substring_length: 1,
         }
@@ -108,8 +108,10 @@ impl Default for InputConfig {
  */
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(deny_unknown_fields, default)]
+#[allow(non_snake_case)]
 pub struct OutputConfig {
-    pub filename: String,
+    #[serde(rename = "filename")]
+    pub UNUSED_filename: Option<String>,
     pub debug: bool,
     pub excerpt_buffer: u8,
     pub excerpts_per_result: u8,
@@ -119,7 +121,7 @@ pub struct OutputConfig {
 impl Default for OutputConfig {
     fn default() -> Self {
         OutputConfig {
-            filename: "output.st".to_string(),
+            UNUSED_filename: None,
             debug: false,
             excerpt_buffer: 8,
             excerpts_per_result: 5,

@@ -1,4 +1,7 @@
-use super::structs::*;
+use super::structs::{
+    AnnotatedWord, Container, Entry, Excerpt, Index, PassthroughConfig, SearchResult,
+    WordListSource,
+};
 use crate::config::Config;
 use std::collections::HashMap;
 
@@ -8,38 +11,31 @@ mod fill_stems;
 
 mod annotated_words_from_string;
 pub mod errors;
-
 pub mod intermediate_entry;
-mod word_list_generators;
 
+use colored::Colorize;
 use fill_containers::fill_containers;
 use fill_intermediate_entries::fill_intermediate_entries;
 use fill_stems::fill_stems;
 
-use errors::{DocumentError, IndexGenerationError};
+use errors::{DocumentError, IndexGenerationError, WordListGenerationError};
 
-use intermediate_entry::IntermediateEntry;
+use intermediate_entry::NormalizedEntry;
 
 pub mod nudger;
 use nudger::Nudger;
 
-pub mod frontmatter;
-
-extern crate rust_stemmers;
-
 pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
-    let nudger = Nudger::from(config);
-    if !nudger.is_empty() {
-        println!("{}", Nudger::from(config).generate_formatted_output());
-    }
+    Nudger::from(config).print();
 
-    let mut intermediate_entries: Vec<IntermediateEntry> = Vec::new();
+    let mut intermediate_entries: Vec<NormalizedEntry> = Vec::new();
     let mut document_errors: Vec<DocumentError> = Vec::new();
     fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)?;
 
     if !document_errors.is_empty() {
-        println!(
-            "{} error{} while indexing files:",
+        eprintln!(
+            "{} {} error{} while indexing files. Your index was still generated, though the erroring files were omitted.",
+            "Warning:".yellow(),
             document_errors.len(),
             match document_errors.len() {
                 1 => "",
@@ -48,7 +44,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
         )
     }
     for error in &document_errors {
-        println!("- {}", &error);
+        eprintln!("{}", &error);
     }
 
     if intermediate_entries.is_empty() {
@@ -130,7 +126,7 @@ mod tests {
     }
 
     #[test]
-    fn test_missing_html_selector_fails_gracefully() {
+    fn missing_html_selector_fails_gracefully() {
         let config = Config {
             input: InputConfig {
                 files: vec![
@@ -144,14 +140,17 @@ mod tests {
 
         assert_eq!(build(&config).unwrap().1.len(), 1);
 
-        assert_eq!(
-            build(&config).unwrap().1.first().unwrap().to_string(),
-            "Error: HTML selector `.article` is not present in the file while indexing `Missing Selector`"
-        );
+        assert!(build(&config)
+            .unwrap()
+            .1
+            .first()
+            .unwrap()
+            .to_string()
+            .contains("HTML selector `.article` is not present in the file"));
     }
 
     #[test]
-    fn test_empty_contents_fails_gracefully() {
+    fn empty_contents_fails_gracefully() {
         let config = Config {
             input: InputConfig {
                 files: vec![
@@ -165,10 +164,13 @@ mod tests {
 
         assert_eq!(build(&config).unwrap().1.len(), 1);
 
-        assert_eq!(
-            build(&config).unwrap().1.first().unwrap().to_string(),
-            "Error: No words in word list while indexing `Empty Contents`"
-        );
+        assert!(build(&config)
+            .unwrap()
+            .1
+            .first()
+            .unwrap()
+            .to_string()
+            .contains("No words in word list"));
     }
 
     #[test]
@@ -184,9 +186,12 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(
-            build(&config).err().unwrap(),
-            IndexGenerationError::NoValidFiles
+        assert!(
+            if let Some(IndexGenerationError::NoValidFiles) = build(&config).err() {
+                true
+            } else {
+                false
+            }
         );
     }
 

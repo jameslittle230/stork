@@ -60,6 +60,8 @@
     "test": "jest",
     "serve": "./scripts/serve.sh",
 
+    "clippy": "./scripts/clippy.sh",
+
     "clean": "rm -rf target pkg dist coverage node_modules"
   },
   "//": [

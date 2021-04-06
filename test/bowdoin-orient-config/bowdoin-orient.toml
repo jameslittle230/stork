@@ -1,5 +1,6 @@
 [input]
 html_selector = "main > article.post > .single__content"
+# break_on_file_error = true
 
 [[input.files]]
 url = "https://bowdoinorient.com/2021/02/19/from-zoom-hangouts-to-soup-cans-bowdoins-crew-team-gets-creative-during-social-distancing/"

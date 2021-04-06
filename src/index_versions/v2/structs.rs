@@ -1,4 +1,4 @@
-use super::scores::*;
+use super::scores::_MATCHED_WORD_SCORE;
 use crate::IndexFromFile;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -40,8 +40,8 @@ pub(super) struct Excerpt {
 /**
  * A Container holds:
  *
- * - a HashMap of EntryIndexes to SearchResults
- * - a HashMap of AliasTargets to scores
+ * - a `HashMap` of `EntryIndexes` to `SearchResults`
+ * - a `HashMap` of `AliasTargets` to scores
  *
  * Each valid query should return a single Container. It is possible to derive
  * all search results for a given query from a single container.
@@ -71,16 +71,16 @@ impl Index {
     pub fn from_file(file: &IndexFromFile) -> Index {
         let (version_size_bytes, rest) = file.split_at(std::mem::size_of::<u64>());
         let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());
-        let (_version_bytes, rest) = rest.split_at(version_size as usize);
+        let (_version_bytes, rest) = rest.split_at(version_size.try_into().unwrap());
 
         let (entries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
         let entries_size = u64::from_be_bytes(entries_size_bytes.try_into().unwrap());
-        let (entries_bytes, rest) = rest.split_at(entries_size as usize);
+        let (entries_bytes, rest) = rest.split_at(entries_size.try_into().unwrap());
         let entries = bincode::deserialize(entries_bytes).unwrap();
 
         let (queries_size_bytes, rest) = rest.split_at(std::mem::size_of::<u64>());
         let queries_size = u64::from_be_bytes(queries_size_bytes.try_into().unwrap());
-        let (queries_bytes, _rest) = rest.split_at(queries_size as usize);
+        let (queries_bytes, _rest) = rest.split_at(queries_size.try_into().unwrap());
         let queries = bincode::deserialize(queries_bytes).unwrap();
 
         Index { entries, queries }

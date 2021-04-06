@@ -1,7 +1,7 @@
-use super::scores::*;
-use super::structs::*;
+use super::scores::STOPWORD_SCORE;
+use super::structs::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
 use crate::common::STOPWORDS;
-use crate::searcher::*;
+use crate::searcher::{HighlightRange, OutputEntry, OutputResult, SearchError, SearchOutput};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -53,7 +53,7 @@ impl ContainerWithQuery {
     fn get_intermediate_excerpts(&self, index: &Index) -> Vec<IntermediateExcerpt> {
         let mut output = vec![];
         // Put container's results in output
-        for (entry_index, result) in self.results.iter() {
+        for (entry_index, result) in &self.results {
             for excerpt in result.excerpts.to_owned() {
                 output.push(IntermediateExcerpt {
                     query: self.query.to_string(),
@@ -65,7 +65,7 @@ impl ContainerWithQuery {
         }
 
         // Put alias containers' results in output
-        for (alias_target, alias_score) in self.aliases.iter() {
+        for (alias_target, alias_score) in &self.aliases {
             if let Some(target_container) = index.queries.get(alias_target) {
                 for (entry_index, result) in target_container.results.to_owned() {
                     for excerpt in result.excerpts.to_owned() {
@@ -106,7 +106,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         let split_contents: Vec<String> = entry
             .contents
             .split_whitespace()
-            .map(|s| s.to_string())
+            .map(std::string::ToString::to_string)
             .collect();
 
         // Get rid of intermediate excerpts that refer to the same word index.
@@ -121,9 +121,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         for ie in &ies {
             if let Some(most_recent) = ies_grouped_by_word_index.last_mut() {
                 if let Some(trailing_ie) = most_recent.first() {
-                    if (ie.word_index as isize) - (trailing_ie.word_index as isize)
-                        < (EXCERPT_BUFFER as isize)
-                    {
+                    if ie.word_index - trailing_ie.word_index < EXCERPT_BUFFER {
                         most_recent.push(ie);
                         continue;
                     }
@@ -191,14 +189,10 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             })
             .collect();
 
-        excerpts.sort_by_key(|e| -(e.score as i16));
+        excerpts.sort_by(|a, b| b.score.cmp(&a.score));
         excerpts.truncate(EXCERPTS_PER_RESULT);
 
-        let score = if let Some(first) = excerpts.first() {
-            first.score
-        } else {
-            0
-        };
+        let score = excerpts.first().map_or(0, |first| first.score);
 
         OutputResult {
             entry: OutputEntry::from(entry),
@@ -216,15 +210,17 @@ pub fn search(index: &Index, query: &str) -> Result<SearchOutput, SearchError> {
 
 pub fn internal_search(index: &Index, query: &str) -> SearchOutput {
     let normalized_query = query.to_lowercase();
-    let words_in_query: Vec<String> = normalized_query.split(' ').map(|s| s.to_string()).collect();
+    let words_in_query: Vec<String> = normalized_query
+        .split(' ')
+        .map(std::string::ToString::to_string)
+        .collect();
 
     // Get containers for each word in the query
     let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
         .iter()
         .flat_map(|word| index.queries.get_key_value(word))
         .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
-        .map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
-        .flatten()
+        .flat_map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
         .collect();
 
     for mut ie in &mut intermediate_excerpts {

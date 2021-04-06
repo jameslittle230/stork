@@ -1,3 +1,5 @@
+use colored::Colorize;
+
 use crate::config::Config;
 
 /**
@@ -17,12 +19,14 @@ pub(super) struct Nudger {
 #[derive(Debug, PartialEq)]
 enum Nudge {
     InputSurroundingWordCount,
+    OutputFile,
 }
 
 impl Nudge {
     fn description(&self) -> &str {
         match self {
-            Nudge::InputSurroundingWordCount => "`input.surrounding_word_count` is deprecated and has no effect. Please use output.excerpt_buffer instead."
+            Nudge::InputSurroundingWordCount => "The config option `input.surrounding_word_count` is deprecated and has no effect. Please use output.excerpt_buffer instead.",
+            Nudge::OutputFile => "The config option `output.filename` is deprecated and has no effect. Please use the --output command line option instead."
         }
     }
 }
@@ -35,28 +39,23 @@ impl From<&Config> for Nudger {
             nudges.push(Nudge::InputSurroundingWordCount)
         }
 
+        if config.output.UNUSED_filename.is_some() {
+            nudges.push(Nudge::OutputFile)
+        }
+
         Nudger { nudges }
     }
 }
 
 impl Nudger {
-    pub(super) fn is_empty(&self) -> bool {
-        return self.nudges.is_empty();
-    }
-
-    pub(super) fn generate_formatted_output(&self) -> String {
-        let mut output: String = "".to_string();
-
-        if !&self.nudges.is_empty() {
-            output.push_str("== Config Warnings ==");
+    pub(super) fn print(&self) {
+        if !self.nudges.is_empty() {
+            eprintln!("{}", "Config Warnings:".yellow());
         }
 
         for nudge in &self.nudges {
-            output.push('\n');
-            output.push_str(nudge.description())
+            eprintln!("{}", nudge.description());
         }
-
-        output
     }
 }
 
@@ -86,19 +85,6 @@ mod tests {
     fn default_config_creates_empty_nudge() {
         let intended = Nudger { nudges: vec![] };
         let generated = Nudger::from(&Config::default());
-        assert_eq!(intended, generated)
-    }
-
-    #[test]
-    fn nudge_description() {
-        let intended = "== Config Warnings ==\n`input.surrounding_word_count` is deprecated and has no effect. Please use output.excerpt_buffer instead."
-            .to_string();
-
-        let generated = Nudger {
-            nudges: vec![Nudge::InputSurroundingWordCount],
-        }
-        .generate_formatted_output();
-
         assert_eq!(intended, generated)
     }
 }

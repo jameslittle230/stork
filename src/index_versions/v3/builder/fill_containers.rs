@@ -1,21 +1,25 @@
-use super::{super::scores::*, annotated_words_from_string::AnnotatedWordable};
 use super::{
-    remove_surrounding_punctuation, AnnotatedWord, Container, Excerpt, IntermediateEntry,
+    super::scores::{PREFIX_SCORE, STEM_SCORE},
+    annotated_words_from_string::AnnotatedWordable,
+};
+
+use super::{
+    remove_surrounding_punctuation, AnnotatedWord, Container, Excerpt, NormalizedEntry,
     SearchResult, WordListSource,
 };
 use crate::config::Config;
 use rust_stemmers::Stemmer;
-use std::{collections::HashMap, ops::Range};
+use std::{collections::HashMap, convert::TryInto, ops::Range};
 
 pub fn fill_containers(
     config: &Config,
-    intermediate_entries: &[IntermediateEntry],
+    intermediate_entries: &[NormalizedEntry],
     stems: &HashMap<String, Vec<String>>,
     containers: &mut HashMap<String, Container>,
 ) {
     for (entry_index, entry) in intermediate_entries.iter().enumerate() {
         let words_in_title: Vec<AnnotatedWord> = entry.title.make_annotated_words();
-        let words_in_contents: Vec<AnnotatedWord> = entry.contents.word_list.to_owned();
+        let words_in_contents: Vec<AnnotatedWord> = entry.annotated_word_list.word_list.to_owned();
 
         let word_lists = vec![
             (WordListSource::Title, words_in_title),
@@ -111,12 +115,12 @@ fn fill_other_containers_alias_maps_with_prefixes(
 
         let _alias_score = alises_map
             .entry(normalized_word.to_string())
-            .or_insert(PREFIX_SCORE - (chars.len() - n) as u8);
+            .or_insert(PREFIX_SCORE - ((chars.len() - n).try_into().unwrap_or(0)));
     }
 }
 
 fn fill_other_containers_alias_maps_with_reverse_stems(
-    entry: &IntermediateEntry,
+    entry: &NormalizedEntry,
     stems: &HashMap<String, Vec<String>>,
     containers: &mut HashMap<String, Container>,
     normalized_word: &str,
@@ -183,7 +187,7 @@ fn char_is_cjk_ideograph(c: &char) -> bool {
 mod tests {
     use crate::{
         config::Config,
-        LatestVersion::{builder::intermediate_entry::IntermediateEntry, structs::Contents},
+        LatestVersion::{builder::intermediate_entry::NormalizedEntry, structs::AnnotatedWordList},
     };
     use std::collections::HashMap;
 
@@ -191,8 +195,8 @@ mod tests {
 
     #[test]
     fn container_filling_continues_after_encountering_unnormalizable_word() {
-        let intermediate_entry = IntermediateEntry {
-            contents: Contents { word_list: vec![] },
+        let intermediate_entry = NormalizedEntry {
+            annotated_word_list: AnnotatedWordList { word_list: vec![] },
             title: "10 - Polymorphism".to_string(),
             url: "".to_string(),
             fields: HashMap::default(),

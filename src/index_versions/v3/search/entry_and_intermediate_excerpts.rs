@@ -23,7 +23,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
         let split_contents: Vec<String> = entry
             .contents
             .split_whitespace()
-            .map(|s| s.to_string())
+            .map(ToString::to_string)
             .collect();
 
         let mut ies: Vec<&IntermediateExcerpt> = data
@@ -112,21 +112,13 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 // Excerpt, we have to either combine or filter data. For
                 // `fields` and `internal_annotations`, I'm taking the data from
                 // the first intermediate excerpt in the vector.
-                let fields = {
-                    if let Some(first) = ies.first() {
-                        first.fields.clone()
-                    } else {
-                        HashMap::new()
-                    }
-                };
+                let fields = ies
+                    .first()
+                    .map_or_else(HashMap::new, |first| first.fields.clone());
 
-                let internal_annotations = {
-                    if let Some(first) = ies.first() {
-                        first.internal_annotations.clone()
-                    } else {
-                        Vec::default()
-                    }
-                };
+                let internal_annotations = ies
+                    .first()
+                    .map_or_else(Vec::default, |first| first.internal_annotations.clone());
 
                 crate::searcher::Excerpt {
                     text,
@@ -166,11 +158,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 TitleBoost::Ridiculous => 5000,
             };
 
-        let score = if let Some(first) = excerpts.first() {
-            first.score
-        } else {
-            0
-        } + title_boost_modifier;
+        let score = excerpts.first().map_or(0, |first| first.score) + title_boost_modifier;
 
         OutputResult {
             entry: OutputEntry::from(entry),

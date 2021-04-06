@@ -1,11 +1,11 @@
 use crate::common::Fields;
-use crate::config::{FrontmatterConfig, InputConfig};
+use crate::config::FrontmatterConfig;
 use frontmatter::{parse_and_find_content, Yaml};
 use std::collections::HashMap;
 
-pub fn parse_frontmatter(config: &InputConfig, buffer: &str) -> (Fields, Box<String>) {
+pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields, Box<String>) {
     let default_output = (HashMap::new(), Box::new(buffer.to_string()));
-    match config.frontmatter_handling {
+    match handling {
         FrontmatterConfig::Ignore => default_output,
         FrontmatterConfig::Omit => {
             if let Ok((_yaml, text)) = parse_and_find_content(&buffer) {
@@ -15,24 +15,20 @@ pub fn parse_frontmatter(config: &InputConfig, buffer: &str) -> (Fields, Box<Str
             }
         }
         FrontmatterConfig::Parse => {
-            if let Ok((yaml, text)) = parse_and_find_content(&buffer) {
-                if let Some(yaml) = yaml {
-                    if let Yaml::Hash(map) = yaml {
-                        let fields = map
-                            .into_iter()
-                            .map(|(k, v)| {
-                                (
-                                    k.into_string().unwrap_or_else(|| "".to_string()),
-                                    v.clone().into_string().unwrap_or_else(|| {
-                                        v.into_i64()
-                                            .map_or("default".to_string(), |i| i.to_string())
-                                    }),
-                                )
-                            })
-                            .collect();
-                        return (fields, Box::new(text.trim().to_string()));
-                    }
-                }
+            if let Ok((Some(Yaml::Hash(map)), text)) = parse_and_find_content(&buffer) {
+                let fields = map
+                    .into_iter()
+                    .map(|(k, v)| {
+                        (
+                            k.into_string().unwrap_or_else(|| "".to_string()),
+                            v.clone().into_string().unwrap_or_else(|| {
+                                v.into_i64()
+                                    .map_or("default".to_string(), |i| i.to_string())
+                            }),
+                        )
+                    })
+                    .collect();
+                return (fields, Box::new(text.trim().to_string()));
             }
 
             default_output
@@ -44,10 +40,10 @@ pub fn parse_frontmatter(config: &InputConfig, buffer: &str) -> (Fields, Box<Str
 mod tests {
     use super::*;
     #[test]
-    fn test_default_input_config_omits_frontmatter() {
+    fn omit_option() {
         let expected: (Fields, String) = (HashMap::new(), "this is not".to_string());
         let output = parse_frontmatter(
-            &InputConfig::default(),
+            &FrontmatterConfig::Omit,
             &mut r#"---
 this: "is frontmatter"
 "that takes": "multiple lines"
@@ -65,7 +61,7 @@ this is not
     }
 
     #[test]
-    fn test_parse_option_parses_correctly_frontmatter() {
+    fn parse_option() {
         let expected: (Fields, String) = (
             [
                 ("this".to_string(), "is frontmatter".to_string()),
@@ -79,10 +75,7 @@ this is not
             "this is not".to_string(),
         );
         let output = parse_frontmatter(
-            &InputConfig {
-                frontmatter_handling: FrontmatterConfig::Parse,
-                ..Default::default()
-            },
+            &FrontmatterConfig::Parse,
             &mut r#"---
 this: "is frontmatter"
 "that takes": "multiple lines"

@@ -14,7 +14,7 @@ pub struct SearchOutput {
 }
 
 /**
- * Correlates an OutputEntry with a vector of excerpts. Represents a single
+ * Correlates an `OutputEntry` with a vector of excerpts. Represents a single
  * document that contains search results.
  */
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

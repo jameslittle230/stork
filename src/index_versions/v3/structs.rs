@@ -1,4 +1,4 @@
-use super::scores::*;
+use super::scores::MATCHED_WORD_SCORE;
 use crate::config::TitleBoost;
 use crate::{
     common::{Fields, InternalWordAnnotation},
@@ -69,8 +69,8 @@ pub(super) struct Entry {
 /**
  * A Container holds:
  *
- * - a HashMap of EntryIndexes to SearchResults
- * - a HashMap of AliasTargets to scores
+ * - a `HashMap` of `EntryIndexes` to `SearchResults`
+ * - a `HashMap` of `AliasTargets` to scores
  *
  * Each valid query should return a single Container. It is possible to derive
  * all search results for a given query from a single container.
@@ -146,18 +146,17 @@ pub(super) struct AnnotatedWord {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct Contents {
+pub struct AnnotatedWordList {
     pub(super) word_list: Vec<AnnotatedWord>,
 }
 
-impl Contents {
+impl AnnotatedWordList {
     pub(super) fn get_full_text(&self) -> String {
         self.word_list
             .iter()
             .map(|aw| aw.word.clone())
             .collect::<Vec<String>>()
             .join(" ")
-        // encode_minimal(out.as_str())
     }
 }
 
@@ -182,7 +181,7 @@ mod tests {
     #[test]
     fn get_full_text() {
         let intended = "This is-a set of words.".to_string();
-        let generated = Contents {
+        let generated = AnnotatedWordList {
             word_list: vec![
                 AnnotatedWord {
                     word: "This".to_string(),
