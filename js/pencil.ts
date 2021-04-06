@@ -13,8 +13,8 @@ export function highlight(
   let charactersAlreadyAdded = 0;
 
   for (const range of highlight_ranges) {
-    const beginningInsertion = `<span class="stork-highlight">`;
-    const endInsertion = `</span>`;
+    const beginningInsertion = `<mark class="stork-highlight">`;
+    const endInsertion = `</mark>`;
 
     text = insert(
       text,

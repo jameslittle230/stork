@@ -52,7 +52,7 @@ The classes in the example above (`stork-input`, `stork-output`) are for the the
 
 **Step 2: Include the Javascript**
 
-You need to include `stork.js`, which you can either load from the Stork CDN (optimal) or host yourself (not optimal). This will load the Stork WebAssembly blob and create the Stork object, which will allow for registering and configuring indices.
+You need to include `stork.js`, which you can either load from the Stork CDN or host yourself. This will load the Stork WebAssembly blob and create the Stork object, which will allow for registering and configuring indices.
 
 Then, you should register at least one index:
 
