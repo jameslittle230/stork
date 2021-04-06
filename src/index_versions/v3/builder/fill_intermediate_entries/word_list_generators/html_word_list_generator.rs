@@ -105,177 +105,102 @@ mod tests {
         );
     }
 
-    //     #[test]
-    //     fn test_html_content_extraction_with_custom_selector() {
-    //         let expected = "This content should be indexed";
-    //         let computed: String = (HTMLWordListGenerator {})
-    //             .create_word_list(
-    //                 &InputConfig {
-    //                     html_selector: Some(".yes".to_string()),
-    //                     ..Default::default()
-    //                 },
-    //                 r#"
-    //                 <html>
-    //                     <head></head>
-    //                     <body>
-    //                         <h1>This is a title</h1>
-    //                         <main>
-    //                             <section class="no"><p>Stork should not recognize this text</p></section>
-    //                             <section class="yes"><p>This content should be indexed</p></section>
-    //                         </main>
-    //                     </body>
-    //                 </html>"#,
-    //             ).ok().unwrap()
-    //             .word_list
-    //             .iter()
-    //             .map(|aw| aw.word.clone())
-    //             .collect::<Vec<String>>()
-    //             .join(" ");
+    #[test]
+    fn test_html_content_extraction_with_custom_selector() {
+        run_html_parse_test(
+            "This content should be indexed",
+            Some(".yes"),
+            r#"
+        <html>
+            <head></head>
+            <body>
+                <h1>This is a title</h1>
+                <main>
+                    <section class="no"><p>Stork should not recognize this text</p></section>
+                    <section class="yes"><p>This content should be indexed</p></section>
+                </main>
+            </body>
+        </html>"#,
+        )
+    }
 
-    //         assert_eq!(expected, computed);
-    //     }
+    #[test]
+    fn test_selector_not_present() {
+        let computed = generate(
+                &reader_config_from_html_selector(Some(".yes")),
+                &read_result_from_string(r#"
+                <html>
+                    <head></head>
+                    <body>
+                        <h1>This is a title</h1>
+                        <main>
+                            <section class="no"><p>Stork should not recognize this text</p></section>
+                        </main>
+                    </body>
+                </html>"#)).is_err();
 
-    //     #[test]
-    //     fn test_selector_not_present() {
-    //         let computed = (HTMLWordListGenerator {})
-    //             .create_word_list(
-    //                 &InputConfig {
-    //                     html_selector: Some(".yes".to_string()),
-    //                     ..Default::default()
-    //                 },
-    //                 r#"
-    //                 <html>
-    //                     <head></head>
-    //                     <body>
-    //                         <h1>This is a title</h1>
-    //                         <main>
-    //                             <section class="no"><p>Stork should not recognize this text</p></section>
-    //                         </main>
-    //                     </body>
-    //                 </html>"#,
-    //             ).is_err();
+        assert!(computed);
+    }
 
-    //         assert_eq!(true, computed);
-    //     }
+    #[test]
+    fn test_selector_present_but_empty_contents() {
+        run_html_parse_test(
+            "",
+            Some(".yes"),
+            r#"
+            <html>
+                <head></head>
+                <body>
+                    <h1>This is a title</h1>
+                    <main>
+                        <section class="no"><p>Stork should not recognize this text</p></section>
+                        <section class="yes"><p></p></section>
+                    </main>
+                </body>
+            </html>"#,
+        )
+    }
 
-    //     #[test]
-    //     fn test_selector_present_but_empty_contents() {
-    //         let computed = (HTMLWordListGenerator {})
-    //             .create_word_list(
-    //                 &InputConfig {
-    //                     html_selector: Some(".yes".to_string()),
-    //                     ..Default::default()
-    //                 },
-    //                 r#"
-    //                 <html>
-    //                     <head></head>
-    //                     <body>
-    //                         <h1>This is a title</h1>
-    //                         <main>
-    //                             <section class="no"><p>Stork should not recognize this text</p></section>
-    //                             <section class="yes"><p></p></section>
-    //                         </main>
-    //                     </body>
-    //                 </html>"#,
-    //             ).ok().unwrap() // it shouldn't panic here! if it does the test has failed
-    //             .word_list.len();
+    #[test]
+    fn test_html_content_extraction_with_multiple_selector_matches() {
+        run_html_parse_test(
+            "This content should be indexed. This content is in a duplicate selector. It should also be indexed.", 
+            Some(".yes"), 
+            r#"
+            <html>
+                <head></head>
+                <body>
+                    <h1>This is a title</h1>
+                    <main>
+                        <section class="no"><p>Stork should not recognize this text</p></section>
+                        <section class="yes"><p>This content should be indexed.</p></section>
+                        <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
+                    </main>
+                </body>
+            </html>"#)
+    }
 
-    //         assert_eq!(0, computed);
-    //     }
-
-    //     #[test]
-    //     fn test_html_content_extraction_with_multiple_selector_matches() {
-    //         let expected = "This content should be indexed. This content is in a duplicate selector. It should also be indexed.";
-    //         let computed: String = create_word_list(
-    //                 &InputConfig {
-    //                     html_selector: Some(".yes".to_string()),
-    //                     ..Default::default()
-    //                 },
-    //                 r#"
-    //                 <html>
-    //                     <head></head>
-    //                     <body>
-    //                         <h1>This is a title</h1>
-    //                         <main>
-    //                             <section class="no"><p>Stork should not recognize this text</p></section>
-    //                             <section class="yes"><p>This content should be indexed.</p></section>
-    //                             <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
-    //                         </main>
-    //                     </body>
-    //                 </html>"#,
-    //             ).ok().unwrap()
-    //             .word_list
-    //             .iter()
-    //             .map(|aw| aw.word.clone())
-    //             .collect::<Vec<String>>()
-    //             .join(" ");
-
-    //         assert_eq!(expected, computed);
-    //     }
-
-    //     #[test]
-    //     fn test_html_content_extraction_from_inner_tags() {
-    //         let expected = "This content should be indexed. This is another paragraph with inline text formatting . This is in a table cell.";
-    //         let computed: String = (HTMLWordListGenerator {})
-    //             .create_word_list(
-    //                 &InputConfig {
-    //                     html_selector: Some(".yes".to_string()),
-    //                     ..Default::default()
-    //                 },
-    //                 r#"
-    // <html>
-    //     <head></head>
-    //     <body>
-    //         <h1>This is a title</h1>
-    //         <main>
-    //             <section class="no"><p>Stork should not recognize this text</p></section>
-    //             <section class="yes">
-    //                 <p>This content should be indexed.</p>
-    //                 <p>This is another paragraph with <strong><em>inline text</em>formatting</strong>.</p>
-    //                 <div><img src="https://example.com/foo.png" /><table><tr><td>This is in a table cell.</td></tr></table></div>
-    //             </section>
-    //         </main>
-    //     </body>
-    // </html>
-    //                 "#,
-    //             ).ok().unwrap()
-    //             .word_list
-    //             .iter()
-    //             // .inspect(|aw| println!("{}", aw.word))
-    //             .map(|aw| aw.word.clone().trim().to_string())
-    //             .collect::<Vec<String>>()
-    //             .join(" ");
-
-    //         assert_eq!(expected, computed);
-    //     }
-
-    //     #[test]
-    //     fn test_markdown() {
-    //         let expected = "This is a title Stork should recognize this text This content should be indexed. This is another paragraph with inline text formatting . This is a link. Goodbye!";
-    //         let computed: String = (MarkdownWordListGenerator {})
-    //             .create_word_list(
-    //                 &InputConfig::default(),
-    //                 r#"
-    // # This is a title
-
-    // Stork should recognize this text
-
-    // - This content should be indexed.
-    // - This is another paragraph with **_inline text_formatting**.
-    // - [This is a link.](https://example.com)
-
-    // Goodbye!
-    //                 "#,
-    //             )
-    //             .ok()
-    //             .unwrap()
-    //             .word_list
-    //             .iter()
-    //             // .inspect(|aw| println!("{}", aw.word))
-    //             .map(|aw| aw.word.clone().trim().to_string())
-    //             .collect::<Vec<String>>()
-    //             .join(" ");
-
-    //         assert_eq!(expected, computed);
-    //     }
+    #[test]
+    fn test_html_content_extraction_from_inner_tags() {
+        let expected = "This content should be indexed. This is another paragraph with inline text formatting . This is in a table cell.";
+        run_html_parse_test(
+            expected,
+            Some(".yes"),
+            r#"
+            <html>
+                <head></head>
+                <body>
+                    <h1>This is a title</h1>
+                    <main>
+                        <section class="no"><p>Stork should not recognize this text</p></section>
+                        <section class="yes">
+                            <p>This content should be indexed.</p>
+                            <p>This is another paragraph with <strong><em>inline text</em>formatting</strong>.</p>
+                            <div><img src="https://example.com/foo.png" /><table><tr><td>This is in a table cell.</td></tr></table></div>
+                        </section>
+                    </main>
+                </body>
+            </html>"#,
+        );
+    }
 }

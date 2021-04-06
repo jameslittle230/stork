@@ -14,8 +14,15 @@ use crate::config::{Config, DataSource, File, Filetype, InputConfig, StemmingCon
 use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator, ProgressStyle};
 use std::{collections::HashMap, convert::TryInto};
 
+/**
+ * A `DataSourceReader` will output one of these once it's read from the data source.
+ */
 pub struct ReadResult {
     pub(super) buffer: String,
+
+    /// If the filetype can be read from the data source, the value will be
+    /// stored here. When the builder gets to a word list generator, it should
+    /// use the filetype here if it's available.
     pub(super) filetype: Option<Filetype>,
 
     #[allow(dead_code)]
@@ -29,7 +36,9 @@ impl ReadResult {
             .frontmatter_handling_override
             .as_ref()
             .unwrap_or(&config.global.frontmatter_handling);
+
         let (frontmatter_fields, buffer) = parse_frontmatter(handling, &self.buffer);
+
         ReadResult {
             buffer: buffer.to_string(),
             filetype: self.filetype.clone(),
