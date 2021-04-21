@@ -43,7 +43,7 @@ reqwest = { version = "0.11", features = ["blocking", "json"], optional = true} 
 futures = {version = "0.3", optional = true}
 hyper = {version = "0.14", features = ["server"], optional = true}
 tokio = { version = "1.2", features = ["full"], optional = true }
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+wasm-bindgen = { version = "=0.2.70", features = ["serde-serialize"] }
 
 [package.metadata.wasm-pack.profile.release]
 
@@ -67,7 +67,7 @@ harness = false
 # https://rustwasm.github.io/book/reference/code-size.html
 #
 # @TODO 2021-02-24: Starting with commit 7800aedfbb6b0e97a075cf6924077db2ddff7939,
-# keeping this option in the full release build configuration means that 
-# `cargo build --release` mysteriously fails on the benchmark machine, so 
+# keeping this option in the full release build configuration means that
+# `cargo build --release` mysteriously fails on the benchmark machine, so
 # I commented it out.
 # lto = true
