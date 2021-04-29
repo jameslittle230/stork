@@ -91,9 +91,6 @@ files = [
     {path = "federalist-9.txt", url = "/federalist-9/", title = "The Union as a Safeguard Against Domestic Faction and Insurrection"},
     {path = "federalist-10.txt", url = "/federalist-10/", title = "The Union as a Safeguard Against Domestic Faction and Insurrection 2"}
 ]
-
-[output]
-filename = "federalist.st"
 ```
 
 This TOML file describes the base directory of all your documents, then lists out each document along with the web URL at which that document will be found, along with that document's title.
@@ -101,16 +98,16 @@ This TOML file describes the base directory of all your documents, then lists ou
 From there, you can build your search index by running:
 
 ```bash
-$ stork --build federalist.toml
+$ stork build --input federalist.toml --output federalist.st
 ```
 
 This will create a new file at `federalist.st`. You can search through it with the same command line tool:
 
 ```bash
-$ stork --search federalist.st "liberty"
+$ stork search --index federalist.st --query "liberty" 
 ```
 
-You can then upload the index to your web server and pass its URL to the `stork.register()` function in your web page's Javascript.
+To embed a Stork search interface on your website, first upload the index file to your web server, then pass its URL to the `stork.register()` function in your web page's Javascript.
 
 ## Going Further
 
