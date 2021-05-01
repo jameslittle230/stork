@@ -70,4 +70,4 @@ harness = false
 # keeping this option in the full release build configuration means that
 # `cargo build --release` mysteriously fails on the benchmark machine, so
 # I commented it out.
-# lto = true
+lto = true

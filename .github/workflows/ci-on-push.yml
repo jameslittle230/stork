@@ -7,13 +7,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Rust environment
-        run: |
-          cargo install wasm-pack
-          cargo install cargo-tarpaulin
-          rustup component add rustfmt
-      - run: cargo test --verbose
+
+      - name: Set up wasm-pack
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          use-tool-cache: true
+
       - run: cargo fmt -- --check
+
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: '0.15.0'
+          args: '-- --test-threads 1'
+
       - name: Upload code coverage
         run: |
           cargo tarpaulin --out Xml
@@ -31,14 +39,13 @@ jobs:
       - run: yarn test --coverage
       - run: bash <(curl -s https://codecov.io/bash) -cF javascript
   
-  clippy_check_nightly:
-    name: "Run Clippy Check on Nightly"
+  clippy_check:
+    name: "Run Clippy Check"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
-            toolchain: nightly
             components: clippy
             override: true
       - uses: actions-rs/clippy-check@v1
@@ -59,16 +66,16 @@ jobs:
       - uses: actions/setup-python@v2
       - name: Run benchmark
         run: python3 scripts/generate_stats.py
-      - name: Store benchmark result
-        uses: rhysd/github-action-benchmark@v1
-        with:
-          name: Rust Benchmark
-          tool: 'cargo'
-          output-file-path: output.txt
-          # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
-          # Show alert with commit comment on detecting possible performance regression
-          alert-threshold: '200%'
-          comment-on-alert: true
-          fail-on-alert: true
+      # - name: Store benchmark result
+      #   uses: rhysd/github-action-benchmark@v1
+      #   with:
+      #     name: Rust Benchmark
+      #     tool: 'cargo'
+      #     output-file-path: output.txt
+      #     # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     auto-push: false
+      #     # Show alert with commit comment on detecting possible performance regression
+      #     alert-threshold: '200%'
+      #     comment-on-alert: true
+      #     fail-on-alert: true
