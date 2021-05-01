@@ -32,7 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cargo install wasm-pack
+      - name: Set up wasm-pack
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          use-tool-cache: true
       - run: wasm-pack build --target web -- --no-default-features
       - run: yarn install
       - run: yarn lint
@@ -47,6 +51,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
             components: clippy
+            toolchain: stable
             override: true
       - uses: actions-rs/clippy-check@v1
         with:
