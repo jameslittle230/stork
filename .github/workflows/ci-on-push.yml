@@ -56,9 +56,9 @@ jobs:
         with:
           repository: jameslittle230/federalist
           path: ./test/federalist
-      - run: rustup toolchain update nightly && rustup default nightly
+      - uses: actions/setup-python@v2
       - name: Run benchmark
-        run: cargo +nightly bench | tee output.txt
+        run: python3 scripts/generate_stats.py
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
         with:
