@@ -51,6 +51,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Checkout Federalist Papers Repository
+        uses: actions/checkout@v2
+        with:
+          repository: jameslittle230/federalist
+          path: ./test/federalist
       - run: rustup toolchain update nightly && rustup default nightly
       - name: Run benchmark
         run: cargo +nightly bench | tee output.txt
@@ -61,7 +66,7 @@ jobs:
           tool: 'cargo'
           output-file-path: output.txt
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
-          # github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
           # Show alert with commit comment on detecting possible performance regression
           alert-threshold: '200%'
