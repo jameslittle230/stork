@@ -74,6 +74,11 @@ jobs:
         with:
           crate: wasm-pack
           use-tool-cache: true
+      - name: Set up criterion
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-criterion
+          use-tool-cache: true
       - name: Run benchmark
         run: python3 scripts/generate_stats.py
       # - name: Store benchmark result
