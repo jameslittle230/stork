@@ -1,6 +1,7 @@
 import os
-import subprocess
+import sys
 import json
+import subprocess
 
 # Step 1: Build the project from scratch
 subprocess.run(["./scripts/build.sh"])
@@ -14,18 +15,17 @@ files = [
 
 sizes = dict([(file.split('./dist/')[1], float(os.path.getsize(file))/1000) for file in files])
 
-
-# Step 3: Run benchmarks and get mean runtime, in nanoseconds
+# Step 3: Run benchmarks and get mean runtime for each
 benchmarks = [
     "build/federalist",
     "search/federalist/liberty"
 ]
 
 for bench_name in benchmarks:
+    print(f"Running benchmark for {bench_name}", file=sys.stderr)
     run_bench_cmd = subprocess.run(
         ["cargo", "criterion", "--message-format=json", bench_name],
         stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
         text=True
     )
 
@@ -33,7 +33,6 @@ for bench_name in benchmarks:
         ["grep", "benchmark-complete"],
         input=run_bench_cmd.stdout,
         stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
         text=True
     )
 
