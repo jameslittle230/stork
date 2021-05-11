@@ -1,18 +1,27 @@
 on: push
 name: Run CI on Pushes
+
 jobs:
   rust_tests:
     name: "Run Rust Tests"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Rust environment
-        run: |
-          cargo install wasm-pack
-          cargo install cargo-tarpaulin
-          rustup component add rustfmt
-      - run: cargo test --verbose
+
+      - name: Set up wasm-pack
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          use-tool-cache: true
+
       - run: cargo fmt -- --check
+
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: '0.15.0'
+          args: '-- --test-threads 1'
+
       - name: Upload code coverage
         run: |
           cargo tarpaulin --out Xml
@@ -23,24 +32,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cargo install wasm-pack
+      - name: Set up wasm-pack
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          use-tool-cache: true
       - run: wasm-pack build --target web -- --no-default-features
       - run: yarn install
       - run: yarn lint
       - run: yarn test --coverage
       - run: bash <(curl -s https://codecov.io/bash) -cF javascript
   
-  clippy_check_nightly:
-    name: "Run Clippy Check on Nightly"
+  clippy_check:
+    name: "Run Clippy Check"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
-            toolchain: nightly
             components: clippy
+            toolchain: stable
             override: true
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
+
+  benchmark:
+    name: Run Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout Federalist Papers Repository
+        uses: actions/checkout@v2
+        with:
+          repository: jameslittle230/federalist
+          path: ./test/federalist
+      - uses: actions/setup-python@v2
+      - name: Set up wasm-pack
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          use-tool-cache: true
+      - name: Set up criterion
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-criterion
+          use-tool-cache: true
+      - name: Run benchmark
+        run: python3 scripts/generate_stats.py

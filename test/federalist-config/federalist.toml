@@ -28,5 +28,4 @@ files = [
 ]
 
 [output]
-filename = "test/federalist.st"
 debug = false

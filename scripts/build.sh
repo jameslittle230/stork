@@ -19,6 +19,5 @@ if [ ! -f "./test/federalist/federalist-1.txt" ]; then
     ./scripts/download_test_corpora.sh
 fi
 
-./target/release/stork --build test/federalist-config/federalist.toml
 mkdir -p dist
-cp test/*.st dist
+./target/release/stork build -i test/federalist-config/federalist.toml -o dist/federalist.st
