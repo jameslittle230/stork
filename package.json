@@ -50,8 +50,8 @@
     "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev  -- --no-default-features",
     "build:wasm:prod": "wasm-pack build --target web --out-name stork  -- --no-default-features",
 
-    "build:test-index:federalist": "cargo run -- --build test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist",
-    "build:test-index:threeblue": "cargo run -- --build test/3b1b-config/3b1b.toml && mkdir -p dist && cp test/*.st dist",
+    "build:test-index:federalist": "cargo run -- build -i test/federalist-config/federalist.toml -o test/federalist.st && mkdir -p dist && cp test/*.st dist",
+    "build:test-index:threeblue": "cargo run -- build -i test/3b1b-config/3b1b.toml -o test/3b1b.st && mkdir -p dist && cp test/*.st dist",
 
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
