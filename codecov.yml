@@ -1,3 +1,6 @@
+codecov:
+  require_ci_to_pass: true
+
 # lifted from https://community.codecov.io/t/cannot-disable-codecov-patch-check/682/23
 # configuration related to pull request comments
 comment: no # do not comment PR with the result
