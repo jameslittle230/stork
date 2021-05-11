@@ -14,6 +14,8 @@ use crate::config::{Config, DataSource, File, Filetype, InputConfig, StemmingCon
 use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator, ProgressStyle};
 use std::{collections::HashMap, convert::TryInto};
 
+use unicode_segmentation::UnicodeSegmentation;
+
 /**
  * A `DataSourceReader` will output one of these once it's read from the data source.
  */
@@ -166,21 +168,39 @@ fn build_progress_bar(config: &Config) -> ProgressBar {
 }
 
 fn tick_progress_bar_with_filename(progress_bar: &ProgressBar, filename: &str) {
-    let mut message = filename.to_string();
-    let truncation_prefix = "...";
-    let truncation_length = 21;
-
-    if message.len() > truncation_length {
-        message.truncate(truncation_length - truncation_prefix.len());
-        message.push_str(truncation_prefix)
-    }
-
+    let message = truncate_with_ellipsis_to_length(filename, 21, None);
     progress_bar.set_message(&message);
     progress_bar.tick();
 }
 
+fn truncate_with_ellipsis_to_length(
+    string: &str,
+    length: usize,
+    ellipsis_override: Option<&str>,
+) -> String {
+    let ellipsis = ellipsis_override.unwrap_or("...");
+
+    let grapheme_iter = UnicodeSegmentation::graphemes(string, true);
+    let short_message: String = grapheme_iter.clone().take(length).collect();
+    let long_message: String = grapheme_iter.clone().take(length + 1).collect();
+
+    let truncated = {
+        let ellipsis = if short_message != long_message {
+            ellipsis
+        } else {
+            ""
+        };
+
+        format!("{}{}", short_message, ellipsis)
+    };
+
+    truncated
+}
+
 #[cfg(test)]
 mod tests {
+    use unicode_segmentation::UnicodeSegmentation;
+
     use crate::{
         config::{Config, DataSource, File, InputConfig, OutputConfig},
         LatestVersion::builder::{
@@ -189,7 +209,7 @@ mod tests {
         },
     };
 
-    use super::fill_intermediate_entries;
+    use super::{fill_intermediate_entries, truncate_with_ellipsis_to_length};
 
     #[test]
     fn break_on_file_error_breaks() {
@@ -239,5 +259,26 @@ mod tests {
             document_errors[0].word_list_generation_error,
             WordListGenerationError::EmptyWordList
         );
+    }
+
+    #[test]
+    fn test_truncate_with_ellipsis_on_naughty_strings() {
+        // https://github.com/minimaxir/big-list-of-naughty-strings/blob/master/blns.txt#L152
+        let naughty_strings = vec![
+            "ÅÍÎÏ˝ÓÔÒÚÆ☃",
+            "Œ„´‰ˇÁ¨ˆØ∏”’",
+            "`⁄€‹›ﬁﬂ‡°·‚—±",
+            "田中さんにあげて下さい",
+            "和製漢語",
+            "👨‍👩‍👦 👨‍👩‍👧‍👦 👨‍👨‍👦 👩‍👩‍👧 👨‍👦 👨‍👧‍👦 👩‍👦 👩‍👧‍👦",
+        ];
+
+        for string in naughty_strings {
+            let grapheme_count = UnicodeSegmentation::graphemes(string, true).count();
+
+            for i in 0..(grapheme_count + 3) {
+                let _ = truncate_with_ellipsis_to_length(string, i, None);
+            }
+        }
     }
 }
