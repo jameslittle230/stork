@@ -157,7 +157,7 @@ export class Entity {
       return;
     }
 
-    if (query.length <= this.config.minimumQueryLength) {
+    if (query.length < this.config.minimumQueryLength) {
       this.results = [];
       this.render();
       return;
