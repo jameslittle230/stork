@@ -44,7 +44,7 @@ jobs:
         run: cargo build --verbose --release
       - run: ls -al ./test/federalist-config
       - name: Build Federalist index file and move to ./dist
-        run: cargo run -- --build ./test/federalist-config/federalist.toml && mkdir -p dist && cp test/*.st dist # Todo: Don't rebuild executable on this command
+        run: cargo run -- build -i ./test/federalist-config/federalist.toml -o test/federalist.st && mkdir -p dist && cp test/*.st dist # Todo: Don't rebuild executable on this command
       - run: yarn install
       - run: yarn webpack --mode=production
       - name: Upload executable build artifact
