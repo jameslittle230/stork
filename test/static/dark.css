@@ -17,8 +17,9 @@
 .stork-input,
 .stork-wrapper-dark .stork-input {
   width: 100%;
+  height: 2.4em;
   font-size: 1em;
-  padding: 0.4em 0.8em;
+  padding: 0.4em 2em 0.4em 0.8em;
   border: 1px solid hsla(0, 0%, 100%, 0.2);
   border-radius: 4px;
   position: relative;
@@ -74,14 +75,14 @@
 .stork-message,
 .stork-wrapper-dark .stork-message {
   width: 100%;
-  padding: 0.5rem 1rem;
+  padding: 0.5em 1em;
   color: hsla(0, 0%, 100%, 0.8);
 }
 
 .stork-attribution,
 .stork-wrapper-dark .stork-attribution {
   width: 100%;
-  padding: 0.5rem 1rem;
+  padding: 0.5em 1em;
   font-size: 0.8em;
   color: hsla(0, 0%, 100%, 0.8);
 }
@@ -92,7 +93,7 @@
   padding: 0;
   width: 100%;
   list-style-type: none;
-  max-height: 25rem;
+  max-height: 25em;
   overflow-y: scroll;
   border-top: 1px solid hsla(0, 0%, 80%, 0.2);
   border-bottom: 1px solid hsla(0, 0%, 80%, 0.2);
@@ -111,7 +112,7 @@
 
 .stork-result a:link,
 .stork-result a:visited {
-  padding: 1rem;
+  padding: 1em;
   display: block;
   color: currentcolor;
   text-decoration: none;
@@ -147,11 +148,11 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  margin: 0.3em;
-  height: 1.4rem;
+  margin: 0.3em 0.4em;
+  height: 1.5rem;
   width: 1.5rem;
   padding: 0px;
-  font-size: 1.1rem;
+  font-size: 1.1em;
   background: hsla(0, 0%, 100%, 0.3);
   color: hsla(0, 0%, 100%, 0.9);
   border: none;
