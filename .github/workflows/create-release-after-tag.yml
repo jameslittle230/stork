@@ -2,6 +2,13 @@ on:
   push:
     tags:
       - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+  workflow_dispatch:
+    inputs:
+      fake_tag:
+        description: 'The "tag" to publish the release under'
+        required: true
+        default: 'v0.0.0-test'
+
 name: Create Release after Tag
 jobs:
   test:
@@ -10,6 +17,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v2
+
   release:
     name: Create release
     runs-on: ubuntu-latest
@@ -22,14 +30,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag_name: ${{ github.events.input.fake_tag || github.ref }}
+          release_name: ${{ github.events.input.fake_tag || github.ref }}
           draft: true
           prerelease: false
 
-  build_ubuntu:
-    name: "Build Artifact (Ubuntu)"
-    runs-on: "ubuntu-latest"
+  build_ubuntu_20:
+    name: "Build Artifact (Ubuntu 20.04)"
+    runs-on: "ubuntu-20.04"
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Federalist Papers Repository
@@ -37,28 +45,50 @@ jobs:
         with:
           repository: jameslittle230/federalist
           path: ./test/federalist
-      - run: cargo install wasm-pack # Todo: Figure out if this is required or if I can download a binary
+      - name: Set up wasm-pack
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          use-tool-cache: true
+      
       - name: Build WASM
         run: wasm-pack build --target web --out-name stork  -- --no-default-features
+      
       - name: Build executable
         run: cargo build --verbose --release
-      - run: ls -al ./test/federalist-config
-      - name: Build Federalist index file and move to ./dist
-        run: cargo run -- build -i ./test/federalist-config/federalist.toml -o test/federalist.st && mkdir -p dist && cp test/*.st dist # Todo: Don't rebuild executable on this command
+      
+      - name: Build Federalist index file
+        run: ./target/release/stork build -i ./test/federalist-config/federalist.toml -o test/federalist.st
+      
+      - name: Move indexes to dist directory
+        run: mkdir -p dist && cp test/*.st dist
+      
       - run: yarn install
       - run: yarn webpack --mode=production
+      
       - name: Upload executable build artifact
         uses: actions/upload-artifact@v1
         with:
-          name: stork-ubuntu-latest
+          name: stork-ubuntu-20-04
           path: ./target/release/stork
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
         with:
           name: dist-directory
           path: ./dist/
+  
+  build_ubuntu_16:
+    name: "Build Artifact (Ubuntu 16.04)"
+    runs-on: "ubuntu-16.04"
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo build --verbose --release
+      - uses: actions/upload-artifact@v1
+        with:
+          name: stork-ubuntu-16-04
+          path: ./target/release/stork
 
-  build_macos:
+  build_macos_10_15:
     name: "Build Artifact (macOS)"
     runs-on: "macos-latest"
     steps:
@@ -66,16 +96,32 @@ jobs:
       - run: cargo build --verbose --release
       - uses: actions/upload-artifact@v1
         with:
-          name: stork-macos-latest
+          name: stork-macos-10-15
+          path: ./target/release/stork
+  
+  build_windows_2019:
+    name: "Build Artifact (Windows 2019)"
+    runs-on: "windows-2019"
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo build --verbose --release
+      - uses: actions/upload-artifact@v1
+        with:
+          name: stork-windows-2019
           path: ./target/release/stork
 
-  release_upload:
+  upload_artifacts_to_release:
     name: "Upload Artifacts to Github Release"
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        artifact: ["stork-macos-latest", "stork-ubuntu-latest"]
-    needs: ["release", "build_ubuntu", "build_macos"]
+        artifact: [
+          "stork-macos-10-15", 
+          "stork-ubuntu-20-04",
+          "stork-ubuntu-16-04",
+          "stork-windows-2019"
+        ]
+    needs: ["release", "build_ubuntu_20", "build_ubuntu_16", "build_macos_10_15", "build_windows_2019"]
     steps:
       - name: Download Artifact
         uses: actions/download-artifact@v2
@@ -92,10 +138,10 @@ jobs:
           asset_name: ${{ matrix.artifact }}
           asset_content_type: application/octet-stream
 
-  s3_upload:
+  upload_artifacts_to_s3:
     name: "Upload Artifacts to S3"
     runs-on: "ubuntu-latest"
-    needs: ["build_ubuntu"]
+    needs: ["build_ubuntu_20", "build_ubuntu_16", "build_macos_10_15"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -116,3 +162,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
+  
+  # update_homebrew:
+  
+  # cargo_publish:
