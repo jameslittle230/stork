@@ -74,7 +74,7 @@ jobs:
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: dist-directory
+          name: web-artifacts
           path: ./dist/
   
   build_ubuntu_16:
@@ -99,44 +99,47 @@ jobs:
           name: stork-macos-10-15
           path: ./target/release/stork
   
-  build_windows_2019:
-    name: "Build Artifact (Windows 2019)"
-    runs-on: "windows-2019"
-    steps:
-      - uses: actions/checkout@v2
-      - run: cargo build --verbose --release
-      - uses: actions/upload-artifact@v1
-        with:
-          name: stork-windows-2019
-          path: ./target/release/stork
+  # build_windows_2019:
+  #   name: "Build Artifact (Windows 2019)"
+  #   runs-on: "windows-2019"
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: cargo build --verbose --release
+  #     - uses: actions/upload-artifact@v1
+  #       with:
+  #         name: stork-windows-2019
+  #         path: ./target/release/stork
 
-  upload_artifacts_to_release:
-    name: "Upload Artifacts to Github Release"
-    runs-on: "ubuntu-latest"
-    strategy:
-      matrix:
-        artifact: [
-          "stork-macos-10-15", 
-          "stork-ubuntu-20-04",
-          "stork-ubuntu-16-04",
-          "stork-windows-2019"
-        ]
-    needs: ["release", "build_ubuntu_20", "build_ubuntu_16", "build_macos_10_15", "build_windows_2019"]
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{matrix.artifact}}
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.release_upload_url }}
-          asset_path: stork
-          asset_name: ${{ matrix.artifact }}
-          asset_content_type: application/octet-stream
+  # upload_artifacts:
+  #   name: "Upload binary artifacts to Github Release"
+  #   runs-on: "ubuntu-latest"
+  #   strategy:
+  #     matrix:
+  #       artifact: [
+  #         "stork-macos-10-15", 
+  #         "stork-ubuntu-20-04",
+  #         "stork-ubuntu-16-04",
+  #       ]
+  #   needs: ["release", "build_ubuntu_20", "build_ubuntu_16", "build_macos_10_15"]
+  #   steps:
+  #     - name: Download Artifact
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: ${{matrix.artifact}}
+
+  #     # /build_ubuntu_20
+  #     # /build_ubuntu_16
+
+  #     - name: Upload Release Asset
+  #       id: upload-release-asset
+  #       uses: actions/upload-release-asset@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         upload_url: ${{ needs.release.outputs.release_upload_url }}
+  #         asset_path: stork
+  #         asset_name: ${{ matrix.artifact }}
+  #         asset_content_type: application/octet-stream
 
   upload_artifacts_to_s3:
     name: "Upload Artifacts to S3"
@@ -149,16 +152,20 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install boto3
-      - name: Download dist directory artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: dist-directory
-          path: ./dist/
-      - run: ls dist
+      # - name: Download dist directory artifacts
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: web-artifacts
+      #     path: ./dist/
+      - uses: actions/download-artifact@v2
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
       - name: Run Upload Script
         run: | # upload_federalist.py assumes we're running from ./scripts
           cd scripts 
-          python3 upload_federalist.py
+          python3 upload_federalist.py ${{ github.events.input.fake_tag || github.ref }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
