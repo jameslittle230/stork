@@ -40,16 +40,51 @@ if __name__ == "__main__":
         {"filename": "dark.css", "contentType": "text/css"},
     ]
 
-    outof = len(dist_files)
+    binaries = [
+        "stork-macos-10-15", 
+        "stork-ubuntu-20-04",
+        "stork-ubuntu-16-04",
+        "stork-windows-2019"
+    ]
+
+    ref = argv[2] # We'll upload to /releases/${ref}/*
+
+    outof = len(dist_files) + len(binaries)
     idx = 0
 
     print(f"Uploading {outof} files...")
+
     for file in dist_files:
         idx += 1
+
+        uploadFile(opj(normalized_dir, "..", "dist", file["filename"]),
+                   opj("releases", ref, file["filename"]),
+                   "files.stork-search.net",
+                   {'ContentType': file["contentType"]})
+
+        uploadFile(opj(normalized_dir, "..", "dist", file["filename"]),
+                   opj("releases", "latest", file["filename"]),
+                   "files.stork-search.net",
+                   {'ContentType': file["contentType"]})
+        
         uploadFile(opj(normalized_dir, "..", "dist", file["filename"]),
                    file["filename"],
                    "files.stork-search.net",
                    {'ContentType': file["contentType"]})
+        
+        print(f"{idx} of {outof} files uploaded to S3.")
+    
+    for binary in binaries:
+        idx += 1
+
+        uploadFile(opj(normalized_dir, "..", binary),
+                   opj("releases", ref, binary),
+                   "files.stork-search.net")
+
+        uploadFile(opj(normalized_dir, "..", binary),
+                   opj("releases", "latest", binary),
+                   "files.stork-search.net")
+        
         print(f"{idx} of {outof} files uploaded to S3.")
 
     invalidate()
