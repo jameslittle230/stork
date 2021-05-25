@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use crate::LatestVersion::structs::{AnnotatedWord, AnnotatedWordList};
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
@@ -7,7 +9,7 @@ pub fn generate(
     config: &ReaderConfig,
     read_result: &ReadResult,
 ) -> Result<AnnotatedWordList, WordListGenerationError> {
-    let document = Html::parse_document(&read_result.buffer);
+    let mut document = Html::parse_document(&read_result.buffer);
 
     let selector_string = (&config
         .file
@@ -27,6 +29,28 @@ pub fn generate(
         ));
     }
 
+    // Step one: make pre-selection modifications to our document tree
+    let _ = &document
+        .tree
+        .values_mut()
+        .map(|node| {
+            if let Some(element) = node.as_element() {
+                if element.name() == "img" {
+                    if let Some(alt_text) = element.attr("alt") {
+                        if let Ok(alt_text_tendril) = alt_text.try_into() {
+                            let text = scraper::node::Text {
+                                text: alt_text_tendril,
+                            };
+                            *node = scraper::node::Node::Text(text);
+                        }
+                    }
+                }
+            }
+        })
+        .last();
+
+    // Step two: Extract all text nodes within the elements of our tree that
+    // match our selector
     let word_list = document
         .select(&selector)
         .flat_map(|elem_ref| {
@@ -174,6 +198,57 @@ mod tests {
                     <main>
                         <section class="no"><p>Stork should not recognize this text</p></section>
                         <section class="yes"><p>This content should be indexed.</p></section>
+                        <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
+                    </main>
+                </body>
+            </html>"#)
+    }
+
+    #[test]
+    fn test_img_alt_text_extraction() {
+        run_html_parse_test(
+            "This content should be indexed. This is a random text node that should be picked up! A nice bird! 2004-era interactivity! This content is in a duplicate selector. It should also be indexed.", 
+            Some(".yes"), 
+            r#"
+            <html>
+                <head></head>
+                <body>
+                    <h1>This is a title</h1>
+                    <main>
+                        <section class="no"><p>Stork should not recognize this text</p></section>
+                        This is a random text node that should not be picked up!
+                        <section class="yes">
+                            <p>This content should be indexed.</p>
+                            This is a random text node that should be picked up!
+                            <img src="https://stork-search.net/logo.svg" alt="A nice bird!"></img>
+                            <applet src="https://stork-search.net/logo.svg" alt="2004-era interactivity!"></applet>
+                        </section>
+                        <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
+                    </main>
+                </body>
+            </html>"#)
+    }
+
+    #[test]
+    #[ignore = "Buggy program behavior. This test should pass when bug is resolved."]
+    fn test_self_closing_tag_behavior() {
+        run_html_parse_test(
+            "This content should be indexed. This is a random text node that should be picked up! A nice bird! 2004-era interactivity! This content is in a duplicate selector. It should also be indexed.", 
+            Some(".yes"), 
+            r#"
+            <html>
+                <head></head>
+                <body>
+                    <h1>This is a title</h1>
+                    <main>
+                        <section class="no"><p>Stork should not recognize this text</p></section>
+                        This is a random text node that should not be picked up!
+                        <section class="yes">
+                            <p>This content should be indexed.</p>
+                            This is a random text node that should be picked up!
+                            <img src="https://stork-search.net/logo.svg" alt="A nice bird!" />
+                            <applet src="https://stork-search.net/logo.svg" alt="2004-era interactivity!" />
+                        </section>
                         <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
                     </main>
                 </body>
