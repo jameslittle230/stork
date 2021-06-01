@@ -207,7 +207,7 @@ mod tests {
     #[test]
     fn test_img_alt_text_extraction() {
         run_html_parse_test(
-            "This content should be indexed. This is a random text node that should be picked up! A nice bird! 2004-era interactivity! This content is in a duplicate selector. It should also be indexed.", 
+            "This content should be indexed. This is a random text node that should be picked up! A nice bird! This content is in a duplicate selector. It should also be indexed.", 
             Some(".yes"), 
             r#"
             <html>
