@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::common::InternalWordAnnotation;
 use crate::LatestVersion::structs::{AnnotatedWord, AnnotatedWordList};
-use kuchiki::traits::*;
+use kuchiki::{traits::*, ElementData, NodeDataRef};
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
@@ -35,7 +35,15 @@ pub fn generate(
         let mut word_list: Vec<AnnotatedWord> = vec![];
         let mut latest_id: Option<String> = None;
 
-        for css_match in css_matches {
+        let matches_vec: Vec<NodeDataRef<ElementData>> = css_matches.into_iter().collect();
+
+        if matches_vec.is_empty() {
+            return Err(WordListGenerationError::SelectorNotPresent(
+                selector.to_string(),
+            ));
+        }
+
+        for css_match in matches_vec {
             let as_node = css_match.as_node();
 
             if let Some(exclude_selector) = exclude_selector {
