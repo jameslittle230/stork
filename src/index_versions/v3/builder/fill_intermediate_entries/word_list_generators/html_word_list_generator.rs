@@ -1,74 +1,109 @@
-use std::convert::TryInto;
+use std::collections::HashMap;
 
+use crate::common::InternalWordAnnotation;
 use crate::LatestVersion::structs::{AnnotatedWord, AnnotatedWordList};
+use kuchiki::traits::*;
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
-use scraper::{Html, Selector};
 
 pub fn generate(
     config: &ReaderConfig,
     read_result: &ReadResult,
 ) -> Result<AnnotatedWordList, WordListGenerationError> {
-    let mut document = Html::parse_document(&read_result.buffer);
+    let document = kuchiki::parse_html().one(read_result.buffer.clone());
 
-    let selector_string = (&config
-        .file
-        .html_selector_override
-        .as_deref()
-        .or(config.global.html_selector.as_deref()))
-        .unwrap_or_else(|| "main");
-    let selector = Selector::parse(selector_string).unwrap();
+    let selector: &str = {
+        config
+            .file
+            .html_selector_override
+            .as_ref()
+            .or(config.global.html_selector.as_ref())
+            .map(|a| a.as_str())
+            .unwrap_or("main")
+    };
 
-    // We could just check to see if the outputted vec at the end of the
-    // data chain is empty, but I explicitly want to avoid throwing this error
-    // if the selector _is_ present but there are no words.
-    let selector_match_in_document_count = document.select(&selector).count();
-    if selector_match_in_document_count == 0 {
-        return Err(WordListGenerationError::SelectorNotPresent(
-            selector_string.to_string(),
-        ));
-    }
+    let exclude_selector: Option<&str> = {
+        config
+            .file
+            .exclude_html_selector_override
+            .as_ref()
+            .or(config.global.exclude_html_selector.as_ref())
+            .map(|a| a.as_str())
+    };
 
-    // Step one: make pre-selection modifications to our document tree
-    let _ = &document
-        .tree
-        .values_mut()
-        .map(|node| {
-            if let Some(element) = node.as_element() {
-                if element.name() == "img" {
-                    if let Some(alt_text) = element.attr("alt") {
-                        if let Ok(alt_text_tendril) = alt_text.try_into() {
-                            let text = scraper::node::Text {
-                                text: alt_text_tendril,
-                            };
-                            *node = scraper::node::Node::Text(text);
-                        }
+    if let Ok(css_matches) = document.select(selector) {
+        let mut word_list: Vec<AnnotatedWord> = vec![];
+        let mut latest_id: Option<String> = None;
+
+        for css_match in css_matches {
+            let as_node = css_match.as_node();
+
+            if let Some(exclude_selector) = exclude_selector {
+                if let Ok(excluded_elements) = as_node.select(exclude_selector) {
+                    for excluded_element in excluded_elements {
+                        excluded_element.as_node().detach();
                     }
                 }
             }
-        })
-        .last();
 
-    // Step two: Extract all text nodes within the elements of our tree that
-    // match our selector
-    let word_list = document
-        .select(&selector)
-        .flat_map(|elem_ref| {
-            elem_ref.text().map(|w| {
-                w.to_string()
-                    .split_whitespace()
-                    .map(ToString::to_string)
-                    .collect::<Vec<String>>()
-            })
-        })
-        .flatten() // Multiple words within text node
-        .map(|word| AnnotatedWord {
-            word,
-            ..AnnotatedWord::default()
-        })
-        .collect::<Vec<AnnotatedWord>>();
+            for elem in as_node.traverse_inclusive() {
+                println!("{:?}", elem);
+                if let kuchiki::iter::NodeEdge::Start(node_ref) = elem {
+                    let contents: String = (|| {
+                        let mut output = "".to_string();
+                        if let Some(element_data) = node_ref.as_element() {
+                            if let Some(id) = element_data.attributes.borrow().get("id") {
+                                latest_id = Some(id.to_string());
+                            }
 
-    Ok(AnnotatedWordList { word_list })
+                            let contentful_attrs = vec!["title", "alt"];
+
+                            for attr in contentful_attrs {
+                                if let Some(value) = element_data.attributes.borrow().get(attr) {
+                                    output.push_str(value);
+                                }
+                            }
+                        }
+
+                        if let Some(refcell) = node_ref.as_text() {
+                            output.push_str(refcell.borrow().as_ref());
+                        }
+                        return output.trim().to_string();
+                    })();
+
+                    if !contents.is_empty() {
+                        let mut annotated_words: Vec<AnnotatedWord> = contents
+                            .split_whitespace()
+                            .map(ToString::to_string)
+                            .map(|word| AnnotatedWord {
+                                word,
+                                internal_annotations: {
+                                    if let Some(latest_id) = latest_id.clone() {
+                                        vec![InternalWordAnnotation::NearestHtmlId(latest_id)]
+                                    } else {
+                                        vec![]
+                                    }
+                                },
+                                fields: HashMap::default(),
+                            })
+                            .collect();
+
+                        word_list.append(&mut annotated_words);
+                    }
+                }
+            }
+        }
+
+        if word_list.is_empty() {
+            return Err(WordListGenerationError::EmptyWordList);
+        } else {
+            return Ok(AnnotatedWordList { word_list });
+        }
+    }
+
+    Err(WordListGenerationError::SelectorNotPresent(
+        selector.to_string(),
+    ))
 }
 
 #[cfg(test)]
@@ -79,9 +114,13 @@ mod tests {
         LatestVersion::structs::AnnotatedWordList,
     };
 
-    fn reader_config_from_html_selector(selector: Option<&str>) -> ReaderConfig {
+    fn reader_config_from_html_selectors(
+        include: Option<&str>,
+        exclude: Option<&str>,
+    ) -> ReaderConfig {
         let mut file = File::default();
-        file.html_selector_override = selector.map(ToString::to_string);
+        file.html_selector_override = include.map(ToString::to_string);
+        file.exclude_html_selector_override = exclude.map(ToString::to_string);
         ReaderConfig {
             global: InputConfig::default(),
             file,
@@ -107,19 +146,29 @@ mod tests {
             .join(" ");
     }
 
-    fn run_html_parse_test(expected: &str, selector: Option<&str>, html: &str) {
+    fn run_html_parse_test(
+        expected: &str,
+        include: Option<&str>,
+        exclude: Option<&str>,
+        html: &str,
+    ) {
         let computed = extract_text(generate(
-            &reader_config_from_html_selector(selector),
+            &reader_config_from_html_selectors(include, exclude),
             &read_result_from_string(html),
         ));
 
-        assert_eq!(expected, computed)
+        assert_eq!(
+            expected, computed,
+            "expected: {}\ncomputed: {}",
+            expected, computed
+        )
     }
 
     #[test]
     fn test_basic_html_content_extraction() {
         run_html_parse_test(
             "This is some text",
+            None,
             None,
             r#"
         <html>
@@ -134,6 +183,7 @@ mod tests {
         run_html_parse_test(
             "This content should be indexed",
             Some(".yes"),
+            None,
             r#"
         <html>
             <head></head>
@@ -149,9 +199,32 @@ mod tests {
     }
 
     #[test]
+    fn test_html_content_extraction_with_excluded_selector() {
+        run_html_parse_test(
+            "This content should be indexed This content should also be indexed",
+            Some(".yes"),
+            Some(".no"),
+            r#"
+        <html>
+            <head></head>
+            <body>
+                <h1>This is a title</h1>
+                <main>
+                    <section class="yes" id="first">
+                        <p>This content should be indexed</p>
+                        <p id="second">This content should also be indexed</p>
+                        <p class="no">This content should not be indexed</p>
+                    </section>
+                </main>
+            </body>
+        </html>"#,
+        )
+    }
+
+    #[test]
     fn test_selector_not_present() {
         let computed = generate(
-                &reader_config_from_html_selector(Some(".yes")),
+                &reader_config_from_html_selectors(Some(".yes"), Some(".no")),
                 &read_result_from_string(r#"
                 <html>
                     <head></head>
@@ -168,28 +241,29 @@ mod tests {
 
     #[test]
     fn test_selector_present_but_empty_contents() {
-        run_html_parse_test(
-            "",
-            Some(".yes"),
-            r#"
-            <html>
-                <head></head>
-                <body>
-                    <h1>This is a title</h1>
-                    <main>
-                        <section class="no"><p>Stork should not recognize this text</p></section>
-                        <section class="yes"><p></p></section>
-                    </main>
-                </body>
-            </html>"#,
-        )
+        let computed = generate(
+                &reader_config_from_html_selectors(Some(".yes"), Some(".no")),
+                &read_result_from_string(r#"
+                    <html>
+                        <head></head>
+                        <body>
+                            <h1>This is a title</h1>
+                            <main>
+                                <section class="no"><p>Stork should not recognize this text</p></section>
+                                <section class="yes"><p></p></section>
+                            </main>
+                        </body>
+                    </html>"#)).unwrap_err();
+
+        assert_eq!(WordListGenerationError::EmptyWordList, computed);
     }
 
     #[test]
     fn test_html_content_extraction_with_multiple_selector_matches() {
         run_html_parse_test(
-            "This content should be indexed. This content is in a duplicate selector. It should also be indexed.", 
-            Some(".yes"), 
+            "This content should be indexed. This content is in a duplicate selector. It should also be indexed.",
+            Some(".yes"),
+            None,
             r#"
             <html>
                 <head></head>
@@ -207,8 +281,9 @@ mod tests {
     #[test]
     fn test_img_alt_text_extraction() {
         run_html_parse_test(
-            "This content should be indexed. This is a random text node that should be picked up! A nice bird! This content is in a duplicate selector. It should also be indexed.", 
-            Some(".yes"), 
+            "This content should be indexed. This is a random text node that should be picked up! A nice bird! 2004-era interactivity! This content is in a duplicate selector. It should also be indexed.",
+            Some(".yes"),
+            None,
             r#"
             <html>
                 <head></head>
@@ -230,11 +305,35 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "Buggy program behavior. This test should pass when bug is resolved."]
-    fn test_self_closing_tag_behavior() {
+    fn test_index_blocklist() {
         run_html_parse_test(
-            "This content should be indexed. This is a random text node that should be picked up! A nice bird! 2004-era interactivity! This content is in a duplicate selector. It should also be indexed.", 
-            Some(".yes"), 
+            "Article content More article content",
+            Some("article"),
+            Some(".no-index"),
+            r#"<main>
+        <aside>...</aside>
+        <article>
+          <p>Article content</p>
+          <div class="no-index">This shouldn't be indexed</div>
+          <p>More article content</p>
+        </article>
+      </main>"#,
+        )
+    }
+
+    #[test]
+    fn test_self_closing_tag_behavior() {
+        /*
+         * This test originally had both the `img` and the `applet` tag as
+         * self-closing. However, the `applet` tag is not allowed to self-
+         * close per MDN. The test passes when only the img tag is self-
+         * closing, but does not pass when the applet tag is as well.
+         */
+
+        run_html_parse_test(
+            "This content should be indexed. This is a random text node that should be picked up! A nice bird! 2004-era interactivity! This content is in a duplicate selector. It should also be indexed.",
+            Some(".yes"),
+            None,
             r#"
             <html>
                 <head></head>
@@ -247,7 +346,7 @@ mod tests {
                             <p>This content should be indexed.</p>
                             This is a random text node that should be picked up!
                             <img src="https://stork-search.net/logo.svg" alt="A nice bird!" />
-                            <applet src="https://stork-search.net/logo.svg" alt="2004-era interactivity!" />
+                            <applet src="https://stork-search.net/logo.svg" alt="2004-era interactivity!"></applet>
                         </section>
                         <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
                     </main>
@@ -261,6 +360,7 @@ mod tests {
         run_html_parse_test(
             expected,
             Some(".yes"),
+            None,
             r#"
             <html>
                 <head></head>
