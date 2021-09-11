@@ -9,7 +9,7 @@ on:
         required: true
         default: 'v0.0.0-test'
 
-name: Create Release after Tag
+name: "Create Release after Tag"
 jobs:
   test:
     name: Test Job
@@ -88,32 +88,32 @@ jobs:
           name: stork-macos-10-15
           path: ./target/release/stork
 
-   upload_bin_artifacts_to_release:
-     name: "Upload binary artifacts to Github Release"
-     runs-on: "ubuntu-latest"
-     strategy:
-       matrix:
-         artifact: [
-           "stork-macos-10-15",
-           "stork-ubuntu-20-04",
-         ]
-     needs: ["release", "build_ubuntu_20", "build_macos_10_15"]
-     steps:
-       - name: Download Artifact
-         uses: actions/download-artifact@v2
-         with:
-           name: ${{matrix.artifact}}
+  upload_bin_artifacts_to_release:
+    name: "Upload binary artifacts to Github Release"
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+      artifact: [
+        "stork-macos-10-15",
+        "stork-ubuntu-20-04",
+      ]
+    needs: ["release", "build_ubuntu_20", "build_macos_10_15"]
+    steps:
+     - name: Download Artifact
+       uses: actions/download-artifact@v2
+       with:
+         name: ${{matrix.artifact}}
 
-       - name: Upload Release Asset
-         id: upload-release-asset
-         uses: actions/upload-release-asset@v1
-         env:
-           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-         with:
-           upload_url: ${{ needs.release.outputs.release_upload_url }}
-           asset_path: stork
-           asset_name: ${{ matrix.artifact }}
-           asset_content_type: application/octet-stream
+     - name: Upload Release Asset
+       id: upload-release-asset
+       uses: actions/upload-release-asset@v1
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       with:
+         upload_url: ${{ needs.release.outputs.release_upload_url }}
+         asset_path: stork
+         asset_name: ${{ matrix.artifact }}
+         asset_content_type: application/octet-stream
 
   upload_web_artifacts_to_release:
     name: "Upload web artifacts to Github Release"
@@ -170,3 +170,4 @@ jobs:
   # update_homebrew:
 
   # cargo_publish:
+
