@@ -313,6 +313,29 @@ mod tests {
     }
 
     #[test]
+    fn test_tag_title_text_extraction() {
+        run_html_parse_test(
+            "This title text should be indexed. This content should be indexed. This is a random text node that should be picked up!",
+            Some(".yes"),
+            None,
+            r#"
+            <html>
+                <head></head>
+                <body>
+                    <h1>This is a title</h1>
+                    <main>
+                        <section class="no"><p>Stork should not recognize this text</p></section>
+                        This is a random text node that should not be picked up!
+                        <section class="yes">
+                            <p title="This title text should be indexed.">This content should be indexed.</p>
+                            This is a random text node that should be picked up!
+                        </section>
+                    </main>
+                </body>
+            </html>"#)
+    }
+
+    #[test]
     fn test_index_blocklist() {
         run_html_parse_test(
             "Article content More article content",
