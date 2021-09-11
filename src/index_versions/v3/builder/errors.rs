@@ -40,6 +40,15 @@ pub enum IndexGenerationError {
 
 impl Error for IndexGenerationError {}
 
+impl PartialEq for IndexGenerationError {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::DocumentErrors(_), Self::DocumentErrors(_)) => true,
+            _ => core::mem::discriminant(self) == core::mem::discriminant(other),
+        }
+    }
+}
+
 impl fmt::Display for IndexGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc: String = match self {
