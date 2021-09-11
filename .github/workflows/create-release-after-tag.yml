@@ -128,7 +128,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_upload_url }}
-          asset_path: dist/stork.wasm
+          asset_path: web-artifacts/stork.wasm
           asset_name: stork.wasm
           asset_content_type: application/wasm
 
@@ -138,7 +138,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_upload_url }}
-          asset_path: dist/stork.js
+          asset_path: web-artifacts/stork.js
           asset_name: stork.js
           asset_content_type: application/javascript
 
@@ -167,7 +167,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
 
-  # update_homebrew:
+   update_homebrew:
+     name: "Update Homebrew Repository"
+     needs: ["build_macos_10_15"]
+     steps:
+       - run
 
-  # cargo_publish:
+   cargo_publish:
+     name: "Run Cargo Publish"
+     needs: ["build_ubuntu_20"]
+     steps:
+       - run: cargo publish
 
