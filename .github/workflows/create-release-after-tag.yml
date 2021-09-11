@@ -93,10 +93,10 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-      artifact: [
-        "stork-macos-10-15",
-        "stork-ubuntu-20-04",
-      ]
+        artifact: [
+          "stork-macos-10-15",
+          "stork-ubuntu-20-04",
+        ]
     needs: ["release", "build_ubuntu_20", "build_macos_10_15"]
     steps:
      - name: Download Artifact
