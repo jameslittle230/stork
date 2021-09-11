@@ -22,8 +22,7 @@ pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields,
                         (
                             k.into_string().unwrap_or_else(|| "".to_string()),
                             v.clone().into_string().unwrap_or_else(|| {
-                                v.into_i64()
-                                    .map_or("default".to_string(), |i| i.to_string())
+                                v.into_i64().map_or("error".to_string(), |i| i.to_string())
                             }),
                         )
                     })
@@ -67,7 +66,7 @@ this is not
                 ("this".to_string(), "is frontmatter".to_string()),
                 ("that takes".to_string(), "multiple lines".to_string()),
                 ("and has".to_string(), "22".to_string()),
-                ("different formats".to_string(), "default".to_string()),
+                ("different formats".to_string(), "error".to_string()),
             ]
             .iter()
             .cloned()
