@@ -167,15 +167,14 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
 
-   update_homebrew:
-     name: "Update Homebrew Repository"
-     needs: ["build_macos_10_15"]
-     steps:
-       - run
+  update_homebrew:
+    name: "Update Homebrew Repository"
+    needs: ["build_macos_10_15"]
+    steps:
+      - run: ls -R
 
-   cargo_publish:
-     name: "Run Cargo Publish"
-     needs: ["build_ubuntu_20"]
-     steps:
-       - run: cargo publish
-
+  cargo_publish:
+    name: "Run Cargo Publish"
+    needs: ["build_ubuntu_20"]
+    steps:
+      - run: cargo publish
