@@ -39,7 +39,6 @@ jobs:
       - run: echo test-contents > stork-ubuntu-20-04
       - uses: actions/upload-artifact@v1
         with:
-          name: stork-ubuntu-20-04
           path: stork-ubuntu-20-04
 
   build_macos_10_15:
@@ -49,7 +48,6 @@ jobs:
       - run: echo test-contents > stork-macos-10-15
       - uses: actions/upload-artifact@v1
         with:
-          name: stork-macos-10-15
           path: stork-macos-10-15
 
   build_web_artifacts:
