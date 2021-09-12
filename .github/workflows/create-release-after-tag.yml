@@ -11,14 +11,6 @@ on:
 
 name: "Create Release after Tag"
 jobs:
-  test:
-    name: Test Job
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v2
-      - run: "echo ${{ github.events.input.fake_tag }}"
-
   release:
     name: Create release
     runs-on: ubuntu-latest
@@ -36,6 +28,54 @@ jobs:
           draft: true
           prerelease: false
 
+  ##############################
+  ######## TESTING JOBS ########
+  #############################
+  #
+  #build_web_artifacts:
+    #name: "TEST - Build web artifacts"
+    #runs-on: "ubuntu-latest"
+    #steps:
+      #- run: |
+        #mkdir dist
+        #touch dist/basic.css
+        #touch dist/dark.css
+        #touch federalist.st
+        #touch index.html
+        #touch stork.js
+        #touch stork.wasm
+
+      #- name: Upload JS/WASM artifacts
+        #uses: actions/upload-artifact@v1
+        #with:
+          #name: web-artifacts
+          #path: ./dist/
+
+  #build_ubuntu_20:
+    #name: "TEST - Build Artifact (Ubuntu 20.04)"
+    #runs-on: "ubuntu-20.04"
+    #steps:
+      #- run: |
+          #touch stork
+      #- uses: actions/upload-artifact@v1
+        #with:
+          #name: stork-ubuntu-20-04
+          #path: ./stork
+
+  #build_macos_10_15:
+    #name: "TEST - Build Artifact (macOS)"
+    #runs-on: "macos-10.15"
+    #steps:
+      #- run: |
+          #touch stork
+      #- uses: actions/upload-artifact@v1
+        #with:
+          #name: stork-macos-10-15
+          #path: ./stork
+
+  ###########################################
+  ########## END TESTING JOBS ###############
+  ###########################################
   build_web_artifacts:
     name: "Build web artifacts"
     runs-on: "ubuntu-latest"
