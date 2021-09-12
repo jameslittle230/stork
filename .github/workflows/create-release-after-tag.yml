@@ -151,10 +151,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: stork-ubuntu-20-04
-          path: ./stork
+          path: ./stork-ubuntu-20-04
 
       - name: Build Federalist index file
-        run: ./stork build -i ./test/federalist-config/federalist.toml -o federalist.st
+        run: ./stork-ubuntu-20-04 build -i ./test/federalist-config/federalist.toml -o federalist.st
 
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
@@ -233,6 +233,8 @@ jobs:
           pip install boto3
 
       - uses: actions/download-artifact@v2
+
+      - run: ls -R .
 
       - name: Run Upload Script
         run: |
