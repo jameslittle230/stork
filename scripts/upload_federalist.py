@@ -34,24 +34,24 @@ def invalidate():
 
 
 if __name__ == "__main__":
-    dist_files = [
+    web_artifacts = [
         {"filename": "stork.js", "contentType": "text/javascript"},
         {"filename": "stork.wasm", "contentType": "application/wasm"},
-        {"filename": "federalist.st", "contentType": "application/octet-stream"},
         {"filename": "basic.css", "contentType": "text/css"},
         {"filename": "dark.css", "contentType": "text/css"},
     ]
 
     binaries = [
         "stork-macos-10-15",
-        "stork-ubuntu-20-04"
+        "stork-ubuntu-20-04",
+        "federalist.st"
     ]
 
     ref = sys.argv[1] # We'll upload to /releases/${ref}/*
 
     print(f"Uploading files...")
 
-    for file in dist_files:
+    for file in web_artifacts:
         for destination_path in [
            opj("releases", ref, file["filename"]),
            opj("releases", "latest", file["filename"]),
