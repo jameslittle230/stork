@@ -11,7 +11,7 @@ normalized_dir = filedir = os.path.dirname(os.path.realpath(__file__))
 opj = os.path.join
 
 def uploadFile(localPath, remotePath, extraArgs={}):
-    print(f"Called uploadFile")
+    print(f"Called uploadFile: {localPath} → {remotePath}")
 
     s3 = boto3.resource('s3')
     s3.Bucket("files-qa.stork-search.net").upload_file(localPath, remotePath, ExtraArgs=extraArgs)
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     ]
 
     binaries = [
-        "stork-macos-10-15", 
+        "stork-macos-10-15",
         "stork-ubuntu-20-04",
         "stork-ubuntu-16-04"
     ]
@@ -61,7 +61,7 @@ if __name__ == "__main__":
             source_path = opj(normalized_dir, "..", "web-artifacts", file["filename"])
 
             uploadFile(source_path, destination_path, {'ContentType': file["contentType"]})
-    
+
     for binary in binaries:
         for destination_path in [
             opj("releases", ref, binary),
