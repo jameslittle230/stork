@@ -31,101 +31,108 @@ jobs:
   ##############################
   ######## TESTING JOBS ########
   #############################
-  #
-  #build_web_artifacts:
-    #name: "TEST - Build web artifacts"
-    #runs-on: "ubuntu-latest"
-    #steps:
-      #- run: |
-        #mkdir dist
-        #touch dist/basic.css
-        #touch dist/dark.css
-        #touch federalist.st
-        #touch index.html
-        #touch stork.js
-        #touch stork.wasm
-
-      #- name: Upload JS/WASM artifacts
-        #uses: actions/upload-artifact@v1
-        #with:
-          #name: web-artifacts
-          #path: ./dist/
-
-  #build_ubuntu_20:
-    #name: "TEST - Build Artifact (Ubuntu 20.04)"
-    #runs-on: "ubuntu-20.04"
-    #steps:
-      #- run: |
-          #touch stork
-      #- uses: actions/upload-artifact@v1
-        #with:
-          #name: stork-ubuntu-20-04
-          #path: ./stork
-
-  #build_macos_10_15:
-    #name: "TEST - Build Artifact (macOS)"
-    #runs-on: "macos-10.15"
-    #steps:
-      #- run: |
-          #touch stork
-      #- uses: actions/upload-artifact@v1
-        #with:
-          #name: stork-macos-10-15
-          #path: ./stork
-
-  ###########################################
-  ########## END TESTING JOBS ###############
-  ###########################################
-
 
   build_ubuntu_20:
-    name: "Build Artifact (Ubuntu 20.04)"
+    name: "TEST - Build Artifact (Ubuntu 20.04)"
     runs-on: "ubuntu-20.04"
     steps:
-      - uses: actions/checkout@v2
-      - run: cargo build --verbose --release
+      - run: touch stork
       - uses: actions/upload-artifact@v1
         with:
           name: stork-ubuntu-20-04
-          path: ./target/release/stork
-
+          path: ./stork
 
   build_macos_10_15:
-    name: "Build Artifact (macOS)"
+    name: "TEST - Build Artifact (macOS)"
     runs-on: "macos-10.15"
     steps:
-      - uses: actions/checkout@v2
-      - run: cargo build --verbose --release
+      - run: touch stork
       - uses: actions/upload-artifact@v1
         with:
           name: stork-macos-10-15
-          path: ./target/release/stork
+          path: ./stork
 
   build_web_artifacts:
-    name: "Build web artifacts"
+    name: "TEST - Build web artifacts"
     runs-on: "ubuntu-latest"
-    needs: ["build_ubuntu_20"]
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up wasm-pack
-        uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-pack
-          use-tool-cache: true
-
-      - name: Build WASM
-        run: wasm-pack build --target web --out-name stork  -- --no-default-features
-
-      - run: yarn install
-
-      - run: yarn webpack --mode=production
+      - run: |
+          mkdir dist
+          touch dist/basic.css
+          touch dist/dark.css
+          touch dist/index.html
+          touch dist/stork.js
+          touch dist/stork.wasm
 
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
         with:
           name: web-artifacts
           path: ./dist/
+
+  #build_test_index:
+    #name: "TEST - Build test index"
+    #runs-on: "ubuntu-latest"
+    #steps:
+      #- run: touch federalist.st
+      #- name: Upload JS/WASM artifacts
+        #uses: actions/upload-artifact@v1
+        #with:
+          #name: federalist.st
+          #path: federalist.st
+
+  ###########################################
+  ########## END TESTING JOBS ###############
+  ###########################################
+
+
+  #build_ubuntu_20:
+    #name: "Build Artifact (Ubuntu 20.04)"
+    #runs-on: "ubuntu-20.04"
+    #steps:
+      #- uses: actions/checkout@v2
+      #- run: cargo build --verbose --release
+      #- uses: actions/upload-artifact@v1
+        #with:
+          #name: stork-ubuntu-20-04
+          #path: ./target/release/stork
+
+
+  #build_macos_10_15:
+    #name: "Build Artifact (macOS)"
+    #runs-on: "macos-10.15"
+    #steps:
+      #- uses: actions/checkout@v2
+      #- run: cargo build --verbose --release
+      #- uses: actions/upload-artifact@v1
+        #with:
+          #name: stork-macos-10-15
+          #path: ./target/release/stork
+
+  #build_web_artifacts:
+    #name: "Build web artifacts"
+    #runs-on: "ubuntu-latest"
+    #steps:
+      #- uses: actions/checkout@v2
+
+      #- name: Set up wasm-pack
+        #uses: actions-rs/install@v0.1
+        #with:
+          #crate: wasm-pack
+          #use-tool-cache: true
+
+      #- name: Build WASM
+        #run: wasm-pack build --target web --out-name stork  -- --no-default-features
+
+      #- run: yarn install
+
+      #- run: yarn webpack --mode=production
+
+      #- name: Upload JS/WASM artifacts
+        #uses: actions/upload-artifact@v1
+        #with:
+          #name: web-artifacts
+          #path: ./dist/
 
   build_test_index:
     name: "Build test index"
@@ -144,15 +151,20 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: stork-ubuntu-20-04
+          path: ./stork
 
       - name: Build Federalist index file
-        run: ./stork-ubuntu-20-04 build -i ./test/federalist-config/federalist.toml -o federalist.st
+        run: ./stork build -i ./test/federalist-config/federalist.toml -o federalist.st
 
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
         with:
           name: federalist.st
           path: federalist.st
+
+  ##########################################
+  ##### END JOBS THAT CREATE ARTIFACTS #####
+  ##########################################
 
   upload_bin_artifacts_to_release:
     name: "Upload binary artifacts to Github Release"
