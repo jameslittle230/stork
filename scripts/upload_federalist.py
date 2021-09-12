@@ -44,8 +44,7 @@ if __name__ == "__main__":
 
     binaries = [
         "stork-macos-10-15",
-        "stork-ubuntu-20-04",
-        "stork-ubuntu-16-04"
+        "stork-ubuntu-20-04"
     ]
 
     ref = sys.argv[1] # We'll upload to /releases/${ref}/*
