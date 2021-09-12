@@ -36,21 +36,19 @@ jobs:
     name: "TEST - Build Artifact (Ubuntu 20.04)"
     runs-on: "ubuntu-20.04"
     steps:
-      - run: echo test-contents > stork
+      - run: echo test-contents > stork-ubuntu-20-04
       - uses: actions/upload-artifact@v1
         with:
           name: stork-ubuntu-20-04
-          path: stork
 
   build_macos_10_15:
     name: "TEST - Build Artifact (macOS)"
     runs-on: "macos-10.15"
     steps:
-      - run: echo test-contents > stork
+      - run: echo test-contents > stork-macos-10-15
       - uses: actions/upload-artifact@v1
         with:
           name: stork-macos-10-15
-          path: stork
 
   build_web_artifacts:
     name: "TEST - Build web artifacts"
