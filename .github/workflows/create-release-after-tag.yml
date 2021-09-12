@@ -40,7 +40,7 @@ jobs:
       - uses: actions/upload-artifact@v1
         with:
           name: stork-ubuntu-20-04
-          path: ./stork
+          path: stork
 
   build_macos_10_15:
     name: "TEST - Build Artifact (macOS)"
@@ -50,7 +50,7 @@ jobs:
       - uses: actions/upload-artifact@v1
         with:
           name: stork-macos-10-15
-          path: ./stork
+          path: stork
 
   build_web_artifacts:
     name: "TEST - Build web artifacts"
