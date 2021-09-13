@@ -25,3 +25,9 @@ jobs:
         with:
           name: artifact-name-ext-2.txt
           path: local-name-no-ext
+  download_artifacts:
+    name: "Download artifacts"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+      - run: ls -lR
