@@ -8,6 +8,8 @@ jobs:
     steps:
       - run: echo hello-world > local-name.txt
       - run: echo hello-world > local-name-no-ext
+      - run: echo hello-world > same-name.txt
+      - run: echo hello-world > same-name-no-ext
 
       - uses: actions/upload-artifact@v1
         with:
@@ -25,6 +27,14 @@ jobs:
         with:
           name: artifact-name-ext-2.txt
           path: local-name-no-ext
+      - uses: actions/upload-artifact@v1
+        with:
+          name: same-name.txt
+          path: same-name.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: same-name-no-ext
+          path: same-name-no-ext
   download_artifacts:
     name: "Download artifacts"
     runs-on: ubuntu-latest
