@@ -182,6 +182,8 @@ jobs:
        with:
          name: ${{matrix.artifact}}
 
+     - run: ls -lR
+
      - name: Upload Release Asset
        id: upload-release-asset
        uses: actions/upload-release-asset@v1
@@ -247,7 +249,7 @@ jobs:
         with:
           name: stork-macos-10-15
 
-      - run: ls -R .
+      - run: ls -lR
 
       - name: Run Upload Script
         run: |
