@@ -1,7 +1,7 @@
 on:
   push:
-    tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+    #tags:
+      #- "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
   workflow_dispatch:
     inputs:
       fake_tag:
@@ -39,6 +39,7 @@ jobs:
       - run: echo test-contents > stork-ubuntu-20-04
       - uses: actions/upload-artifact@v1
         with:
+          name: stork-ubuntu-20-04
           path: stork-ubuntu-20-04
 
   build_macos_10_15:
@@ -48,6 +49,7 @@ jobs:
       - run: echo test-contents > stork-macos-10-15
       - uses: actions/upload-artifact@v1
         with:
+          name: stork-macos-10-15
           path: stork-macos-10-15
 
   build_web_artifacts:
@@ -197,6 +199,8 @@ jobs:
     needs: ["release", "build_web_artifacts", "build_test_index"]
     steps:
       - uses: actions/download-artifact@v2
+        with:
+          name: web-artifacts
 
       - name: Upload WASM
         uses: actions/upload-release-asset@v1
@@ -231,6 +235,14 @@ jobs:
           pip install boto3
 
       - uses: actions/download-artifact@v2
+        with:
+          name: web-artifacts
+      - uses: actions/download-artifact@v2
+        with:
+          name: stork-ubuntu-20-04
+      - uses: actions/download-artifact@v2
+        with:
+          name: stork-macos-10-15
 
       - run: ls -R .
 
