@@ -262,10 +262,12 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: stork-ubuntu-20-04
+          path: stork-ubuntu-20-04
 
       - uses: actions/download-artifact@v2
         with:
           name: stork-macos-10-15
+          path: stork-macos-10-15
 
       - run: ls -lR
 

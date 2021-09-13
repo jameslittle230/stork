@@ -66,7 +66,7 @@ if __name__ == "__main__":
             opj("releases", ref, binary),
             opj("releases", "latest", binary),
         ]:
-            source_path = opj(normalized_dir, "..", binary)
+            source_path = opj(normalized_dir, "..", binary, "stork")
             uploadFile(source_path, destination_path)
 
     invalidate()
