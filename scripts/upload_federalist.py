@@ -44,6 +44,9 @@ if __name__ == "__main__":
     binaries = [
         "stork-macos-10-15",
         "stork-ubuntu-20-04",
+    ]
+
+    other_files = [
         "federalist.st"
     ]
 
@@ -67,6 +70,15 @@ if __name__ == "__main__":
             opj("releases", "latest", binary),
         ]:
             source_path = opj(normalized_dir, "..", binary, "stork")
+            uploadFile(source_path, destination_path)
+
+    for file in other_files:
+        for destination_path in [
+            opj("releases", ref, file),
+            opj("releases", "latest", file),
+            file
+        ]:
+            source_path = opj(normalized_dir, "..", file)
             uploadFile(source_path, destination_path)
 
     invalidate()
