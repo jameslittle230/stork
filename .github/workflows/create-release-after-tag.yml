@@ -1,13 +1,7 @@
 on:
   push:
-    #tags:
-      #- "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
-  workflow_dispatch:
-    inputs:
-      fake_tag:
-        description: 'The "tag" to publish the release under'
-        required: true
-        default: 'v0.0.0-test'
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 name: "Create Release after Tag"
 jobs:
@@ -23,8 +17,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.events.input.fake_tag || github.ref }}
-          release_name: ${{ github.events.input.fake_tag || github.ref }}
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
           draft: true
           prerelease: false
 
@@ -275,8 +269,7 @@ jobs:
       - name: Run Upload Script
         run: |
           cd scripts
-          python3 upload_federalist.py 0.0.0-test
-          #python3 upload_federalist.py ${{ github.events.input.fake_tag || github.ref }}
+          python3 upload_federalist.py ${{ github.ref }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}

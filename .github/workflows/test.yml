@@ -1,5 +1,5 @@
-on: push
-name: "Test"
+on: workflow_dispatch
+name: "Test action to understand file & directory handling"
 
 jobs:
   create_file:
