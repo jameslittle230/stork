@@ -28,6 +28,7 @@ jobs:
   download_artifacts:
     name: "Download artifacts"
     runs-on: ubuntu-latest
+    needs: ["create_file"]
     steps:
       - uses: actions/download-artifact@v2
       - run: ls -lR
