@@ -73,6 +73,7 @@ jobs:
   build_test_index:
     name: "TEST - Build test index"
     runs-on: "ubuntu-latest"
+    needs: ["build_ubuntu_20"]
     steps:
       - run: touch federalist.st
       - name: Upload JS/WASM artifacts
@@ -203,6 +204,9 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: web-artifacts
+          path: web-artifacts
+
+      - run: ls -lR
 
       - name: Upload WASM
         uses: actions/upload-release-asset@v1
