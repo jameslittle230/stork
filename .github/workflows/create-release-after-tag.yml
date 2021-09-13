@@ -58,11 +58,11 @@ jobs:
     steps:
       - run: |
           mkdir dist
-          touch dist/basic.css
-          touch dist/dark.css
-          touch dist/index.html
-          touch dist/stork.js
-          touch dist/stork.wasm
+          echo test-contents > dist/basic.css
+          echo test-contents > dist/dark.css
+          echo test-contents > dist/index.html
+          echo test-contents > dist/stork.js
+          echo test-contents > dist/stork.wasm
 
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
@@ -151,7 +151,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: stork-ubuntu-20-04
-          path: stork-ubuntu-20-04
 
       - run: ls -lR
       - name: Build Federalist index file
