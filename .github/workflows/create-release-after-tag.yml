@@ -154,6 +154,7 @@ jobs:
           name: stork-ubuntu-20-04
 
       - run: ls -lR
+      - run: chmod +x ./stork
       - name: Build Federalist index file
         run: ./stork build -i ./test/federalist-config/federalist.toml -o federalist.st
 
