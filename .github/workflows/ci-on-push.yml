@@ -58,6 +58,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
 
+  cargo_fmt:
+    name: "Run Cargo Format Check"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+            components: clippy
+            toolchain: stable
+            override: true
+      - run: cargo fmt -- --check
+
   benchmark:
     name: Run Benchmarks
     runs-on: ubuntu-latest
