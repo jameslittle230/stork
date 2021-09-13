@@ -1,0 +1,27 @@
+on: push
+name: "Test"
+
+jobs:
+  create_file:
+    name: "Create file"
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hello-world > local-name.txt
+      - run: echo hello-world > local-name-no-ext
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name
+          path: local-name.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name-ext.txt
+          path: local-name.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name-2
+          path: local-name-no-ext
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name-ext-2.txt
+          path: local-name-no-ext
