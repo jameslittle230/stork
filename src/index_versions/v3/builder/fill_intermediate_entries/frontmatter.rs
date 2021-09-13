@@ -67,7 +67,7 @@ this is not
                 ("this".to_string(), "is frontmatter".to_string()),
                 ("that takes".to_string(), "multiple lines".to_string()),
                 ("and has".to_string(), "22".to_string()),
-                ("different formats".to_string(), "+INF".to_string()),
+                ("different formats".to_string(), "default".to_string()),
             ]
             .iter()
             .cloned()
