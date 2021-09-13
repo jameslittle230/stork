@@ -14,8 +14,6 @@ jobs:
           crate: wasm-pack
           use-tool-cache: true
 
-      - run: cargo fmt -- --check
-
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:

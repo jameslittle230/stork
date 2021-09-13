@@ -14,7 +14,7 @@ def uploadFile(localPath, remotePath, extraArgs={}):
     print(f"Called uploadFile: {localPath} → {remotePath}")
 
     s3 = boto3.resource('s3')
-    s3.Bucket("files-qa.stork-search.net").upload_file(localPath, remotePath, ExtraArgs=extraArgs)
+    s3.Bucket("files.stork-search.net").upload_file(localPath, remotePath, ExtraArgs=extraArgs)
 
 
 def invalidate():
