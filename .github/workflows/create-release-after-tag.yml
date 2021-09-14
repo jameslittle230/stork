@@ -2,22 +2,9 @@ on:
   push:
     tags:
       - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
-  workflow_dispatch:
-    inputs:
-      fake_tag:
-        description: 'The "tag" to publish the release under'
-        required: true
-        default: 'v0.0.0-test'
 
-name: Create Release after Tag
+name: "Create Release after Tag"
 jobs:
-  test:
-    name: Test Job
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v2
-
   release:
     name: Create release
     runs-on: ubuntu-latest
@@ -30,67 +17,85 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.events.input.fake_tag || github.ref }}
-          release_name: ${{ github.events.input.fake_tag || github.ref }}
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
           draft: true
           prerelease: false
+
+  ##############################
+  ######## TESTING JOBS ########
+  #############################
+
+  #build_ubuntu_20:
+    #name: "TEST - Build Artifact (Ubuntu 20.04)"
+    #runs-on: "ubuntu-20.04"
+    #steps:
+      #- run: echo test-contents > stork
+      #- uses: actions/upload-artifact@v1
+        #with:
+          #name: stork-ubuntu-20-04
+          #path: stork
+
+  #build_macos_10_15:
+    #name: "TEST - Build Artifact (macOS)"
+    #runs-on: "macos-10.15"
+    #steps:
+      #- run: echo test-contents > stork
+      #- uses: actions/upload-artifact@v1
+        #with:
+          #name: stork-macos-10-15
+          #path: stork
+
+  #build_web_artifacts:
+    #name: "TEST - Build web artifacts"
+    #runs-on: "ubuntu-latest"
+    #steps:
+      #- run: |
+          #mkdir dist
+          #echo test-contents > dist/basic.css
+          #echo test-contents > dist/dark.css
+          #echo test-contents > dist/index.html
+          #echo test-contents > dist/stork.js
+          #echo test-contents > dist/stork.wasm
+
+      #- name: Upload JS/WASM artifacts
+        #uses: actions/upload-artifact@v1
+        #with:
+          #name: web-artifacts
+          #path: ./dist/
+
+  #build_test_index:
+    #name: "TEST - Build test index"
+    #runs-on: "ubuntu-latest"
+    #needs: ["build_ubuntu_20"]
+    #steps:
+      #- run: touch federalist.st
+      #- name: Upload JS/WASM artifacts
+        #uses: actions/upload-artifact@v1
+        #with:
+          #name: federalist.st
+          #path: federalist.st
+
+  ###########################################
+  ########## END TESTING JOBS ###############
+  ###########################################
+
 
   build_ubuntu_20:
     name: "Build Artifact (Ubuntu 20.04)"
     runs-on: "ubuntu-20.04"
     steps:
       - uses: actions/checkout@v2
-      - name: Checkout Federalist Papers Repository
-        uses: actions/checkout@v2
-        with:
-          repository: jameslittle230/federalist
-          path: ./test/federalist
-      - name: Set up wasm-pack
-        uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-pack
-          use-tool-cache: true
-      
-      - name: Build WASM
-        run: wasm-pack build --target web --out-name stork  -- --no-default-features
-      
-      - name: Build executable
-        run: cargo build --verbose --release
-      
-      - name: Build Federalist index file
-        run: ./target/release/stork build -i ./test/federalist-config/federalist.toml -o test/federalist.st
-      
-      - name: Move indexes to dist directory
-        run: mkdir -p dist && cp test/*.st dist
-      
-      - run: yarn install
-      - run: yarn webpack --mode=production
-      
-      - name: Upload executable build artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: stork-ubuntu-20-04
-          path: ./target/release/stork
-      - name: Upload JS/WASM artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: dist-directory
-          path: ./dist/
-  
-  build_ubuntu_16:
-    name: "Build Artifact (Ubuntu 16.04)"
-    runs-on: "ubuntu-16.04"
-    steps:
-      - uses: actions/checkout@v2
       - run: cargo build --verbose --release
       - uses: actions/upload-artifact@v1
         with:
-          name: stork-ubuntu-16-04
+          name: stork-ubuntu-20-04
           path: ./target/release/stork
+
 
   build_macos_10_15:
     name: "Build Artifact (macOS)"
-    runs-on: "macos-latest"
+    runs-on: "macos-10.15"
     steps:
       - uses: actions/checkout@v2
       - run: cargo build --verbose --release
@@ -98,50 +103,140 @@ jobs:
         with:
           name: stork-macos-10-15
           path: ./target/release/stork
-  
-  build_windows_2019:
-    name: "Build Artifact (Windows 2019)"
-    runs-on: "windows-2019"
+
+  build_web_artifacts:
+    name: "Build web artifacts"
+    runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - run: cargo build --verbose --release
-      - uses: actions/upload-artifact@v1
-        with:
-          name: stork-windows-2019
-          path: ./target/release/stork
 
-  upload_artifacts_to_release:
-    name: "Upload Artifacts to Github Release"
+      - name: Set up wasm-pack
+        uses: actions-rs/install@v0.1
+        with:
+          crate: wasm-pack
+          use-tool-cache: true
+
+      - name: Build WASM
+        run: wasm-pack build --target web --out-name stork  -- --no-default-features
+
+      - run: yarn install
+
+      - run: yarn webpack --mode=production
+
+      - name: Upload JS/WASM artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: web-artifacts
+          path: ./dist/
+
+  build_test_index:
+    name: "Build test index"
     runs-on: "ubuntu-latest"
-    strategy:
-      matrix:
-        artifact: [
-          "stork-macos-10-15", 
-          "stork-ubuntu-20-04",
-          "stork-ubuntu-16-04",
-          "stork-windows-2019"
-        ]
-    needs: ["release", "build_ubuntu_20", "build_ubuntu_16", "build_macos_10_15", "build_windows_2019"]
+    needs: ["build_ubuntu_20"]
     steps:
-      - name: Download Artifact
+      - uses: actions/checkout@v2 # To get ./test/federalist-config/federalist.toml
+
+      - name: Checkout Federalist Papers Repository
+        uses: actions/checkout@v2
+        with:
+          repository: jameslittle230/federalist
+          path: ./test/federalist
+
+      - name: Download Stork binary
         uses: actions/download-artifact@v2
         with:
-          name: ${{matrix.artifact}}
-      - name: Upload Release Asset
-        id: upload-release-asset
+          name: stork-ubuntu-20-04
+
+      - run: ls -lR
+      - run: chmod +x ./stork
+      - name: Build Federalist index file
+        run: ./stork build -i ./test/federalist-config/federalist.toml -o federalist.st
+
+      - name: Upload JS/WASM artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: federalist.st
+          path: federalist.st
+
+  ##########################################
+  ##### END JOBS THAT CREATE ARTIFACTS #####
+  ##########################################
+
+  upload_bin_artifacts_to_release:
+    name: "Upload binary artifacts to Github Release"
+    runs-on: "ubuntu-latest"
+    needs: ["release", "build_ubuntu_20", "build_macos_10_15"]
+    steps:
+     - name: Download macOS Artifact
+       uses: actions/download-artifact@v2
+       with:
+         name: stork-macos-10-15
+         path: stork-macos-10-15
+
+     - name: Download Ubuntu Artifact
+       uses: actions/download-artifact@v2
+       with:
+         name: stork-ubuntu-20-04
+         path: stork-ubuntu-20-04
+
+     - run: ls -lR
+
+     - name: Upload Release Asset
+       uses: actions/upload-release-asset@v1
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       with:
+         upload_url: ${{ needs.release.outputs.release_upload_url }}
+         asset_path: stork-macos-10-15/stork
+         asset_name: stork-macos-10-15
+         asset_content_type: application/octet-stream
+
+     - name: Upload Release Asset
+       uses: actions/upload-release-asset@v1
+       env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+       with:
+         upload_url: ${{ needs.release.outputs.release_upload_url }}
+         asset_path: stork-ubuntu-20-04/stork
+         asset_name: stork-ubuntu-20-04
+         asset_content_type: application/octet-stream
+
+  upload_web_artifacts_to_release:
+    name: "Upload web artifacts to Github Release"
+    runs-on: "ubuntu-latest"
+    needs: ["release", "build_web_artifacts", "build_test_index"]
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: web-artifacts
+          path: web-artifacts
+
+      - run: ls -lR
+
+      - name: Upload WASM
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_upload_url }}
-          asset_path: stork
-          asset_name: ${{ matrix.artifact }}
-          asset_content_type: application/octet-stream
+          asset_path: web-artifacts/stork.wasm
+          asset_name: stork.wasm
+          asset_content_type: application/wasm
+
+      - name: Upload stork.js
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release_upload_url }}
+          asset_path: web-artifacts/stork.js
+          asset_name: stork.js
+          asset_content_type: application/javascript
 
   upload_artifacts_to_s3:
     name: "Upload Artifacts to S3"
     runs-on: "ubuntu-latest"
-    needs: ["build_ubuntu_20", "build_ubuntu_16", "build_macos_10_15"]
+    needs: ["build_ubuntu_20", "build_macos_10_15", "build_web_artifacts"]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -149,20 +244,33 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install boto3
-      - name: Download dist directory artifacts
-        uses: actions/download-artifact@v2
+
+      - uses: actions/download-artifact@v2
         with:
-          name: dist-directory
-          path: ./dist/
-      - run: ls dist
+          name: web-artifacts
+          path: web-artifacts
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: federalist.st
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: stork-ubuntu-20-04
+          path: stork-ubuntu-20-04
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: stork-macos-10-15
+          path: stork-macos-10-15
+
+      - run: ls -lR
+
       - name: Run Upload Script
-        run: | # upload_federalist.py assumes we're running from ./scripts
-          cd scripts 
-          python3 upload_federalist.py
+        run: |
+          cd scripts
+          python3 upload_federalist.py ${{ github.ref }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
-  
-  # update_homebrew:
-  
-  # cargo_publish:
+

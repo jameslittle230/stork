@@ -1,0 +1,44 @@
+on: workflow_dispatch
+name: "Test action to understand file & directory handling"
+
+jobs:
+  create_file:
+    name: "Create file"
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hello-world > local-name.txt
+      - run: echo hello-world > local-name-no-ext
+      - run: echo hello-world > same-name.txt
+      - run: echo hello-world > same-name-no-ext
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name
+          path: local-name.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name-ext.txt
+          path: local-name.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name-2
+          path: local-name-no-ext
+      - uses: actions/upload-artifact@v1
+        with:
+          name: artifact-name-ext-2.txt
+          path: local-name-no-ext
+      - uses: actions/upload-artifact@v1
+        with:
+          name: same-name.txt
+          path: same-name.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: same-name-no-ext
+          path: same-name-no-ext
+  download_artifacts:
+    name: "Download artifacts"
+    runs-on: ubuntu-latest
+    needs: ["create_file"]
+    steps:
+      - uses: actions/download-artifact@v2
+      - run: ls -lR

@@ -1,5 +1,5 @@
 on: workflow_dispatch
-name: Build Artifact
+name: "Manually Build Artifact"
 jobs:
   build_ubuntu:
     name: "Build Artifact (Ubuntu 16.04)"

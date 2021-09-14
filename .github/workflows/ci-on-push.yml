@@ -1,5 +1,5 @@
 on: push
-name: Run CI on Pushes
+name: "Run CI on Pushes"
 
 jobs:
   rust_tests:
@@ -14,8 +14,6 @@ jobs:
           crate: wasm-pack
           use-tool-cache: true
 
-      - run: cargo fmt -- --check
-
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
@@ -26,7 +24,7 @@ jobs:
         run: |
           cargo tarpaulin --out Xml
           bash <(curl -s https://codecov.io/bash)
-  
+
   js_tests:
     name: "Run JS Tests"
     runs-on: ubuntu-latest
@@ -42,7 +40,7 @@ jobs:
       - run: yarn lint
       - run: yarn test --coverage
       - run: bash <(curl -s https://codecov.io/bash) -cF javascript
-  
+
   clippy_check:
     name: "Run Clippy Check"
     runs-on: ubuntu-latest
@@ -57,6 +55,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
+
+  cargo_fmt:
+    name: "Run Cargo Format Check"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+            components: clippy
+            toolchain: stable
+            override: true
+      - run: cargo fmt -- --check
 
   benchmark:
     name: Run Benchmarks

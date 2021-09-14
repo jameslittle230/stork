@@ -1,0 +1,21 @@
+on:
+  release:
+    types: [published]
+
+name: "Distribute Release after Publishing Tag"
+jobs:
+  update_homebrew:
+    name: "Update Homebrew Repository"
+    runs-on: "macos-latest"
+    needs: ["build_macos_10_15"]
+    steps:
+      - run: ls -R
+
+  cargo_publish:
+    name: "Run Cargo Publish"
+    runs-on: "ubuntu-latest"
+    needs: ["build_ubuntu_20"]
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo publish
+

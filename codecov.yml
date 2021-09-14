@@ -1,18 +1,18 @@
 codecov:
   require_ci_to_pass: true
+  notify:
+    after_n_builds: 2
 
-# lifted from https://community.codecov.io/t/cannot-disable-codecov-patch-check/682/23
-# configuration related to pull request comments
-comment: no # do not comment PR with the result
+comment:
+  require_changes: true
+  after_n_builds: 2
 
 coverage:
-  range: 50..90 # coverage lower than 50 is red, higher than 90 green, between color code
-
   status:
-    project: # settings affecting project coverage
+    project:
       default:
-        target: auto # auto % coverage target
-        threshold: 5%  # allow for 5% reduction of coverage without failing
-
-    # do not run coverage on patch nor changes
-    patch: false
+        target: auto
+        threshold: 5%
+    patch:
+      default:
+        target: 80%
