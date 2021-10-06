@@ -1,4 +1,4 @@
-use crate::index_versions::v3::structs::AnnotatedWordList;
+use crate::AnnotatedWordList;
 
 use super::{html_word_list_generator, ReadResult, ReaderConfig, WordListGenerationError};
 
@@ -23,7 +23,7 @@ pub fn generate(
 mod tests {
     use stork_config::{File, Filetype, InputConfig};
 
-    use crate::index_versions::v3::builder::fill_intermediate_entries::{ReadResult, ReaderConfig};
+    use crate::builder::fill_intermediate_entries::{ReadResult, ReaderConfig};
 
     use super::generate;
 

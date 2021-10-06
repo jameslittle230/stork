@@ -185,11 +185,12 @@ fn char_is_cjk_ideograph(c: &char) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::v3::{builder::intermediate_entry::NormalizedEntry, structs::AnnotatedWordList};
+    use crate::AnnotatedWordList;
     use std::collections::HashMap;
     use stork_config::Config;
 
     use super::fill_containers;
+    use super::*;
 
     #[test]
     fn container_filling_continues_after_encountering_unnormalizable_word() {

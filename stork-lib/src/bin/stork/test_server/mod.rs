@@ -1,5 +1,5 @@
 extern crate stork_search as stork;
-use stork::v3::structs::Index;
+use stork_index_v3::Index;
 
 #[cfg(not(feature = "test-server"))]
 pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
@@ -10,7 +10,7 @@ pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(feature = "test-server")]
 pub fn serve(index: &Index, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     use hyper::service::{make_service_fn, service_fn};
-    use hyper::{server::Server, Body, Request, Response, StatusCode};
+    use hyper::{Body, Request, Response, Server, StatusCode};
     use std::convert::Infallible;
     use tokio::runtime::Runtime;
 

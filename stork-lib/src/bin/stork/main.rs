@@ -24,6 +24,7 @@ use command_line_error::StorkCommandLineError;
 use num_format::{Locale, ToFormattedString};
 
 use stork_config::Config;
+use stork_index_v3::Index;
 
 pub type ExitCode = i32;
 pub const EXIT_SUCCESS: ExitCode = 0;
@@ -150,7 +151,7 @@ pub fn build_index(_config: Option<&String>) -> (Config, Index) {
 }
 
 #[cfg(feature = "build")]
-fn build_index(path: &str) -> Result<stork_search::v3::structs::Index, StorkCommandLineError> {
+fn build_index(path: &str) -> Result<Index, StorkCommandLineError> {
     let string = read_from_path(path)?;
     let config =
         Config::try_from(string.as_str()).map_err(StorkCommandLineError::ConfigReadError)?;

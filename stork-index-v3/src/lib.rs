@@ -1,13 +1,23 @@
-use super::scores::MATCHED_WORD_SCORE;
+mod builder;
+mod reader;
+mod scores;
+mod search;
+mod writer;
+
+use scores::MATCHED_WORD_SCORE;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use stork_boundary::InternalWordAnnotation;
 use stork_config::{OutputConfig, TitleBoost};
 use stork_shared::Fields;
 
-pub type EntryIndex = usize;
-pub type AliasTarget = String;
-pub type Score = u8;
+type EntryIndex = usize;
+type AliasTarget = String;
+type Score = u8;
+
+pub use builder::build;
+pub use builder::errors::IndexGenerationError;
+pub use search::search;
 
 /**
  * A serialized Index, for all intents and purposes, is the whole contents of
@@ -15,9 +25,9 @@ pub type Score = u8;
  */
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Index {
-    pub(super) config: PassthroughConfig,
-    pub(super) entries: Vec<Entry>,
-    pub(super) containers: HashMap<String, Container>,
+    config: PassthroughConfig,
+    entries: Vec<Entry>,
+    containers: HashMap<String, Container>,
 }
 
 impl Index {
@@ -35,12 +45,12 @@ impl Index {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct PassthroughConfig {
-    pub(super) url_prefix: String,
-    pub(super) title_boost: TitleBoost,
-    pub(super) excerpt_buffer: u8,
-    pub(super) excerpts_per_result: u8,
-    pub(super) displayed_results_count: u8,
+struct PassthroughConfig {
+    url_prefix: String,
+    title_boost: TitleBoost,
+    excerpt_buffer: u8,
+    excerpts_per_result: u8,
+    displayed_results_count: u8,
 }
 
 impl Default for PassthroughConfig {
@@ -57,11 +67,11 @@ impl Default for PassthroughConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct Entry {
-    pub(super) contents: String,
-    pub(super) title: String,
-    pub(super) url: String,
-    pub(super) fields: Fields,
+struct Entry {
+    contents: String,
+    title: String,
+    url: String,
+    fields: Fields,
 }
 
 /**
@@ -76,10 +86,10 @@ pub(super) struct Entry {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Container {
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub(super) results: HashMap<EntryIndex, SearchResult>,
+    results: HashMap<EntryIndex, SearchResult>,
 
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub(super) aliases: HashMap<AliasTarget, Score>,
+    aliases: HashMap<AliasTarget, Score>,
 }
 
 impl Container {
@@ -89,13 +99,13 @@ impl Container {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct SearchResult {
-    pub(super) excerpts: Vec<Excerpt>,
-    pub(super) score: Score,
+struct SearchResult {
+    excerpts: Vec<Excerpt>,
+    score: Score,
 }
 
 impl SearchResult {
-    pub(super) fn new() -> SearchResult {
+    fn new() -> SearchResult {
         SearchResult {
             excerpts: vec![],
             score: MATCHED_WORD_SCORE,
@@ -104,21 +114,21 @@ impl SearchResult {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub(super) struct Excerpt {
-    pub(super) word_index: usize,
+struct Excerpt {
+    word_index: usize,
 
     // #[serde(default, skip_serializing_if = "WordListSource::is_default")]
-    pub(super) source: WordListSource,
+    source: WordListSource,
 
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub(super) internal_annotations: Vec<InternalWordAnnotation>,
+    internal_annotations: Vec<InternalWordAnnotation>,
 
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub(super) fields: Fields,
+    fields: Fields,
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum WordListSource {
+enum WordListSource {
     Title,
     Contents,
 }
@@ -137,19 +147,19 @@ impl Default for WordListSource {
 // }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub(super) struct AnnotatedWord {
-    pub(super) word: String,
-    pub(super) internal_annotations: Vec<InternalWordAnnotation>,
-    pub(super) fields: Fields,
+struct AnnotatedWord {
+    word: String,
+    internal_annotations: Vec<InternalWordAnnotation>,
+    fields: Fields,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AnnotatedWordList {
-    pub(super) word_list: Vec<AnnotatedWord>,
+    word_list: Vec<AnnotatedWord>,
 }
 
 impl AnnotatedWordList {
-    pub(super) fn get_full_text(&self) -> String {
+    fn get_full_text(&self) -> String {
         self.word_list
             .iter()
             .map(|aw| aw.word.clone())

@@ -1,5 +1,6 @@
-use super::super::structs::AnnotatedWord;
 use stork_boundary::InternalWordAnnotation;
+
+use crate::AnnotatedWord;
 
 pub(super) trait AnnotatedWordable {
     fn make_annotated_words(&self) -> Vec<AnnotatedWord>;

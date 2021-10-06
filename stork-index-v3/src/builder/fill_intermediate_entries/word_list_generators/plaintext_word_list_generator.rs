@@ -1,6 +1,4 @@
-use crate::index_versions::v3::{
-    builder::annotated_words_from_string::AnnotatedWordable, structs::AnnotatedWordList,
-};
+use crate::{builder::annotated_words_from_string::AnnotatedWordable, AnnotatedWordList};
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 

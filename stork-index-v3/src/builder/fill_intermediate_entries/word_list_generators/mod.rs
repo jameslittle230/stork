@@ -1,4 +1,4 @@
-use crate::index_versions::v3::structs::AnnotatedWordList;
+use crate::AnnotatedWordList;
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 use stork_config::Filetype;

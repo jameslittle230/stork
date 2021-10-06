@@ -1,4 +1,4 @@
-use crate::v3::structs::{Entry, PassthroughConfig, WordListSource};
+use crate::{Entry, PassthroughConfig, WordListSource};
 use std::collections::HashMap;
 use stork_boundary::{Entry as BoundaryEntry, Excerpt, HighlightRange, Result};
 use stork_config::TitleBoost;

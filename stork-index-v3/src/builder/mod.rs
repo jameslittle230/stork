@@ -1,4 +1,4 @@
-use super::structs::{
+use crate::{
     AnnotatedWord, Container, Entry, Excerpt, Index, PassthroughConfig, SearchResult,
     WordListSource,
 };
@@ -13,7 +13,6 @@ mod annotated_words_from_string;
 pub mod errors;
 pub mod intermediate_entry;
 
-use colored::Colorize;
 use fill_containers::fill_containers;
 use fill_intermediate_entries::fill_intermediate_entries;
 use fill_stems::fill_stems;
@@ -35,7 +34,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
     if !document_errors.is_empty() {
         eprintln!(
             "{} {} error{} while indexing files. Your index was still generated, though the erroring files were omitted.",
-            "Warning:".yellow(),
+            "Warning:",
             document_errors.len(),
             match document_errors.len() {
                 1 => "",

@@ -1,5 +1,3 @@
-use colored::Colorize;
-
 use stork_config::Config;
 
 /**
@@ -50,7 +48,7 @@ impl From<&Config> for Nudger {
 impl Nudger {
     pub(super) fn print(&self) {
         if !self.nudges.is_empty() {
-            eprintln!("{}", "Config Warnings:".yellow());
+            eprintln!("{}", "Config Warnings:");
         }
 
         for nudge in &self.nudges {

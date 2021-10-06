@@ -1,4 +1,3 @@
-use colored::Colorize;
 use std::{error::Error, fmt};
 use stork_config::File;
 
@@ -85,7 +84,7 @@ impl fmt::Display for DocumentError {
         write!(
             f,
             "- {}\n  {}",
-            self.word_list_generation_error.to_string().yellow(),
+            self.word_list_generation_error.to_string(),
             self.file
         )
     }

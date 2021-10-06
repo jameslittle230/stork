@@ -1,8 +1,8 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 use stork_config::{DataSource, Filetype};
 
-pub mod filepath_data_source_reader;
-pub mod url_data_source_reader;
+mod filepath_data_source_reader;
+mod url_data_source_reader;
 
 pub fn read_from_data_source(
     reader_config: &ReaderConfig,

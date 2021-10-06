@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use stork_shared::StorkIndex;
 
-use super::structs::Index;
+use crate::Index;
 use std::convert::{TryFrom, TryInto};
 
 impl TryFrom<&[u8]> for Index {

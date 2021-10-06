@@ -1,6 +1,6 @@
 use std::{fmt::Display, io, num::ParseIntError};
-use stork::v3::builder::errors::IndexGenerationError;
 use stork_config::ConfigFromFileError;
+use stork_index_v3::IndexGenerationError;
 
 pub enum StorkCommandLineError {
     FileReadError(String, io::Error),

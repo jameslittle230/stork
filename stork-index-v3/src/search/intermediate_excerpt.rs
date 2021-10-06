@@ -1,4 +1,4 @@
-use super::super::structs::{EntryIndex, Score, WordListSource};
+use crate::{EntryIndex, Score, WordListSource};
 use std::cmp::Ordering;
 use stork_boundary::InternalWordAnnotation;
 use stork_shared::Fields;

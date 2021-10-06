@@ -1,4 +1,4 @@
-use super::structs::Index;
+use crate::Index;
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
@@ -24,7 +24,7 @@ impl Index {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::<u8>::new();
 
-        let write_version = super::VERSION_STRING.as_bytes();
+        let write_version = "stork-v3".as_bytes();
         let index_bytes = rmp_serde::to_vec(self).unwrap();
 
         let byte_vectors_to_write = [write_version, index_bytes.as_slice()];
