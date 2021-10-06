@@ -1,9 +1,9 @@
-use crate::{common::IndexFromFile, searcher::parse::IndexMetadata};
+use crate::{parse_and_cache_index, search_from_cache, ParsedIndex};
+use bytes::Bytes;
 use serde::Serialize;
 use std::{convert::From, fmt::Display};
+use stork_boundary::IndexMetadata;
 use wasm_bindgen::prelude::*;
-
-use super::{parse_and_cache_index, search_from_cache};
 
 struct JsonSerializationError {}
 
@@ -33,8 +33,24 @@ impl<T: Sized + Serialize, E: Display> From<Result<T, E>> for WasmOutput {
     }
 }
 
+impl From<&ParsedIndex> for IndexMetadata {
+    fn from(index: &ParsedIndex) -> Self {
+        let index_version = {
+            match index {
+                ParsedIndex::V2(_) => "stork-2",
+                ParsedIndex::V3(_) => "stork-3",
+            }
+        };
+
+        IndexMetadata {
+            index_version: index_version.to_string(),
+        }
+    }
+}
+
 #[wasm_bindgen]
-pub fn wasm_register_index(name: &str, data: &IndexFromFile) -> String {
+pub fn wasm_register_index(name: &str, data: &[u8]) -> String {
+    let data = Bytes::from(Vec::from(data)); // TODO: This seems questionable
     console_error_panic_hook::set_once();
     WasmOutput::from(parse_and_cache_index(data, name).map(IndexMetadata::from)).0
 }

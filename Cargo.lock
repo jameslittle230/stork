@@ -103,9 +103,9 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "bytes"
-version = "1.0.1"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b700ce4376041dcd0a327fd0097c41095743c4c8af8887265942faf1100bd040"
+checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
 name = "cast"
@@ -615,6 +615,12 @@ checksum = "322f4de77956e22ed0e5032c359a0f1273f1f7f0d79bfa3b8ffbc730d7fbcc5c"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hex-literal"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21e4590e13640f19f249fe3e4eca5113bc4289f2497710378190e7f4bd96f45b"
 
 [[package]]
 name = "html5ever"
@@ -1738,6 +1744,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
+name = "stork-boundary"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "hex-literal",
+ "pretty_assertions",
+ "serde",
+ "stork-shared",
+ "thiserror",
+]
+
+[[package]]
 name = "stork-config"
 version = "0.1.0"
 dependencies = [
@@ -1755,6 +1773,7 @@ version = "1.2.1"
 dependencies = [
  "atty",
  "bincode",
+ "bytes",
  "clap",
  "colored",
  "console_error_panic_hook",
@@ -1774,12 +1793,19 @@ dependencies = [
  "serde",
  "serde_json",
  "srtparse",
+ "stork-boundary",
  "stork-config",
+ "stork-shared",
+ "thiserror",
  "tokio",
  "toml",
  "unicode-segmentation",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "stork-shared"
+version = "0.1.0"
 
 [[package]]
 name = "string_cache"

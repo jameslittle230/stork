@@ -1,6 +1,7 @@
 use super::super::structs::{EntryIndex, Score, WordListSource};
-use crate::common::{Fields, InternalWordAnnotation};
 use std::cmp::Ordering;
+use stork_boundary::InternalWordAnnotation;
+use stork_shared::Fields;
 
 #[derive(Clone, Debug)]
 pub(super) struct IntermediateExcerpt {

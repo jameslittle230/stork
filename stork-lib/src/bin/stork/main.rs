@@ -10,6 +10,7 @@ use std::{
 };
 use std::{io::Read, process::exit};
 
+use bytes::Bytes;
 use colored::Colorize;
 
 mod clap;
@@ -22,7 +23,6 @@ use ::clap::ArgMatches;
 use command_line_error::StorkCommandLineError;
 use num_format::{Locale, ToFormattedString};
 
-use stork::LatestVersion::structs::Index;
 use stork_config::Config;
 
 pub type ExitCode = i32;
@@ -150,7 +150,7 @@ pub fn build_index(_config: Option<&String>) -> (Config, Index) {
 }
 
 #[cfg(feature = "build")]
-fn build_index(path: &str) -> Result<Index, StorkCommandLineError> {
+fn build_index(path: &str) -> Result<stork_search::v3::structs::Index, StorkCommandLineError> {
     let string = read_from_path(path)?;
     let config =
         Config::try_from(string.as_str()).map_err(StorkCommandLineError::ConfigReadError)?;
@@ -218,7 +218,7 @@ fn search_handler(
     let index_bytes = read_bytes_from_path(path)?;
     let read_time = Instant::now();
 
-    let _index_info = stork::parse_and_cache_index(&index_bytes, "a")
+    let _index_info = stork::parse_and_cache_index(Bytes::from(index_bytes), "a")
         .map_err(|_| StorkCommandLineError::IndexReadError)?;
 
     let results =

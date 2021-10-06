@@ -1,51 +1,96 @@
 mod common;
-mod searcher;
 pub mod wasm;
 
 mod index_versions;
 
-use crate::searcher::parse::{IndexParseError, ParsedIndex};
-use common::IndexFromFile;
-use searcher::SearchError;
-
-pub use index_versions::v3 as LatestVersion;
-use LatestVersion::structs::Index;
+use bytes::Bytes;
+use index_versions::v2;
+pub use index_versions::v3;
 
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Mutex;
 
+use stork_boundary::{IndexMetadata, IndexVersioningError, Output, VersionedIndex};
 use stork_config::Config;
+
+use thiserror::Error;
 
 // We can't pass a parsed index over the WASM boundary so we store the parsed indices here
 static INDEX_CACHE: OnceCell<Mutex<HashMap<String, ParsedIndex>>> = OnceCell::new();
 
+#[derive(Error, Debug)]
+pub enum IndexParseError {
+    #[error("{0}")]
+    VersioningError(#[from] IndexVersioningError),
+
+    #[error("{0}")]
+    V2Error(String),
+
+    #[error("{0}")]
+    V3Error(#[from] rmp_serde::decode::Error),
+}
+
+#[derive(Error, Debug)]
+pub enum SearchError {
+    #[error("Index not found. You must parse an index before performing searches with it.")]
+    NamedIndexNotInCache,
+}
+
+enum ParsedIndex {
+    V2(v2::structs::Index),
+    V3(v3::structs::Index),
+}
+
+fn index_from_data<'a>(data: Bytes) -> Result<ParsedIndex, IndexParseError> {
+    let versioned = VersionedIndex::try_from(data)?;
+
+    match versioned {
+        VersionedIndex::V2(bytes) => v2::structs::Index::try_from(bytes)
+            .map_err(|e| IndexParseError::V2Error(e.to_string()))
+            .map(|index| ParsedIndex::V2(index)),
+
+        VersionedIndex::V3(bytes) => v3::structs::Index::try_from(bytes)
+            .map_err(|e| e.into())
+            .map(|index| ParsedIndex::V3(index)),
+    }
+}
+
 /**
  * Parses an index from a binary file and saves it in memory.
  */
-pub fn parse_and_cache_index(
-    data: &IndexFromFile,
-    name: &str,
-) -> Result<ParsedIndex, IndexParseError> {
-    let index = ParsedIndex::try_from(data)?;
-    let mutex = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
-    let mut lock = mutex.lock().unwrap();
-    lock.insert(name.to_string(), index.clone());
-    Ok(index)
+pub fn parse_and_cache_index(data: Bytes, name: &str) -> Result<IndexMetadata, IndexParseError> {
+    let index = index_from_data(data)?;
+    let index_metadata = IndexMetadata::from(&index);
+
+    let mut hashmap = INDEX_CACHE
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .unwrap();
+    hashmap.insert(name.to_string(), index);
+
+    Ok(index_metadata)
 }
 
 /**
  * Retrieves an index object from memory, and performs a search with the given index binary and the given query.
  */
-pub fn search_from_cache(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchError> {
-    let parsed_indices = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
-    let lock = parsed_indices.lock().unwrap();
-    let index = lock
+pub fn search_from_cache(name: &str, query: &str) -> Result<Output, SearchError> {
+    let hashmap = INDEX_CACHE
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .unwrap();
+
+    let index = hashmap
         .get(name)
         .to_owned()
         .ok_or(SearchError::NamedIndexNotInCache)?;
-    searcher::search(index, query)
+
+    match index {
+        ParsedIndex::V3(inner) => Ok(v3::search::search(inner, query)),
+        ParsedIndex::V2(inner) => Ok(v2::search::search(inner, query)),
+    }
 }
 
 /**
@@ -53,8 +98,8 @@ pub fn search_from_cache(name: &str, query: &str) -> Result<searcher::SearchOutp
  *
  * This method only works with indexes created with the same package version used to run the search.
  */
-pub fn search_with_index(index: &Index, query: &str) -> searcher::SearchOutput {
-    LatestVersion::search::search(index, query)
+pub fn search_with_index(index: &v3::structs::Index, query: &str) -> Output {
+    v3::search::search(index, query)
 }
 
 #[cfg(not(feature = "build"))]
@@ -67,11 +112,11 @@ pub fn build_index(_config: Option<&String>) -> (Config, Index) {
  * Builds an Index object that can be serialized and parsed later
  */
 #[cfg(feature = "build")]
-use LatestVersion::builder::errors::IndexGenerationError;
+use v3::builder::errors::IndexGenerationError;
 
 #[cfg(feature = "build")]
-pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
-    use LatestVersion::builder;
+pub fn build(config: &Config) -> Result<v3::structs::Index, IndexGenerationError> {
+    use v3::builder;
     let (index, _) = builder::build(config)?;
     Ok(index)
 }

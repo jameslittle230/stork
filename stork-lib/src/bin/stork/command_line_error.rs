@@ -1,5 +1,5 @@
 use std::{fmt::Display, io, num::ParseIntError};
-use stork::LatestVersion::builder::errors::IndexGenerationError;
+use stork::v3::builder::errors::IndexGenerationError;
 use stork_config::ConfigFromFileError;
 
 pub enum StorkCommandLineError {

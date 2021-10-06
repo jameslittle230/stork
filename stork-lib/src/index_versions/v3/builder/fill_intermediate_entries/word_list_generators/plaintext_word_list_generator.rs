@@ -1,4 +1,4 @@
-use crate::LatestVersion::{
+use crate::index_versions::v3::{
     builder::annotated_words_from_string::AnnotatedWordable, structs::AnnotatedWordList,
 };
 

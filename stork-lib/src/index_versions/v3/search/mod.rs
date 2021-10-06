@@ -1,7 +1,8 @@
 use super::scores::STOPWORD_SCORE;
 use super::structs::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
 use crate::common::STOPWORDS;
-use crate::searcher::{OutputEntry, OutputResult, SearchOutput};
+use stork_boundary::{Entry as BoundaryEntry, Output, Result};
+// use crate::searcher::{OutputEntry, OutputResult, SearchOutput};
 use std::collections::HashMap;
 
 pub mod intermediate_excerpt;
@@ -10,7 +11,7 @@ use intermediate_excerpt::IntermediateExcerpt;
 mod entry_and_intermediate_excerpts;
 use entry_and_intermediate_excerpts::EntryAndIntermediateExcerpts;
 
-pub fn search(index: &Index, query: &str) -> SearchOutput {
+pub fn search(index: &Index, query: &str) -> Output {
     let normalized_query = query.to_lowercase();
     let words_in_query: Vec<String> = normalized_query
         .split(|c| c == ' ' || c == '-')
@@ -42,7 +43,7 @@ pub fn search(index: &Index, query: &str) -> SearchOutput {
 
     let total_len = &excerpts_by_index.len();
 
-    let mut output_results: Vec<OutputResult> = excerpts_by_index
+    let mut output_results: Vec<Result> = excerpts_by_index
         .iter()
         .map(|(entry_index, ies)| {
             let data = EntryAndIntermediateExcerpts {
@@ -50,14 +51,14 @@ pub fn search(index: &Index, query: &str) -> SearchOutput {
                 config: index.config.clone(),
                 intermediate_excerpts: ies.to_owned(),
             };
-            OutputResult::from(data)
+            Result::from(data)
         })
         .collect();
     output_results.sort_by_key(|or| or.entry.title.clone());
     output_results.sort_by_key(|or| -(or.score as i64));
     output_results.truncate(index.config.displayed_results_count as usize);
 
-    SearchOutput {
+    Output {
         results: output_results,
         total_hit_count: *total_len,
         url_prefix: index.config.url_prefix.clone(),
@@ -119,9 +120,9 @@ impl ContainerWithQuery {
     }
 }
 
-impl From<Entry> for OutputEntry {
+impl From<Entry> for BoundaryEntry {
     fn from(entry: Entry) -> Self {
-        OutputEntry {
+        BoundaryEntry {
             url: entry.url.clone(),
             title: entry.title.clone(),
             fields: entry.fields,
@@ -137,7 +138,7 @@ mod tests {
     use std::io::{BufReader, Read};
     #[test]
     fn e2e_v3_search_works() {
-        let file = fs::File::open("./test-assets/federalist-min-0.7.0.st").unwrap();
+        let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);

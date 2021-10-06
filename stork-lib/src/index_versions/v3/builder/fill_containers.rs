@@ -185,9 +185,7 @@ fn char_is_cjk_ideograph(c: &char) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::LatestVersion::{
-        builder::intermediate_entry::NormalizedEntry, structs::AnnotatedWordList,
-    };
+    use crate::v3::{builder::intermediate_entry::NormalizedEntry, structs::AnnotatedWordList};
     use std::collections::HashMap;
     use stork_config::Config;
 

@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-
-use crate::common::InternalWordAnnotation;
-use crate::LatestVersion::structs::{AnnotatedWord, AnnotatedWordList};
-use kuchiki::{traits::*, ElementData, NodeDataRef};
-
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
+use crate::index_versions::v3::structs::{AnnotatedWord, AnnotatedWordList};
+use kuchiki::{traits::*, ElementData, NodeDataRef};
+use std::collections::HashMap;
+use stork_boundary::InternalWordAnnotation;
 
 pub fn generate(
     config: &ReaderConfig,
@@ -116,8 +114,9 @@ pub fn generate(
 
 #[cfg(test)]
 mod tests {
+    use crate::index_versions::v3::structs::AnnotatedWordList;
+
     use super::{generate, ReadResult, ReaderConfig, WordListGenerationError};
-    use crate::LatestVersion::structs::AnnotatedWordList;
     use stork_config::{File, Filetype, InputConfig};
 
     fn reader_config_from_html_selectors(

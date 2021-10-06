@@ -1,6 +1,6 @@
 use super::super::structs::AnnotatedWordList;
 use super::super::structs::Entry;
-use crate::common::Fields;
+use stork_shared::Fields;
 
 extern crate rust_stemmers;
 use rust_stemmers::Algorithm;

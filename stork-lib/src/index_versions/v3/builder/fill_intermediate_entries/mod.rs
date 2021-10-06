@@ -202,7 +202,7 @@ mod tests {
     use stork_config::{Config, DataSource, File, InputConfig, OutputConfig};
     use unicode_segmentation::UnicodeSegmentation;
 
-    use crate::LatestVersion::builder::{
+    use crate::index_versions::v3::builder::{
         errors::{DocumentError, IndexGenerationError, WordListGenerationError},
         intermediate_entry::NormalizedEntry,
     };

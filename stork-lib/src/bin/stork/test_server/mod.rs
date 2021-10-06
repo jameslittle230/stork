@@ -1,5 +1,5 @@
 extern crate stork_search as stork;
-use stork::LatestVersion::structs::Index;
+use stork::v3::structs::Index;
 
 #[cfg(not(feature = "test-server"))]
 pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {

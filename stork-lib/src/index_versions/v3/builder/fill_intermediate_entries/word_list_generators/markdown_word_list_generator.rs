@@ -1,4 +1,4 @@
-use crate::LatestVersion::structs::AnnotatedWordList;
+use crate::index_versions::v3::structs::AnnotatedWordList;
 
 use super::{html_word_list_generator, ReadResult, ReaderConfig, WordListGenerationError};
 
@@ -21,8 +21,9 @@ pub fn generate(
 
 #[cfg(test)]
 mod tests {
-    use crate::LatestVersion::builder::fill_intermediate_entries::{ReadResult, ReaderConfig};
     use stork_config::{File, Filetype, InputConfig};
+
+    use crate::index_versions::v3::builder::fill_intermediate_entries::{ReadResult, ReaderConfig};
 
     use super::generate;
 

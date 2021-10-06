@@ -1,7 +1,7 @@
-use crate::common::Fields;
 use frontmatter::{parse_and_find_content, Yaml};
 use std::collections::HashMap;
 use stork_config::FrontmatterConfig;
+use stork_shared::Fields;
 
 pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields, Box<String>) {
     let default_output = (HashMap::new(), Box::new(buffer.to_string()));

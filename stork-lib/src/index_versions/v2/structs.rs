@@ -1,8 +1,9 @@
 use super::scores::_MATCHED_WORD_SCORE;
-use crate::IndexFromFile;
+use bytes::{Buf, Bytes};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
+use stork_shared::StorkIndex;
 
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
@@ -67,8 +68,9 @@ pub struct Index {
     pub(super) queries: HashMap<String, Container>,
 }
 
+#[cfg(test)]
 impl Index {
-    pub fn from_file(file: &IndexFromFile) -> Index {
+    pub fn from_file(file: &[u8]) -> Index {
         let (version_size_bytes, rest) = file.split_at(std::mem::size_of::<u64>());
         let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());
         let (_version_bytes, rest) = rest.split_at(version_size.try_into().unwrap());
@@ -87,6 +89,30 @@ impl Index {
     }
 }
 
+impl TryFrom<Bytes> for Index {
+    type Error = &'static str;
+
+    fn try_from(value: Bytes) -> Result<Self, Self::Error> {
+        let mut value = value;
+
+        let entries = {
+            let size = value.get_u64();
+            let bytes = value.split_to(size.try_into().unwrap());
+            bincode::deserialize(bytes.as_ref()).unwrap()
+        };
+
+        let queries = {
+            let size = value.get_u64();
+            let bytes = value.split_to(size.try_into().unwrap());
+            bincode::deserialize(bytes.as_ref()).unwrap()
+        };
+
+        Ok(Index { entries, queries })
+    }
+}
+
+impl StorkIndex for Index {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -95,7 +121,7 @@ mod tests {
 
     #[test]
     fn can_parse_0_5_3_index() {
-        let file = fs::File::open("./test-assets/federalist-min-0.5.3.st").unwrap();
+        let file = fs::File::open("../test-assets/federalist-min-0.5.3.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
@@ -106,7 +132,7 @@ mod tests {
 
     #[test]
     fn can_parse_0_6_0_index() {
-        let file = fs::File::open("./test-assets/federalist-min-0.6.0.st").unwrap();
+        let file = fs::File::open("../test-assets/federalist-min-0.6.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);

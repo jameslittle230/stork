@@ -1,8 +1,9 @@
 use super::scores::MATCHED_WORD_SCORE;
-use crate::common::{Fields, InternalWordAnnotation};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use stork_boundary::InternalWordAnnotation;
 use stork_config::{OutputConfig, TitleBoost};
+use stork_shared::Fields;
 
 pub type EntryIndex = usize;
 pub type AliasTarget = String;
@@ -166,7 +167,7 @@ mod tests {
 
     #[test]
     fn can_parse_0_7_0_index() {
-        let file = fs::File::open("./test-assets/federalist-min-0.7.0.st").unwrap();
+        let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
