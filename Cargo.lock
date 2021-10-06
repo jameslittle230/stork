@@ -63,11 +63,10 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "bincode"
-version = "1.3.2"
+version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d175dfa69e619905c4c3cdb7c3c203fa3bdd5d51184e3afdb2742c0280493772"
+checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
 dependencies = [
- "byteorder",
  "serde",
 ]
 
@@ -1651,9 +1650,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.62"
+version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea1c6153794552ea7cf7cf63b1231a25de00ec90db326ba6264440fa08e31486"
+checksum = "0f690853975602e1bfe1ccbf50504d67174e3bcf340f23b5ea9992e0587a52d8"
 dependencies = [
  "itoa",
  "ryu",
@@ -1768,6 +1767,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "stork-index-v2"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytes",
+ "serde",
+ "serde_json",
+ "stork-boundary",
+ "stork-shared",
+]
+
+[[package]]
 name = "stork-search"
 version = "1.2.1"
 dependencies = [
@@ -1795,6 +1806,7 @@ dependencies = [
  "srtparse",
  "stork-boundary",
  "stork-config",
+ "stork-index-v2",
  "stork-shared",
  "thiserror",
  "tokio",

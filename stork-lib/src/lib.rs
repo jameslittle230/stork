@@ -1,10 +1,9 @@
-mod common;
 pub mod wasm;
 
 mod index_versions;
 
 use bytes::Bytes;
-use index_versions::v2;
+
 pub use index_versions::v3;
 
 use once_cell::sync::OnceCell;
@@ -14,6 +13,8 @@ use std::sync::Mutex;
 
 use stork_boundary::{IndexMetadata, IndexVersioningError, Output, VersionedIndex};
 use stork_config::Config;
+use stork_index_v2::search as V2Search;
+use stork_index_v2::Index as V2Index;
 
 use thiserror::Error;
 
@@ -39,7 +40,7 @@ pub enum SearchError {
 }
 
 enum ParsedIndex {
-    V2(v2::structs::Index),
+    V2(V2Index),
     V3(v3::structs::Index),
 }
 
@@ -47,7 +48,7 @@ fn index_from_data<'a>(data: Bytes) -> Result<ParsedIndex, IndexParseError> {
     let versioned = VersionedIndex::try_from(data)?;
 
     match versioned {
-        VersionedIndex::V2(bytes) => v2::structs::Index::try_from(bytes)
+        VersionedIndex::V2(bytes) => V2Index::try_from(bytes)
             .map_err(|e| IndexParseError::V2Error(e.to_string()))
             .map(|index| ParsedIndex::V2(index)),
 
@@ -89,7 +90,7 @@ pub fn search_from_cache(name: &str, query: &str) -> Result<Output, SearchError>
 
     match index {
         ParsedIndex::V3(inner) => Ok(v3::search::search(inner, query)),
-        ParsedIndex::V2(inner) => Ok(v2::search::search(inner, query)),
+        ParsedIndex::V2(inner) => Ok(V2Search(inner, query)),
     }
 }
 

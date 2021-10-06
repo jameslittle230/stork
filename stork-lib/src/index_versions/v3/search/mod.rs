@@ -1,9 +1,8 @@
 use super::scores::STOPWORD_SCORE;
 use super::structs::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
-use crate::common::STOPWORDS;
-use stork_boundary::{Entry as BoundaryEntry, Output, Result};
-// use crate::searcher::{OutputEntry, OutputResult, SearchOutput};
 use std::collections::HashMap;
+use stork_boundary::{Entry as BoundaryEntry, Output, Result};
+use stork_shared::stopwords as STOPWORDS;
 
 pub mod intermediate_excerpt;
 use intermediate_excerpt::IntermediateExcerpt;

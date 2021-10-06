@@ -1,9 +1,9 @@
-use super::scores::STOPWORD_SCORE;
-use super::structs::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
-use crate::common::STOPWORDS;
+use crate::scores::STOPWORD_SCORE;
+use crate::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use stork_boundary::{Entry as BoundaryEntry, Excerpt, HighlightRange, Output, Result};
+use stork_shared::stopwords;
 
 const EXCERPT_BUFFER: usize = 8;
 const EXCERPTS_PER_RESULT: usize = 5;
@@ -219,7 +219,7 @@ pub fn search(index: &Index, query: &str) -> Output {
         .collect();
 
     for mut ie in &mut intermediate_excerpts {
-        if STOPWORDS.contains(&ie.query.as_str()) {
+        if stopwords.contains(&ie.query.as_str()) {
             ie.score = STOPWORD_SCORE;
         }
     }

@@ -1,31 +1,36 @@
-use super::scores::_MATCHED_WORD_SCORE;
+mod scores;
+mod search;
+
 use bytes::{Buf, Bytes};
+use scores::_MATCHED_WORD_SCORE;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 use stork_shared::StorkIndex;
 
-pub type EntryIndex = usize;
-pub type AliasTarget = String;
-pub type Score = u8;
+type EntryIndex = usize;
+type AliasTarget = String;
+type Score = u8;
 type Fields = Option<HashMap<String, String>>;
 
+pub use search::search;
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct Entry {
-    pub(super) contents: String,
-    pub(super) title: String,
-    pub(super) url: String,
-    pub(super) fields: Fields,
+struct Entry {
+    contents: String,
+    title: String,
+    url: String,
+    fields: Fields,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct SearchResult {
-    pub(super) excerpts: Vec<Excerpt>,
-    pub(super) score: Score,
+struct SearchResult {
+    excerpts: Vec<Excerpt>,
+    score: Score,
 }
 
 impl SearchResult {
-    pub(super) fn _new() -> SearchResult {
+    fn _new() -> SearchResult {
         SearchResult {
             excerpts: vec![],
             score: _MATCHED_WORD_SCORE,
@@ -34,8 +39,8 @@ impl SearchResult {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct Excerpt {
-    pub(super) word_index: usize,
+struct Excerpt {
+    word_index: usize,
 }
 
 /**
@@ -48,9 +53,9 @@ pub(super) struct Excerpt {
  * all search results for a given query from a single container.
  */
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub(super) struct Container {
-    pub(super) results: HashMap<EntryIndex, SearchResult>,
-    pub(super) aliases: HashMap<AliasTarget, Score>,
+struct Container {
+    results: HashMap<EntryIndex, SearchResult>,
+    aliases: HashMap<AliasTarget, Score>,
 }
 
 impl Container {
@@ -64,8 +69,8 @@ impl Container {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Index {
-    pub(super) entries: Vec<Entry>,
-    pub(super) queries: HashMap<String, Container>,
+    entries: Vec<Entry>,
+    queries: HashMap<String, Container>,
 }
 
 #[cfg(test)]

@@ -50,6 +50,7 @@ wasm-bindgen = { version = "=0.2.70", features = ["serde-serialize"] }
 bytes = "1.1.0"
 stork-shared = { path = "../stork-shared" }
 thiserror = "1.0.29"
+stork-index-v2 = { path = "../stork-index-v2" }
 
 [package.metadata.wasm-pack.profile.release]
 
