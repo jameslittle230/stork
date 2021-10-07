@@ -22,7 +22,7 @@ impl TryFrom<Bytes> for VersionedIndex {
             let version_size = buffer.get_u64();
             let version_size: usize = version_size
                 .try_into()
-                .map_err(|_| IndexVersioningError::BadVersionSize(version_size))?;
+                .map_err(|_| IndexVersioningError::BadSegmentSize(version_size))?;
 
             if version_size < 1 || version_size > 32 {
                 return Err(IndexVersioningError::BadVersionSize(
@@ -42,12 +42,23 @@ impl TryFrom<Bytes> for VersionedIndex {
             String::from_utf8(Vec::from(split.as_ref()))
         }?;
 
-        dbg!(&version_string);
-        dbg!(&buffer);
-
         match version_string.as_str() {
             "stork-2" => Ok(VersionedIndex::V2(buffer)),
-            "stork-3" => Ok(VersionedIndex::V3(buffer)),
+            "stork-3" => {
+                let index_size = {
+                    let index_size = buffer.get_u64();
+                    let index_size: usize = index_size
+                        .try_into()
+                        .map_err(|_| IndexVersioningError::BadSegmentSize(index_size))?;
+                    Ok::<usize, IndexVersioningError>(index_size)
+                }?;
+
+                dbg!(index_size);
+
+                let index_bytes = buffer.split_to(index_size);
+
+                return Ok(VersionedIndex::V3(index_bytes));
+            }
             _ => Err(IndexVersioningError::UnknownVersionString(version_string)),
         }
     }
@@ -57,6 +68,9 @@ impl TryFrom<Bytes> for VersionedIndex {
 pub enum IndexVersioningError {
     #[error("Invalid index: index is too short and its version could not be determined.")]
     FileTooShort,
+
+    #[error("Invalid index: found segment size `{0}`")]
+    BadSegmentSize(u64),
 
     #[error("Invalid index: found version string that is `{0}` bytes long. The version string must be between 1 and 32 bytes long.")]
     BadVersionSize(u64),

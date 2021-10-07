@@ -171,7 +171,7 @@ mod tests {
         let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
-        let _bytes_read = buf_reader.read_to_end(&mut index_bytes);
+        let _bytes_read = buf_reader.read_to_end(&mut index_bytes).unwrap();
         let index = Index::try_from(index_bytes.as_slice()).unwrap();
         assert_eq!(1, index.entries.len());
         assert_eq!(2477, index.containers.len());
