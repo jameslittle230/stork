@@ -6,5 +6,13 @@ members = [
     "stork-boundary",
     "stork-index-v2",
     "stork-index-v3",
-    "stork-lib"
+    "stork-lib",
+    "stork-cli",
+    "stork-wasm"
 ]
+
+[profile.release]
+# This config option gives LLVM more opportunities to inline and prune functions,
+# which makes the WASM binary smaller. Adding this was inspired by
+# https://rustwasm.github.io/book/reference/code-size.html
+lto = true

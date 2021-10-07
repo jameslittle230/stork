@@ -1,6 +1,7 @@
 use super::{FrontmatterConfig, StemmingConfig};
 use core::fmt;
 use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
 use std::collections::HashMap;
 
 type Fields = HashMap<String, String>;
@@ -61,9 +62,10 @@ impl fmt::Display for File {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, SmartDefault)]
 pub enum DataSource {
     #[serde(rename = "contents")]
+    #[default]
     Contents(String),
 
     #[serde(rename = "src_url")]
@@ -71,12 +73,6 @@ pub enum DataSource {
 
     #[serde(rename = "path")]
     FilePath(String),
-}
-
-impl Default for DataSource {
-    fn default() -> Self {
-        DataSource::Contents(String::default())
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

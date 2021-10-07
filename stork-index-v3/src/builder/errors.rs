@@ -1,43 +1,52 @@
-use std::{error::Error, fmt};
+use std::{fmt, path::PathBuf};
 use stork_config::File;
+use thiserror::Error;
 
-#[derive(Debug, Clone, PartialEq)]
+use crate::Index;
+
+#[derive(Debug, Error, Clone, PartialEq)]
 pub enum WordListGenerationError {
+    #[error("SRT file could not be parsed.")]
     InvalidSRT,
-    FileNotFound,
+
+    #[error("The file `{0}` could not be found.")]
+    FileNotFound(PathBuf),
+
+    #[error("Could not determine the file's filetype. Please give this file a file extension Stork knows about, or disambiguate the file's filetype within your config.")]
     CannotDetermineFiletype,
+
+    #[error("The selector `{0}` is not present in the HTML document.")]
     SelectorNotPresent(String),
+
+    #[error("The web page could not be fetched")]
     WebPageNotFetched,
+
+    #[error("Content-Type is not present or invalid")]
     UnknownContentType,
+
+    #[error("After parsing the document, there were no words found in the word list.")]
     EmptyWordList,
 }
 
-impl fmt::Display for WordListGenerationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let desc: String = match self {
-            WordListGenerationError::InvalidSRT => "SRT file could not be parsed".to_string(),
-            WordListGenerationError::SelectorNotPresent(selector_string) => format!(
-                "HTML selector `{}` is not present in the file",
-                selector_string
-            ),
-            WordListGenerationError::FileNotFound => "The file could not be found".to_string(),
-            WordListGenerationError::CannotDetermineFiletype => "Could not determine the filetype. Please use a known file extension or disambiguate the filetype within your configuration file".to_string(),
-            WordListGenerationError::WebPageNotFetched => "The web page could not be fetched".to_string(),
-            WordListGenerationError::UnknownContentType => "Content-Type is not present or invalid".to_string(),
-            WordListGenerationError::EmptyWordList => "No words in word list".to_string(),
-        };
-        write!(f, "{}", desc)
-    }
+fn pluralize_with_count(count: usize, singular: &str, plural: &str) -> String {
+    format!("{} {}", count, if count == 1 { singular } else { plural })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum IndexGenerationError {
+    #[error("No files specified in config file")]
     NoFilesSpecified,
-    NoValidFiles,
-    DocumentErrors(Vec<DocumentError>),
-}
 
-impl Error for IndexGenerationError {}
+    #[error("No files could be indexed")]
+    NoValidFiles,
+
+    #[error(
+        "{} found while indexing files. If you want to fail silently and still build an index, remove `break_on_file_error` from your config.\n{}", 
+        pluralize_with_count(.0.errors.len(), "error", "errors"),
+        DocumentError::display_list(&.0.errors)
+    )]
+    DocumentErrors(Index),
+}
 
 impl PartialEq for IndexGenerationError {
     fn eq(&self, other: &Self) -> bool {
@@ -48,38 +57,16 @@ impl PartialEq for IndexGenerationError {
     }
 }
 
-impl fmt::Display for IndexGenerationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let desc: String = match self {
-            IndexGenerationError::NoFilesSpecified => {
-                "No files specified in config file".to_string()
-            }
-            IndexGenerationError::NoValidFiles => "No files could be indexed".to_string(),
-            IndexGenerationError::DocumentErrors(errors) => format!(
-                "{} {} found while indexing files. If you want to fail silently and still build an index, remove `break_on_file_error` from your config.\n{}",
-                errors.len(),
-                if errors.len() == 1 { "error" } else {"errors"},
-                errors
-                    .iter()
-                    .map(ToString::to_string)
-                    .collect::<Vec<String>>()
-                    .join("\n")
-            )
-        };
-
-        write!(f, "{}", desc)
-    }
-}
 /**
  * Associates a `WordListGenerationError` with a `File`.
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DocumentError {
     pub file: File,
     pub word_list_generation_error: WordListGenerationError,
 }
 
-impl fmt::Display for DocumentError {
+impl std::fmt::Display for DocumentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -87,5 +74,14 @@ impl fmt::Display for DocumentError {
             self.word_list_generation_error.to_string(),
             self.file
         )
+    }
+}
+
+impl DocumentError {
+    pub fn display_list(vec: &Vec<DocumentError>) -> String {
+        vec.iter()
+            .map(|error| error.to_string())
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 }

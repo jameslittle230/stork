@@ -122,19 +122,9 @@ pub(super) fn fill_intermediate_entries(
                     word_list_generation_error: e,
                 };
 
-                if config.input.break_on_file_error {
-                    return Err(IndexGenerationError::DocumentErrors(vec![document_error]));
-                }
-
                 document_errors.push(document_error)
             }
         };
-    }
-
-    if config.input.break_on_file_error && !document_errors.is_empty() {
-        return Err(IndexGenerationError::DocumentErrors(
-            document_errors.clone(),
-        ));
     }
 
     Ok(())
@@ -225,8 +215,8 @@ mod tests {
         let r = fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)
             .err()
             .unwrap();
-        if let IndexGenerationError::DocumentErrors(vec) = r {
-            let word_list_generation_error = &vec[0].word_list_generation_error;
+        if let IndexGenerationError::DocumentErrors(index) = r {
+            let word_list_generation_error = &index.errors[0].word_list_generation_error;
             assert_eq!(
                 word_list_generation_error,
                 &WordListGenerationError::EmptyWordList

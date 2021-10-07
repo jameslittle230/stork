@@ -4,9 +4,9 @@ mod scores;
 mod search;
 mod writer;
 
-use scores::MATCHED_WORD_SCORE;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
 use stork_boundary::InternalWordAnnotation;
 use stork_config::{OutputConfig, TitleBoost};
 use stork_shared::Fields;
@@ -15,9 +15,13 @@ type EntryIndex = usize;
 type AliasTarget = String;
 type Score = u8;
 
+use scores::MATCHED_WORD_SCORE;
+
 pub use builder::build;
-pub use builder::errors::IndexGenerationError;
+pub use builder::errors::{DocumentError, IndexGenerationError};
 pub use search::search;
+
+use smart_default::SmartDefault;
 
 /**
  * A serialized Index, for all intents and purposes, is the whole contents of
@@ -28,6 +32,9 @@ pub struct Index {
     config: PassthroughConfig,
     entries: Vec<Entry>,
     containers: HashMap<String, Container>,
+
+    #[serde(skip)]
+    pub errors: Vec<DocumentError>,
 }
 
 impl Index {
@@ -35,35 +42,30 @@ impl Index {
         self.entries.len()
     }
 
+    pub fn word_count(&self) -> usize {
+        self.entries.iter().map(|entry| entry.contents.len()).sum()
+    }
+
     pub fn avg_entry_size(&self) -> usize {
-        self.entries
-            .iter()
-            .map(|entry| entry.contents.len())
-            .sum::<usize>()
-            / self.entries_len()
+        self.word_count() / self.entries_len()
+    }
+
+    pub fn search_term_count(&self) -> usize {
+        self.containers.keys().count()
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, SmartDefault)]
 struct PassthroughConfig {
     url_prefix: String,
     title_boost: TitleBoost,
-    excerpt_buffer: u8,
-    excerpts_per_result: u8,
-    displayed_results_count: u8,
-}
 
-impl Default for PassthroughConfig {
-    fn default() -> Self {
-        let output_config = OutputConfig::default();
-        Self {
-            url_prefix: String::default(),
-            title_boost: TitleBoost::default(),
-            excerpt_buffer: output_config.excerpt_buffer,
-            excerpts_per_result: output_config.excerpts_per_result,
-            displayed_results_count: output_config.displayed_results_count,
-        }
-    }
+    #[default(OutputConfig::default().excerpt_buffer)]
+    excerpt_buffer: u8,
+    #[default(OutputConfig::default().excerpts_per_result)]
+    excerpts_per_result: u8,
+    #[default(OutputConfig::default().displayed_results_count)]
+    displayed_results_count: u8,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -127,24 +129,13 @@ struct Excerpt {
     fields: Fields,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, SmartDefault)]
 enum WordListSource {
     Title,
+
+    #[default]
     Contents,
 }
-
-impl Default for WordListSource {
-    fn default() -> Self {
-        WordListSource::Contents
-    }
-}
-
-// impl WordListSource {
-//     #[allow(clippy::trivially_copy_pass_by_ref)]
-//     fn is_default(&self) -> bool {
-//         self == &WordListSource::default()
-//     }
-// }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct AnnotatedWord {

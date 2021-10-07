@@ -1,7 +1,16 @@
 use std::{convert::TryFrom, path::PathBuf, time::Duration};
-use stork_config::Config;
+use stork_config::{Config, ConfigReadError};
 
 use criterion::{criterion_group, criterion_main, Criterion};
+
+impl TryFrom<&PathBuf> for Config {
+    type Error = ConfigReadError;
+
+    fn try_from(value: &PathBuf) -> Result<Self, Self::Error> {
+        let contents = std::fs::read_to_string(value).unwrap();
+        Config::try_from(contents.as_str())
+    }
+}
 
 fn build_federalist(c: &mut Criterion) {
     let path = PathBuf::from("./test/federalist-config/federalist.toml");

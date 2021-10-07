@@ -24,41 +24,25 @@ use intermediate_entry::NormalizedEntry;
 pub mod nudger;
 use nudger::Nudger;
 
-pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
+pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
     Nudger::from(config).print();
 
     let mut intermediate_entries: Vec<NormalizedEntry> = Vec::new();
     let mut document_errors: Vec<DocumentError> = Vec::new();
-    fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)?;
-
-    if !document_errors.is_empty() {
-        eprintln!(
-            "{} {} error{} while indexing files. Your index was still generated, though the erroring files were omitted.",
-            "Warning:",
-            document_errors.len(),
-            match document_errors.len() {
-                1 => "",
-                _ => "s",
-            }
-        )
-    }
-    for error in &document_errors {
-        eprintln!("{}", &error);
-    }
-
-    if intermediate_entries.is_empty() {
-        return Err(IndexGenerationError::NoValidFiles);
-    }
-
     let mut stems: HashMap<String, Vec<String>> = HashMap::new();
-    fill_stems(&intermediate_entries, &mut stems);
-
     let mut containers: HashMap<String, Container> = HashMap::new();
+
+    fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)?;
+    fill_stems(&intermediate_entries, &mut stems);
     fill_containers(&config, &intermediate_entries, &stems, &mut containers);
 
     let entries: Vec<Entry> = intermediate_entries.iter().map(Entry::from).collect();
 
-    let config = PassthroughConfig {
+    if entries.is_empty() {
+        return Err(IndexGenerationError::NoValidFiles);
+    }
+
+    let passthrough_config = PassthroughConfig {
         url_prefix: config.input.url_prefix.clone(),
         title_boost: config.input.title_boost.clone(),
         excerpt_buffer: config.output.excerpt_buffer,
@@ -66,14 +50,18 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
         displayed_results_count: config.output.displayed_results_count,
     };
 
-    Ok((
-        Index {
-            entries,
-            containers,
-            config,
-        },
-        document_errors,
-    ))
+    let index = Index {
+        entries,
+        containers,
+        config: passthrough_config,
+        errors: document_errors,
+    };
+
+    if config.input.break_on_file_error && !index.errors.is_empty() {
+        return Err(IndexGenerationError::DocumentErrors(index));
+    }
+
+    Ok(index)
 }
 
 fn remove_surrounding_punctuation(input: &str) -> String {
@@ -139,9 +127,9 @@ mod tests {
 
         let build_results = build(&config).unwrap();
 
-        assert_eq!(build_results.1.len(), 1);
+        assert_eq!(build_results.errors.len(), 1);
 
-        let error_msg = build_results.1.first().unwrap().to_string();
+        let error_msg = build_results.errors.first().unwrap().to_string();
 
         assert!(
             error_msg.contains("HTML selector `.article` is not present in the file"),
@@ -164,9 +152,9 @@ mod tests {
         };
 
         let build_results = build(&config).unwrap();
-        assert_eq!(build_results.1.len(), 1);
+        assert_eq!(build_results.errors.len(), 1);
 
-        let error_msg = build_results.1.first().unwrap().to_string();
+        let error_msg = build_results.errors.first().unwrap().to_string();
         assert!(error_msg.contains("No words in word list"));
     }
 
@@ -201,7 +189,7 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(build(&config).unwrap().1.len(), 1);
-        assert_eq!(build(&config).unwrap().0.entries.len(), 1);
+        assert_eq!(build(&config).unwrap().errors.len(), 1);
+        assert_eq!(build(&config).unwrap().entries.len(), 1);
     }
 }

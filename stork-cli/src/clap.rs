@@ -6,7 +6,7 @@ pub fn app() -> App<'static, 'static> {
         .short("i")
         .help("The path to your configuration file")
         .takes_value(true)
-        .value_name("PATH")
+        .value_name("CONFIG_PATH")
         .required(true);
 
     App::new("Stork")
@@ -84,7 +84,12 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(
             SubCommand::with_name("test")
                 .about("Serves a test web page so you can experiment with an index you're building")
-                .arg(config_input_arg.clone())
+                .arg(
+                    config_input_arg
+                        .clone()
+                        .required(false)
+                        .conflicts_with("index_path"),
+                )
                 .arg(
                     Arg::with_name("port")
                         .help("The port on which to serve the test web page.")
@@ -93,6 +98,16 @@ pub fn app() -> App<'static, 'static> {
                         .default_value("1612")
                         .value_name("PORT")
                         .required(false),
+                )
+                .arg(
+                    Arg::with_name("index_path")
+                        .long("index")
+                        .short("x")
+                        .help("The path to your index file")
+                        .takes_value(true)
+                        .value_name("INDEX_PATH")
+                        .required(false)
+                        .conflicts_with("config"),
                 )
                 .display_order(3),
         )
@@ -115,9 +130,12 @@ mod tests {
             "stork search -i something.st -q my-query",
             "stork -t search --index something.st --query my-query --json",
             "stork --timing search -i something.st -q my-query",
-            "stork test -p 1620 -i something.st",
-            "stork test -i something.st -p 1620",
-            "stork test -i something.st",
+            "stork test -p 1620 -i something.toml",
+            "stork test -i something.toml -p 1620",
+            "stork test -i something.toml",
+            "stork test --input something.toml",
+            "stork test -x something.st",
+            "stork test --index something.st",
             "stork --build something.toml",
             "stork --search something.toml my-query",
             "stork --test something.st",
@@ -143,6 +161,8 @@ mod tests {
             "stork search --index - --query - -t",
             "stork search --index - -t --query -",
             "stork search --index - --timing --query -",
+            "stork test --index something.st --input something.toml",
+            "stork test -x something.st -i something.toml",
         ];
 
         for input in invalid_inputs {

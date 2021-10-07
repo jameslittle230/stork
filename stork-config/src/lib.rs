@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
-use std::path::PathBuf;
 
 mod stemming;
 pub use stemming::StemmingConfig;
@@ -18,7 +17,7 @@ pub use srt::SRTConfig;
 pub use srt::SRTTimestampFormat;
 
 mod errors;
-pub use errors::ConfigFromFileError;
+pub use errors::ConfigReadError;
 
 #[derive(Serialize, Deserialize, Debug, SmartDefault, PartialEq)]
 #[serde(deny_unknown_fields, default)]
@@ -88,24 +87,14 @@ pub enum TitleBoost {
 }
 
 impl TryFrom<&str> for Config {
-    type Error = ConfigFromFileError;
+    type Error = ConfigReadError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         if value.is_empty() {
-            return Err(ConfigFromFileError::EmptyString);
+            return Err(ConfigReadError::EmptyString);
         }
 
-        toml::from_str(value).map_err(ConfigFromFileError::UnparseableInput)
-    }
-}
-
-impl TryFrom<&PathBuf> for Config {
-    type Error = ConfigFromFileError;
-
-    fn try_from(value: &PathBuf) -> Result<Self, Self::Error> {
-        let contents = std::fs::read_to_string(value)
-            .map_err(|_| ConfigFromFileError::UnreadableFile(value.into()))?;
-        Config::try_from(contents.as_str())
+        toml::from_str(value).map_err(ConfigReadError::UnparseableInput)
     }
 }
 
@@ -127,7 +116,7 @@ mod tests {
     fn empty_string_via_tryfrom_returns_error() {
         let contents = r#""#;
         let error = Config::try_from(contents).unwrap_err();
-        assert_eq!(error, ConfigFromFileError::EmptyString)
+        assert_eq!(error, ConfigReadError::EmptyString)
     }
 
     /// This test also makes sure that our default values don't change without being accounted for in tests.
