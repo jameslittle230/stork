@@ -2,7 +2,7 @@ extern crate stork_search as stork;
 use stork::LatestVersion::structs::Index;
 
 #[cfg(not(feature = "test-server"))]
-pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
+pub fn serve(_index: &Index, _port: u16) -> Result<(), Box<dyn std::error::Error>> {
     println!("Stork was not compiled with test server support. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
     panic!()
 }
@@ -10,7 +10,7 @@ pub fn serve(_index: Index) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(feature = "test-server")]
 pub fn serve(index: &Index, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     use hyper::service::{make_service_fn, service_fn};
-    use hyper::{server::Server, Body, Request, Response, StatusCode};
+    use hyper::{Body, Request, Response, Server, StatusCode};
     use std::convert::Infallible;
     use tokio::runtime::Runtime;
 

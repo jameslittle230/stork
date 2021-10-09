@@ -17,7 +17,8 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["build", "test-server"]
-build = ["srtparse", "scraper", "frontmatter", "markdown", "atty", "mime", "reqwest", "indicatif", "colored", "unicode-segmentation"]
+build = ["srtparse", "scraper", "frontmatter", "markdown", "atty", "indicatif", "colored", "unicode-segmentation"]
+web-scraping = ["mime", "reqwest"]
 test-server = ["build", "futures", "hyper", "tokio"]
 
 [dependencies]
@@ -42,7 +43,7 @@ atty = {version = "0.2", optional = true} # determining whether stdin/stout is a
 mime = {version = "0.3.16", optional = true}
 reqwest = { version = "0.11", features = ["blocking", "json"], optional = true} # for loading document contents from URLs
 futures = {version = "0.3", optional = true}
-hyper = {version = "0.14", features = ["server"], optional = true}
+hyper = {version = "0.14", features = ["server", "tcp", "http1"], optional = true}
 tokio = { version = "1.2", features = ["full"], optional = true }
 wasm-bindgen = { version = "=0.2.70", features = ["serde-serialize"] }
 
