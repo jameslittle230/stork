@@ -22,7 +22,7 @@ pub fn generate(
 #[cfg(test)]
 mod tests {
     use crate::{
-        config::{File, Filetype, InputConfig},
+        config::{File, Filetype, InputConfig, OutputConfig},
         LatestVersion::builder::fill_intermediate_entries::{ReadResult, ReaderConfig},
     };
 
@@ -35,6 +35,7 @@ mod tests {
             &ReaderConfig {
                 global: InputConfig::default(),
                 file: File::default(),
+                output: OutputConfig::default(),
             },
             &ReadResult {
                 buffer: r#"

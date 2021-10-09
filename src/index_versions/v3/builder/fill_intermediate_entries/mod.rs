@@ -10,7 +10,9 @@ mod frontmatter;
 use self::frontmatter::parse_frontmatter;
 
 use super::{IndexGenerationError, NormalizedEntry};
-use crate::config::{Config, DataSource, File, Filetype, InputConfig, StemmingConfig};
+use crate::config::{
+    Config, DataSource, File, Filetype, InputConfig, OutputConfig, StemmingConfig,
+};
 use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator, ProgressStyle};
 use std::{collections::HashMap, convert::TryInto};
 
@@ -52,6 +54,7 @@ impl ReadResult {
 pub struct ReaderConfig {
     pub global: InputConfig,
     pub file: File,
+    pub output: OutputConfig,
 }
 
 impl ReaderConfig {
@@ -89,6 +92,7 @@ pub(super) fn fill_intermediate_entries(
         let reader_config = ReaderConfig {
             global: config.input.clone(),
             file: stork_file.clone(),
+            output: config.output.clone(),
         };
 
         tick_progress_bar_with_filename(&progress_bar, &stork_file.title);

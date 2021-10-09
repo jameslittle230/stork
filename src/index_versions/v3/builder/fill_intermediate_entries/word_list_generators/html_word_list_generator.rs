@@ -55,13 +55,14 @@ pub fn generate(
             }
 
             for elem in as_node.traverse_inclusive() {
-                println!("{:?}", elem);
                 if let kuchiki::iter::NodeEdge::Start(node_ref) = elem {
                     let contents: String = (|| {
                         let mut output = "".to_string();
                         if let Some(element_data) = node_ref.as_element() {
-                            if let Some(id) = element_data.attributes.borrow().get("id") {
-                                latest_id = Some(id.to_string());
+                            if config.output.save_nearest_html_index {
+                                if let Some(id) = element_data.attributes.borrow().get("id") {
+                                    latest_id = Some(id.to_string());
+                                }
                             }
 
                             let contentful_attrs = vec!["title", "alt"];
@@ -116,9 +117,9 @@ pub fn generate(
 
 #[cfg(test)]
 mod tests {
-    use super::{generate, ReadResult, ReaderConfig, WordListGenerationError};
+    use super::*;
     use crate::{
-        config::{File, Filetype, InputConfig},
+        config::{File, Filetype, InputConfig, OutputConfig},
         LatestVersion::structs::AnnotatedWordList,
     };
 
@@ -132,6 +133,7 @@ mod tests {
         ReaderConfig {
             global: InputConfig::default(),
             file,
+            output: OutputConfig::default(),
         }
     }
 
@@ -232,17 +234,23 @@ mod tests {
     #[test]
     fn test_selector_not_present() {
         let computed = generate(
-                &reader_config_from_html_selectors(Some(".yes"), Some(".no")),
-                &read_result_from_string(r#"
+            &reader_config_from_html_selectors(Some(".yes"), Some(".no")),
+            &read_result_from_string(
+                r#"
                 <html>
                     <head></head>
                     <body>
                         <h1>This is a title</h1>
                         <main>
-                            <section class="no"><p>Stork should not recognize this text</p></section>
+                            <section class="no">
+                                <p>Stork should not recognize this text</p>
+                            </section>
                         </main>
                     </body>
-                </html>"#)).is_err();
+                </html>"#,
+            ),
+        )
+        .is_err();
 
         assert!(computed);
     }
@@ -258,7 +266,7 @@ mod tests {
                             <h1>This is a title</h1>
                             <main>
                                 <section class="no"><p>Stork should not recognize this text</p></section>
-                                <section class="yes"><p></p></section>
+                                <section class="yes"><p> </p></section>
                             </main>
                         </body>
                     </html>"#)).unwrap_err();
@@ -280,7 +288,10 @@ mod tests {
                     <main>
                         <section class="no"><p>Stork should not recognize this text</p></section>
                         <section class="yes"><p>This content should be indexed.</p></section>
-                        <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
+                        <section class="yes">
+                            <p>This content is in a duplicate selector.</p>
+                            <p>It should also be indexed.</p>
+                        </section>
                     </main>
                 </body>
             </html>"#)
@@ -339,15 +350,15 @@ mod tests {
     fn test_index_blocklist() {
         run_html_parse_test(
             "Article content More article content",
-            Some("article"),
-            Some(".no-index"),
+            Some(".yes"),
+            Some(".no"),
             r#"<main>
         <aside>...</aside>
-        <article>
+        <section class="yes">
           <p>Article content</p>
-          <div class="no-index">This shouldn't be indexed</div>
+          <div class="no">This shouldn't be indexed</div>
           <p>More article content</p>
-        </article>
+        </section>
       </main>"#,
         )
     }
@@ -408,5 +419,112 @@ mod tests {
                 </body>
             </html>"#,
         );
+    }
+
+    #[test]
+    fn test_nearest_id() {
+        let html = r#"
+        <html><head></head><body>
+            <main id="my-content">
+                <p>This text should be indexed with my content.</p>
+                <aside id="my-aside">
+                    <p>This text is inside my aside.</p>
+                </aside>
+                <p>This text is after my aside.</p>
+            </main>
+        </body></html>
+        "#;
+
+        let reader_config = {
+            let mut output = OutputConfig::default();
+            output.save_nearest_html_index = true;
+            ReaderConfig {
+                global: InputConfig::default(),
+                file: File::default(),
+                output,
+            }
+        };
+
+        let annotated_words = generate(&reader_config, &read_result_from_string(html)).unwrap();
+
+        let computed: Vec<String> = annotated_words
+            .word_list
+            .into_iter()
+            .map(|annotated_word| {
+                annotated_word
+                    .internal_annotations
+                    .into_iter()
+                    .filter_map(|word_annotation| match word_annotation {
+                        InternalWordAnnotation::SRTUrlSuffix(_) => None,
+                        InternalWordAnnotation::NearestHtmlId(id) => Some(id.clone()),
+                    })
+                    .next()
+                    .unwrap()
+            })
+            .collect();
+
+        let expected = {
+            let my_content = vec![
+                "my-content";
+                "This text should be indexed with my content"
+                    .split_ascii_whitespace()
+                    .count()
+            ];
+
+            let my_aside = vec![
+                "my-aside";
+                "This text is inside my aside. This text is after my aside."
+                    .split_ascii_whitespace()
+                    .count()
+            ];
+
+            vec![my_content, my_aside].concat()
+        };
+
+        assert_eq!(computed, expected)
+    }
+
+    #[test]
+    fn test_default_config_does_not_store_nearest_id() {
+        let html = r#"
+        <html><head></head><body>
+            <main id="my-content">
+                <p>This text should be indexed with my content.</p>
+                <aside id="my-aside">
+                    <p>This text is inside my aside.</p>
+                </aside>
+                <p>This text is after my aside.</p>
+            </main>
+        </body></html>
+        "#;
+
+        let reader_config = {
+            let mut output = OutputConfig::default();
+            output.save_nearest_html_index = false;
+            ReaderConfig {
+                global: InputConfig::default(),
+                file: File::default(),
+                output,
+            }
+        };
+
+        let annotated_words = generate(&reader_config, &read_result_from_string(html)).unwrap();
+
+        let computed: usize = annotated_words
+            .word_list
+            .into_iter()
+            .map(|annotated_word| {
+                annotated_word
+                    .internal_annotations
+                    .into_iter()
+                    .filter_map(|word_annotation| match word_annotation {
+                        InternalWordAnnotation::SRTUrlSuffix(_) => None,
+                        InternalWordAnnotation::NearestHtmlId(id) => Some(id.clone()),
+                    })
+                    .count()
+            })
+            .sum();
+
+        assert_eq!(computed, 0)
     }
 }
