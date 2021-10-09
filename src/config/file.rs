@@ -22,6 +22,9 @@ pub struct File {
     pub html_selector_override: Option<String>,
 
     #[serde(default)]
+    pub exclude_html_selector_override: Option<String>,
+
+    #[serde(default)]
     pub frontmatter_handling_override: Option<FrontmatterConfig>,
 
     #[serde(default)]

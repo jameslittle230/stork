@@ -138,15 +138,17 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(build(&config).unwrap().1.len(), 1);
+        let build_results = build(&config).unwrap();
 
-        assert!(build(&config)
-            .unwrap()
-            .1
-            .first()
-            .unwrap()
-            .to_string()
-            .contains("HTML selector `.article` is not present in the file"));
+        assert_eq!(build_results.1.len(), 1);
+
+        let error_msg = build_results.1.first().unwrap().to_string();
+
+        assert!(
+            error_msg.contains("HTML selector `.article` is not present in the file"),
+            "{}",
+            error_msg
+        );
     }
 
     #[test]
@@ -162,15 +164,11 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(build(&config).unwrap().1.len(), 1);
+        let build_results = build(&config).unwrap();
+        assert_eq!(build_results.1.len(), 1);
 
-        assert!(build(&config)
-            .unwrap()
-            .1
-            .first()
-            .unwrap()
-            .to_string()
-            .contains("No words in word list"));
+        let error_msg = build_results.1.first().unwrap().to_string();
+        assert!(error_msg.contains("No words in word list"));
     }
 
     #[test]
@@ -186,13 +184,9 @@ mod tests {
             ..Default::default()
         };
 
-        assert!(
-            if let Some(IndexGenerationError::NoValidFiles) = build(&config).err() {
-                true
-            } else {
-                false
-            }
-        );
+        let build_error = build(&config).unwrap_err();
+
+        assert_eq!(build_error, IndexGenerationError::NoValidFiles);
     }
 
     #[test]

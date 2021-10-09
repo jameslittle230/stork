@@ -72,6 +72,7 @@ pub struct InputConfig {
     pub title_boost: TitleBoost,
     pub stemming: StemmingConfig,
     pub html_selector: Option<String>,
+    pub exclude_html_selector: Option<String>,
     pub frontmatter_handling: FrontmatterConfig,
     pub files: Vec<File>,
     pub break_on_file_error: bool,
@@ -89,6 +90,7 @@ impl Default for InputConfig {
             title_boost: TitleBoost::default(),
             stemming: StemmingConfig::default(),
             html_selector: Option::default(),
+            exclude_html_selector: None,
             frontmatter_handling: FrontmatterConfig::default(),
             files: Vec::default(),
             srt_config: SRTConfig::default(),
@@ -106,13 +108,14 @@ impl Default for InputConfig {
  * - Gets "burned into" the index file and is passed through to the Javascript
  *   runtime, and thus can be overridden in JS.
  */
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
 pub struct OutputConfig {
     #[serde(rename = "filename")]
     pub UNUSED_filename: Option<String>,
     pub debug: bool,
+    pub save_nearest_html_index: bool,
     pub excerpt_buffer: u8,
     pub excerpts_per_result: u8,
     pub displayed_results_count: u8,
@@ -123,6 +126,7 @@ impl Default for OutputConfig {
         OutputConfig {
             UNUSED_filename: None,
             debug: false,
+            save_nearest_html_index: false,
             excerpt_buffer: 8,
             excerpts_per_result: 5,
             displayed_results_count: 10,
