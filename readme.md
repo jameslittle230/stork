@@ -4,9 +4,13 @@ Impossibly fast web search, made for static sites.
 
 [![Crates.io](https://img.shields.io/crates/v/stork-search)](https://crates.io/crates/stork-search)
 [![Codecov](https://img.shields.io/codecov/c/gh/jameslittle230/stork)](https://codecov.io/gh/jameslittle230/stork)
-[![Travis (.com)](https://img.shields.io/travis/com/jameslittle230/stork)](https://travis-ci.com/github/jameslittle230/stork)
+![GitHub branch checks state](https://img.shields.io/github/checks-status/jameslittle230/stork/master)
 
-Stork is two things. First, it's an indexer: it indexes your loosely-structured content and creates a file that you can upload to your web server. Second, it's a Javascript + WebAssembly frontend for that index file: Stork will hook into an `<input>` on your web page, download the index you've specified, and display the best search results immediately to your user, as they type. The precomputed index and WebAssembly frontend module make the entire Stork engine very good, and _very_ fast.
+Stork is a library for creating beautiful, fast, and accurate full-text search interfaces on the web.
+
+It comes in two parts. First, it's a command-line tool that indexes content and creates a search index file that you can upload to a web server. Second, it's a Javascript library that uses that search index file to build an interactive search interface that displays optimal search results immediately to your user, as they type.
+
+Stork is built with Rust, and the Javascript library uses WebAssembly behind the scenes. It's easy to get started and is even easier to customize so it fits your needs. It's perfect for Jamstack sites and personal blogs, but can be used wherever you need to bring search to your users.
 
 Currently in development by [James Little](https://jameslittle.me)
 
