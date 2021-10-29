@@ -1,0 +1,7 @@
+[[input.files]]
+title = "Human Brain"
+url = "https://beepb00p.xyz/pkm-setup.html"
+filetype = "HTML"
+
+[output]
+save_nearest_html_index = true
