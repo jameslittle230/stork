@@ -19,8 +19,10 @@ const register = (
     }
 
     if (entities[name] && !fullConfig.forceOverwrite) {
-      throw new StorkError(
-        `You're registering an index named \`${name}\`, but that already exists. If this is expected, set forceOverwrite to true in your Javascript config to allow overwriting indexes.`
+      rej(
+        new StorkError(
+          `You're registering an index named \`${name}\`, but that already exists. If this is expected, set forceOverwrite to true in your Javascript config to allow overwriting indexes.`
+        )
       );
     }
 
