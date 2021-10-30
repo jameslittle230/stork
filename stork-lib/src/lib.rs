@@ -25,6 +25,9 @@ pub use stork_index_v3::Index as V3Index;
 pub use stork_index_v3::build as V3Build;
 
 #[cfg(feature = "build-v3")]
+pub use stork_index_v3::BuildResult as V3BuildResult;
+
+#[cfg(feature = "build-v3")]
 pub use stork_index_v3::{DocumentError, IndexGenerationError};
 
 use thiserror::Error;
@@ -102,26 +105,17 @@ pub struct IndexDescription {
     pub entries_count: usize,
     pub tokens_count: usize,
     pub index_size_bytes: usize,
-
-    #[cfg(feature = "build-v3")]
-    pub warnings: Vec<DocumentError>,
-
-    #[cfg(not(feature = "build-v3"))]
-    pub warnings: Vec<String>,
+    pub warnings: String,
 }
 
-impl From<&V3Index> for IndexDescription {
-    fn from(index: &V3Index) -> Self {
+#[cfg(feature = "build-v3")]
+impl From<&V3BuildResult> for IndexDescription {
+    fn from(build_result: &V3BuildResult) -> Self {
         Self {
-            entries_count: index.entries_len(),
-            tokens_count: index.search_term_count(),
-            index_size_bytes: Bytes::from(index).len(),
-
-            #[cfg(feature = "build-v3")]
-            warnings: (&index).errors.clone(),
-
-            #[cfg(not(feature = "build-v3"))]
-            warnings: vec![],
+            entries_count: build_result.index.entries_len(),
+            tokens_count: build_result.index.search_term_count(),
+            index_size_bytes: Bytes::from(&build_result.index).len(),
+            warnings: DocumentError::display_list(&build_result.errors),
         }
     }
 }
@@ -141,7 +135,7 @@ impl Display for IndexDescription {
             self.index_size_bytes.to_formatted_string(&Locale::en),
             (self.index_size_bytes / self.entries_count).to_formatted_string(&Locale::en),
             (self.index_size_bytes / self.tokens_count).to_formatted_string(&Locale::en),
-            DocumentError::display_list(&self.warnings)
+            &self.warnings
         ))
     }
 }
@@ -159,9 +153,9 @@ pub fn build_index(_config: &str) -> Result<(IndexDescription, Bytes), BuildErro
 #[cfg(feature = "build-v3")]
 pub fn build_index(config: &str) -> Result<BuildOutput, BuildError> {
     let config = Config::try_from(config)?;
-    let index = V3Build(&config)?;
-    let description = IndexDescription::from(&index);
-    let bytes = Bytes::from(&index);
+    let result = V3Build(&config)?;
+    let description = IndexDescription::from(&result);
+    let bytes = Bytes::from(&result.index);
     Ok(BuildOutput { bytes, description })
 }
 

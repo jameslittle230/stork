@@ -193,38 +193,11 @@ mod tests {
     use unicode_segmentation::UnicodeSegmentation;
 
     use crate::builder::{
-        errors::{DocumentError, IndexGenerationError, WordListGenerationError},
+        errors::{DocumentError, WordListGenerationError},
         intermediate_entry::NormalizedEntry,
     };
 
     use super::{fill_intermediate_entries, truncate_with_ellipsis_to_length};
-
-    #[test]
-    fn break_on_file_error_breaks() {
-        let mut invalid_file = File::default();
-        invalid_file.explicit_source = Some(DataSource::Contents("".to_string())); // Empty word list error
-        let mut input = InputConfig::default();
-        input.files = vec![invalid_file];
-        input.break_on_file_error = true;
-        let output = OutputConfig::default();
-        let config = Config { input, output };
-
-        let mut intermediate_entries: Vec<NormalizedEntry> = vec![];
-        let mut document_errors: Vec<DocumentError> = vec![];
-
-        let r = fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)
-            .err()
-            .unwrap();
-        if let IndexGenerationError::DocumentErrors(index) = r {
-            let word_list_generation_error = &index.errors[0].word_list_generation_error;
-            assert_eq!(
-                word_list_generation_error,
-                &WordListGenerationError::EmptyWordList
-            )
-        } else {
-            assert!(false, "Result is {:?}", r);
-        }
-    }
 
     #[test]
     fn false_break_on_file_error_does_not_break() {

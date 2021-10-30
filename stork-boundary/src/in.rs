@@ -46,6 +46,7 @@ impl TryFrom<Bytes> for VersionedIndex {
             "stork-2" => Ok(VersionedIndex::V2(buffer)),
             "stork-3" => {
                 let index_size = {
+                    dbg!(buffer.remaining(), u64_size);
                     let index_size = buffer.get_u64();
                     let index_size: usize = index_size
                         .try_into()
@@ -102,7 +103,9 @@ mod tests {
 
     #[test]
     fn happy_path_v3_parse() {
-        let bytes = Bytes::try_from(hex!("0000000000000007 73746F726B2D33 00").as_ref()).unwrap();
+        let bytes =
+            Bytes::try_from(hex!("0000000000000007 73746F726B2D33 0000000000000001 00").as_ref())
+                .unwrap();
         let versioned_index = VersionedIndex::try_from(bytes).unwrap();
         assert_eq!(
             versioned_index,

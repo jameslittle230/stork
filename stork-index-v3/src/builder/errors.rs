@@ -2,8 +2,6 @@ use std::{fmt, path::PathBuf};
 use stork_config::File;
 use thiserror::Error;
 
-use crate::Index;
-
 #[derive(Debug, Error, Clone, PartialEq)]
 pub enum WordListGenerationError {
     #[error("SRT file could not be parsed.")]
@@ -42,10 +40,10 @@ pub enum IndexGenerationError {
 
     #[error(
         "{} found while indexing files. If you want to fail silently and still build an index, remove `break_on_file_error` from your config.\n{}", 
-        pluralize_with_count(.0.errors.len(), "error", "errors"),
-        DocumentError::display_list(&.0.errors)
+        pluralize_with_count(.0.len(), "error", "errors"),
+        DocumentError::display_list(&.0)
     )]
-    DocumentErrors(Index),
+    DocumentErrors(Vec<DocumentError>),
 }
 
 impl PartialEq for IndexGenerationError {

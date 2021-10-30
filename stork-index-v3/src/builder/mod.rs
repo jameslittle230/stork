@@ -24,7 +24,13 @@ use intermediate_entry::NormalizedEntry;
 pub mod nudger;
 use nudger::Nudger;
 
-pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
+#[derive(Debug)]
+pub struct BuildResult {
+    pub index: Index,
+    pub errors: Vec<DocumentError>,
+}
+
+pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
     Nudger::from(config).print();
 
     let mut intermediate_entries: Vec<NormalizedEntry> = Vec::new();
@@ -54,14 +60,16 @@ pub fn build(config: &Config) -> Result<Index, IndexGenerationError> {
         entries,
         containers,
         config: passthrough_config,
-        errors: document_errors,
     };
 
-    if config.input.break_on_file_error && !index.errors.is_empty() {
-        return Err(IndexGenerationError::DocumentErrors(index));
+    if config.input.break_on_file_error && !document_errors.is_empty() {
+        return Err(IndexGenerationError::DocumentErrors(document_errors));
     }
 
-    Ok(index)
+    Ok(BuildResult {
+        index,
+        errors: document_errors,
+    })
 }
 
 fn remove_surrounding_punctuation(input: &str) -> String {
@@ -128,13 +136,13 @@ mod tests {
         let build_results = build(&config).unwrap();
 
         assert_eq!(build_results.errors.len(), 1);
-
-        let error_msg = build_results.errors.first().unwrap().to_string();
-
-        assert!(
-            error_msg.contains("HTML selector `.article` is not present in the file"),
-            "{}",
-            error_msg
+        assert_eq!(
+            &build_results
+                .errors
+                .first()
+                .unwrap()
+                .word_list_generation_error,
+            &WordListGenerationError::SelectorNotPresent(".article".to_string())
         );
     }
 
@@ -153,9 +161,14 @@ mod tests {
 
         let build_results = build(&config).unwrap();
         assert_eq!(build_results.errors.len(), 1);
-
-        let error_msg = build_results.errors.first().unwrap().to_string();
-        assert!(error_msg.contains("No words in word list"));
+        assert_eq!(
+            &build_results
+                .errors
+                .first()
+                .unwrap()
+                .word_list_generation_error,
+            &WordListGenerationError::EmptyWordList
+        );
     }
 
     #[test]
@@ -190,6 +203,36 @@ mod tests {
         };
 
         assert_eq!(build(&config).unwrap().errors.len(), 1);
-        assert_eq!(build(&config).unwrap().entries.len(), 1);
+        assert_eq!(build(&config).unwrap().index.entries.len(), 1);
+    }
+
+    #[test]
+    fn test_failing_file_halts_indexing_when_config_says_so() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![
+                    generate_invalid_file_missing_selector(),
+                    generate_valid_file(),
+                ],
+                break_on_file_error: true,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let r = build(&config).err().unwrap();
+        dbg!(&r);
+
+        if let IndexGenerationError::DocumentErrors(errors) = r {
+            assert_eq!(errors.len(), 1 as usize);
+            let word_list_generation_error = &errors[0].word_list_generation_error;
+            dbg!(&word_list_generation_error);
+            assert_eq!(
+                word_list_generation_error,
+                &WordListGenerationError::SelectorNotPresent(".article".to_string())
+            )
+        } else {
+            assert!(false, "Result is {:?}", r);
+        }
     }
 }

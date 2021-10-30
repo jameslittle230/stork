@@ -19,6 +19,7 @@ use scores::MATCHED_WORD_SCORE;
 
 pub use builder::build;
 pub use builder::errors::{DocumentError, IndexGenerationError};
+pub use builder::BuildResult;
 pub use search::search;
 
 use smart_default::SmartDefault;
@@ -32,9 +33,6 @@ pub struct Index {
     config: PassthroughConfig,
     entries: Vec<Entry>,
     containers: HashMap<String, Container>,
-
-    #[serde(skip)]
-    pub errors: Vec<DocumentError>,
 }
 
 impl Index {
