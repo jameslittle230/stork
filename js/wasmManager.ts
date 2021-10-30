@@ -5,10 +5,10 @@ const DEFAULT_WASM_URL = version
   ? `https://files.stork-search.net/stork-${version}.wasm`
   : `https://files.stork-search.net/stork.wasm`;
 
-var wasmSourceUrl: string | null = null; // only for debug
-var wasmLoadPromise: Promise<string | void> | null = null;
+let wasmSourceUrl: string | null = null; // only for debug
+let wasmLoadPromise: Promise<string | void> | null = null;
 
-var queue: { (): void }[] = [];
+let queue: { (): void }[] = [];
 
 const loadWasm = (overrideUrl: string | null): Promise<string | void> => {
   if (wasmLoadPromise) {
@@ -38,11 +38,11 @@ const loadWasm = (overrideUrl: string | null): Promise<string | void> => {
  *
  * @param fn Function to be run once WASM is loaded
  */
-const runAfterWasmLoaded = (fn: () => void) => {
+const runAfterWasmLoaded = (fn: () => void): void => {
   if (!wasmLoadPromise) {
     queue.push(fn);
   } else {
-    wasmLoadPromise.then(_ => fn());
+    wasmLoadPromise.then(() => fn());
   }
 };
 /**
@@ -56,7 +56,7 @@ const flush = () => {
   queue = [];
 };
 
-const debug = () => ({
+const debug = (): Record<string, unknown> => ({
   wasmSourceUrl,
   wasmLoadPromise,
   queueLength: queue.length

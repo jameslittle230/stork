@@ -10,7 +10,7 @@ const register = (
   name: string,
   url: string,
   partialConfig: Partial<Configuration>
-) => {
+): Promise<void> => {
   return new Promise((res, rej) => {
     const fullConfig = calculateOverriddenConfig(partialConfig);
     if (fullConfig instanceof StorkError) {
@@ -46,7 +46,7 @@ const register = (
   });
 };
 
-const attachToDom = (name: string) => {
+const attachToDom = (name: string): void => {
   if (!entities[name]) {
     throw new Error(`Index ${name} has not been registered!`);
   }
@@ -54,13 +54,13 @@ const attachToDom = (name: string) => {
   entities[name].attachToDom();
 };
 
-const entityIsReady = (name: string) => {
-  return entities[name]?.state != "ready"
-}
+const entityIsReady = (name: string): boolean => {
+  return entities[name]?.state != "ready";
+};
 
-const debug = () => ({
-  entities: {...entities},
+const debug = (): Record<string, unknown> => ({
+  entities: { ...entities },
   entitiesCount: entities.length
-})
+});
 
 export { register, attachToDom, entityIsReady, debug };
