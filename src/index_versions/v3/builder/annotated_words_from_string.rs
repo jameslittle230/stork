@@ -65,17 +65,17 @@ mod tests {
     #[test]
     fn annotated_words_can_correctly_annotate() {
         let computed = "Hastings         on  \n \t hudson".make_annotated_words_with_annotations(
-            |word, vec| vec.push(InternalWordAnnotation::SRTUrlSuffix(word.to_string())),
+            |word, vec| vec.push(InternalWordAnnotation::UrlSuffix(word.to_string())),
         );
 
         assert_eq!(3, computed.len());
         assert_eq!(1, computed[0].internal_annotations.len());
         assert_eq!(
-            InternalWordAnnotation::SRTUrlSuffix("Hastings".to_string()),
+            InternalWordAnnotation::UrlSuffix("Hastings".to_string()),
             computed[0].internal_annotations[0]
         );
         assert_eq!(
-            InternalWordAnnotation::SRTUrlSuffix("hudson".to_string()),
+            InternalWordAnnotation::UrlSuffix("hudson".to_string()),
             computed[2].internal_annotations[0]
         );
     }

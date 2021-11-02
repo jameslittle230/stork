@@ -119,10 +119,6 @@ export class Entity {
         if (typeof annotationMap["a"] === "string") {
           urlSuffix += annotationMap["a"];
         }
-
-        if (typeof annotationMap["b"] === "string") {
-          urlSuffix += `#${annotationMap["b"]}`;
-        }
       }
 
       // oof

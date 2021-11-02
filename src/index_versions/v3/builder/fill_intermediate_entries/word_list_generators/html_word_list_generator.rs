@@ -88,7 +88,9 @@ pub fn generate(
                                 word,
                                 internal_annotations: {
                                     if let Some(latest_id) = latest_id.clone() {
-                                        vec![InternalWordAnnotation::NearestHtmlId(latest_id)]
+                                        vec![InternalWordAnnotation::UrlSuffix(
+                                            format!("#{}", latest_id).to_string(),
+                                        )]
                                     } else {
                                         vec![]
                                     }
@@ -454,9 +456,8 @@ mod tests {
                 annotated_word
                     .internal_annotations
                     .into_iter()
-                    .filter_map(|word_annotation| match word_annotation {
-                        InternalWordAnnotation::SRTUrlSuffix(_) => None,
-                        InternalWordAnnotation::NearestHtmlId(id) => Some(id.clone()),
+                    .map(|word_annotation| match word_annotation {
+                        InternalWordAnnotation::UrlSuffix(suffix) => suffix.to_string(),
                     })
                     .next()
                     .unwrap()
@@ -465,14 +466,14 @@ mod tests {
 
         let expected = {
             let my_content = vec![
-                "my-content";
+                "#my-content";
                 "This text should be indexed with my content"
                     .split_ascii_whitespace()
                     .count()
             ];
 
             let my_aside = vec![
-                "my-aside";
+                "#my-aside";
                 "This text is inside my aside. This text is after my aside."
                     .split_ascii_whitespace()
                     .count()
@@ -513,16 +514,7 @@ mod tests {
         let computed: usize = annotated_words
             .word_list
             .into_iter()
-            .map(|annotated_word| {
-                annotated_word
-                    .internal_annotations
-                    .into_iter()
-                    .filter_map(|word_annotation| match word_annotation {
-                        InternalWordAnnotation::SRTUrlSuffix(_) => None,
-                        InternalWordAnnotation::NearestHtmlId(id) => Some(id.clone()),
-                    })
-                    .count()
-            })
+            .map(|annotated_word| annotated_word.internal_annotations.into_iter().count())
             .sum();
 
         assert_eq!(computed, 0)

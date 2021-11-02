@@ -24,7 +24,7 @@ pub fn generate(
         let mut annotated_words_for_this_sub =
             sub.text
                 .make_annotated_words_with_annotations(|_word, internal_annotations| {
-                    internal_annotations.push(InternalWordAnnotation::SRTUrlSuffix(
+                    internal_annotations.push(InternalWordAnnotation::UrlSuffix(
                         build_srt_url_time_suffix(&sub.start_time, &config.global.srt_config),
                     ));
                 });
