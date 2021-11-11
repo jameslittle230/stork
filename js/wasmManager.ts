@@ -5,12 +5,14 @@ const DEFAULT_WASM_URL = version
   ? `https://files.stork-search.net/stork-${version}.wasm`
   : `https://files.stork-search.net/stork.wasm`;
 
-let wasmSourceUrl: string | null = null; // only for debug
+let wasmSourceUrl: string | null = null; // only for debug output
 let wasmLoadPromise: Promise<string | void> | null = null;
 
 let queue: { (): void }[] = [];
 
-const loadWasm = (overrideUrl: string | null): Promise<string | void> => {
+const loadWasm = (
+  overrideUrl: string | null = null
+): Promise<string | void> => {
   if (wasmLoadPromise) {
     return wasmLoadPromise;
   }

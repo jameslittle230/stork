@@ -3,7 +3,6 @@ import { attachToDom, register } from "./entityManager";
 jest.mock("./loaders/indexLoader", () => {
   return {
     loadIndexFromUrl: jest.fn().mockImplementation((_url, { load }) => {
-      console.log("mock impl");
       load();
     })
   };
