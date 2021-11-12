@@ -39,12 +39,20 @@ const loadWasm = (
  * the function will run immediately.
  *
  * @param fn Function to be run once WASM is loaded
+ *
+ * @returns a promise if loadWasm has been called, or undefined if loadWasm
+ * has not been called. If loadWasm has been called, the promise will resolve
+ * when the WASM has been loaded and when the function has been run.
  */
-const runAfterWasmLoaded = (fn: () => void): void => {
+const runAfterWasmLoaded = (fn: () => void): Promise<string | void> | null => {
   if (!wasmLoadPromise) {
     queue.push(fn);
+    return null;
   } else {
+    // We have a wasmLoadPromise, but we don't know if it's resolved.
+    // Let's wait for it to resolve, then run the function.
     wasmLoadPromise.then(() => fn());
+    return wasmLoadPromise;
   }
 };
 /**
