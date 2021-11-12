@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-let g_loadWasm: any = null;
-let g_runAfterWasmLoaded: any = null;
+let loadWasm: any, runAfterWasmLoaded: any;
 
 jest.mock("stork-search", () => ({
   default: jest.fn().mockImplementation(
@@ -14,33 +13,34 @@ jest.mock("stork-search", () => ({
 describe("wasmManager", () => {
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { loadWasm, runAfterWasmLoaded } = require("./wasmManager");
     jest.resetModules();
-    g_loadWasm = loadWasm;
-    g_runAfterWasmLoaded = runAfterWasmLoaded;
+    return import("./wasmManager").then(module => {
+      loadWasm = module.loadWasm;
+      runAfterWasmLoaded = module.runAfterWasmLoaded;
+    });
   });
   test("should load from the default URL", async () => {
-    const wasm = await g_loadWasm();
+    const wasm = await loadWasm();
     expect(wasm).toEqual("https://files.stork-search.net/stork.wasm");
   });
 
   test("Should load from a non-standard URL", async () => {
-    const wasm = await g_loadWasm("https://example.com/stork.wasm");
+    const wasm = await loadWasm("https://example.com/stork.wasm");
     expect(wasm).toEqual("https://example.com/stork.wasm");
   });
 
   test("Should run a function immediately if the wasm is loaded", async () => {
-    g_loadWasm();
+    loadWasm();
     const spy = jest.fn();
-    await g_runAfterWasmLoaded(spy);
+    await runAfterWasmLoaded(spy);
     expect(spy).toHaveBeenCalled();
   });
 
   test("Should run a function only once the wasm is loaded", async () => {
     const spy = jest.fn();
-    g_runAfterWasmLoaded(spy);
+    runAfterWasmLoaded(spy);
     expect(spy).not.toHaveBeenCalled();
-    await g_loadWasm();
+    await loadWasm();
     expect(spy).toHaveBeenCalled();
   });
 });

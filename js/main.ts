@@ -47,16 +47,16 @@ function attach(name: string): void {
 function register(
   name: string,
   url: string,
-  config: Partial<Configuration>
+  config: Partial<Configuration> = {}
 ): Promise<void> {
   const initPromise = initialize();
-  const donwloadPromise = downloadIndex(name, url, config);
+  const downloadPromise = downloadIndex(name, url, config);
   attach(name);
 
   // This silly `then` call turns a [(void), (void)] into a (void), which is
   // only necessary to make Typescript happy.
   // You begin to wonder if you write Typescript code, or if Typescript code writes you.
-  return Promise.all([initPromise, donwloadPromise]).then();
+  return Promise.all([initPromise, downloadPromise]).then();
 }
 
 function search(name: string, query: string): SearchData {
