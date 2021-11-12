@@ -7,10 +7,7 @@ pub type IndexFromFile = [u8];
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum InternalWordAnnotation {
     #[serde(rename = "a")]
-    SRTUrlSuffix(String),
-
-    #[serde(rename = "b")]
-    NearestHtmlId(String),
+    UrlSuffix(String),
 }
 
 pub const STOPWORDS: &[&str] = &[

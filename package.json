@@ -56,7 +56,7 @@
     "build:js:dev": "yarn webpack --mode=development",
     "build:js:prod": "yarn webpack --mode=production",
 
-    "lint": "yarn eslint **/*.ts",
+    "lint": "yarn eslint js/**/*.ts",
     "test": "jest",
     "serve": "./scripts/serve.sh",
 

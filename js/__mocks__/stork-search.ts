@@ -1,11 +1,15 @@
 export const wasm_search = jest.fn;
-export default jest.fn().mockImplementation((input: string) => {
+
+export const init_spy = jest.fn().mockImplementation((input: string) => {
   return new Promise((res, rej) => {
-    if (input.includes("stork-search.net")) {
-      res();
+    console.log(4, "mock stork search", input);
+    if (input.includes("stork-search.net") || input.includes("example.com")) {
+      res("stork-search.net");
       return;
     } else {
       rej();
     }
   });
 });
+
+export default init_spy;

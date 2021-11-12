@@ -48,6 +48,16 @@
         />
         <div data-stork="federalist-output" class="stork-output"></div>
       </div>
+      
+      <div class="stork-wrapper stork-wrapper-basic">
+        <p class="subtitle">beepboop</p>
+        <input
+          data-stork="beepboop"
+          placeholder="fleshy human brain"
+          class="stork-input"
+        />
+        <div data-stork="beepboop-output" class="stork-output"></div>
+      </div>
 
       <div class="stork-wrapper stork-wrapper-basic">
         <p class="subtitle">Published Index</p>
@@ -131,7 +141,7 @@
         console.error(e);
       })
 
-      stork.downloadIndex("federalist", "/federalist.st", {}).then(() => {
+      stork.downloadIndex("federalist", "/federalist.st", {forceOverwrite: true}).then(() => {
         console.log("Finished downloading index");
       }).catch(e => {
         console.error(e);
@@ -149,7 +159,7 @@
       //   "https://files.stork-search.net/federalist.st",
       //   { showCloseButton: false }
       // );
-      // stork.register("threeblue", "/3b1b.st");
+      stork.register("beepboop", "/beepboop.st");
       // stork.register("doesnotexist", "/doesNotExist.st");
       // stork.register("bad", "/federalist.st");
     </script>

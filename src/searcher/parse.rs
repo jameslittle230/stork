@@ -57,7 +57,7 @@ pub enum IndexParseError {
 
     // This could have an rmp::decode associated value, but I'm opting to
     // suppress it.
-    DecodeError,
+    DecodeError(String),
 }
 
 impl Error for IndexParseError {
@@ -71,8 +71,8 @@ impl Error for IndexParseError {
 }
 
 impl From<rmp_serde::decode::Error> for IndexParseError {
-    fn from(_e: rmp_serde::decode::Error) -> IndexParseError {
-        IndexParseError::DecodeError
+    fn from(e: rmp_serde::decode::Error) -> IndexParseError {
+        IndexParseError::DecodeError(e.to_string())
     }
 }
 
@@ -98,7 +98,10 @@ impl fmt::Display for IndexParseError {
                 format!("Unknown index version `{}` found", string)
             },
 
-            IndexParseError::DecodeError => "Could not decode index (internal error). If you see this, please file a bug: https://jil.im/storkbug".to_string()
+            IndexParseError::DecodeError(error) => format!(
+                "Could not decode index, bruh! (internal error {}). If you see this, please file a bug: https://jil.im/storkbug",
+                error
+            )
         };
 
         write!(f, "{}", desc)

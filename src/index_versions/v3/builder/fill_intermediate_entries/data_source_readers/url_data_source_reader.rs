@@ -1,6 +1,6 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
-#[cfg(not(web_scraping))]
+#[cfg(not(feature = "web-scraping"))]
 pub(crate) fn read(
     _url: &str,
     _config: &ReaderConfig,
@@ -8,11 +8,12 @@ pub(crate) fn read(
     Err(WordListGenerationError::UnknownContentType)
 }
 
-#[cfg(web_scraping)]
+#[cfg(feature = "web-scraping")]
 pub(crate) fn read(
     url: &str,
     config: &ReaderConfig,
 ) -> Result<ReadResult, WordListGenerationError> {
+    use crate::config::Filetype;
     use mime::Mime;
     use std::io::Read;
 

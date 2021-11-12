@@ -189,9 +189,7 @@ mod tests {
                 },
                 AnnotatedWord {
                     word: "is-a".to_string(),
-                    internal_annotations: vec![InternalWordAnnotation::SRTUrlSuffix(
-                        "a".to_string(),
-                    )],
+                    internal_annotations: vec![InternalWordAnnotation::UrlSuffix("a".to_string())],
                     fields: HashMap::default(),
                 },
                 AnnotatedWord {

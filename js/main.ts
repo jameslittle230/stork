@@ -1,28 +1,26 @@
 import { Configuration } from "./config";
-import { EntityManager } from "./entityManager";
-import WasmQueue from "./wasmQueue";
-import { loadWasm } from "./loaders/wasmLoader";
+import {
+  register as registerEntity,
+  attachToDom,
+  entityIsReady,
+  debug as entityDebug
+} from "./entityManager";
+import { loadWasm, debug as wasmDebug } from "./wasmManager";
 import { resolveSearch, SearchData } from "./searchData";
 import StorkError from "./storkError";
 import { validateIndexParams } from "./validators/indexParamValidator";
 import { wasm_stork_version } from "stork-search";
 
-// Holds the URL of the currently loaded WASM blob, or `null` if the WASM
-// hasn't been loaded yet.
-let loadedWasmUrl: string | null = null;
-
-const wasmQueue: WasmQueue = new WasmQueue();
-const entityManager: EntityManager = new EntityManager(wasmQueue);
-
 function initialize(wasmOverrideUrl: string | null = null): Promise<void> {
   return loadWasm(wasmOverrideUrl)
-    .then(fromUrl => {
-      wasmQueue.flush();
-      loadedWasmUrl = fromUrl;
+    .then(() => {
+      return;
     })
-    .catch(e => {
+    .catch(() => {
       // Send error to entity manager
-      throw new StorkError(e);
+      throw new StorkError(
+        `Can't load WASM from URL ${wasmOverrideUrl || "<no url given>"}`
+      );
     });
 }
 
@@ -34,13 +32,13 @@ function downloadIndex(name: string, url: string, config = {}): Promise<void> {
       return;
     }
 
-    entityManager.register(name, url, config).then(res).catch(rej);
+    registerEntity(name, url, config).then(res).catch(rej);
   });
 }
 
 function attach(name: string): void {
   try {
-    entityManager.attachToDom(name);
+    attachToDom(name);
   } catch (e) {
     throw new StorkError(e.message);
   }
@@ -49,16 +47,16 @@ function attach(name: string): void {
 function register(
   name: string,
   url: string,
-  config: Partial<Configuration>
+  config: Partial<Configuration> = {}
 ): Promise<void> {
   const initPromise = initialize();
-  const donwloadPromise = downloadIndex(name, url, config);
+  const downloadPromise = downloadIndex(name, url, config);
   attach(name);
 
   // This silly `then` call turns a [(void), (void)] into a (void), which is
   // only necessary to make Typescript happy.
   // You begin to wonder if you write Typescript code, or if Typescript code writes you.
-  return Promise.all([initPromise, donwloadPromise]).then();
+  return Promise.all([initPromise, downloadPromise]).then();
 }
 
 function search(name: string, query: string): SearchData {
@@ -68,7 +66,7 @@ function search(name: string, query: string): SearchData {
     );
   }
 
-  if (entityManager.entities[name]?.state != "ready") {
+  if (!entityIsReady(name)) {
     throw new StorkError(
       "Couldn't find index. Make sure the stork.downloadIndex() promise has resolved before calling stork.search()."
     );
@@ -79,10 +77,8 @@ function search(name: string, query: string): SearchData {
 
 function debug(): Record<string, unknown> {
   return {
-    wasmQueueMethods: wasmQueue.queue.length,
-    loadedWasmUrl: loadedWasmUrl,
-    indexes: entityManager.entities,
-    indexCount: Object.keys(entityManager.entities).length,
+    ...wasmDebug(),
+    ...entityDebug(),
     jsStorkVersion: process.env.VERSION,
     wasmStorkVersion: wasm_stork_version()
   };

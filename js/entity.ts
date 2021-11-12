@@ -110,6 +110,17 @@ export class Entity {
     this.results.map(r => {
       let urlSuffix = "";
 
+      const firstInternalAnnotations = r.excerpts
+        .map(e => e.internal_annotations)
+        .filter(ia => !!ia)[0];
+
+      if (firstInternalAnnotations && firstInternalAnnotations[0]) {
+        const annotationMap = firstInternalAnnotations[0];
+        if (typeof annotationMap["a"] === "string") {
+          urlSuffix += annotationMap["a"];
+        }
+      }
+
       // oof
       if (
         r.excerpts &&

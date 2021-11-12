@@ -1,62 +1,69 @@
 import { Entity } from "./entity";
 import { Configuration, calculateOverriddenConfig } from "./config";
 import { loadIndexFromUrl } from "./loaders/indexLoader";
-import WasmQueue from "./wasmQueue";
+import { runAfterWasmLoaded } from "./wasmManager";
 import StorkError from "./storkError";
 
-export class EntityManager {
-  entities: Record<string, Entity> = {};
-  wasmQueue: WasmQueue;
+const entities: Record<string, Entity> = {};
 
-  constructor(wasmQueue: WasmQueue) {
-    this.wasmQueue = wasmQueue;
-  }
-
-  public register(
-    name: string,
-    url: string,
-    partialConfig: Partial<Configuration>
-  ): Promise<void> {
-    return new Promise((res, rej) => {
-      const fullConfig = calculateOverriddenConfig(partialConfig);
-      if (fullConfig instanceof StorkError) {
-        rej(fullConfig);
-        return;
-      }
-
-      if (this.entities[name] && !fullConfig.forceOverwrite) {
-        throw new StorkError(
-          `You're registering an index named \`${name}\`, but that already exists. If this is expected, set forceOverwrite to true in your Javascript config to allow overwriting indexes.`
-        );
-      }
-
-      const entity = new Entity(name, url, fullConfig);
-      this.entities[name] = entity;
-
-      loadIndexFromUrl(url, {
-        progress: percentage => {
-          entity.setDownloadProgress(percentage);
-        },
-
-        load: response => {
-          this.wasmQueue.runAfterWasmLoaded(() => {
-            entity.registerIndex(new Uint8Array(response)).then(res).catch(rej);
-          });
-        },
-
-        error: () => {
-          entity.setDownloadError();
-          rej();
-        }
-      });
-    });
-  }
-
-  public attachToDom(name: string): void {
-    if (!this.entities[name]) {
-      throw new Error(`Index ${name} has not been registered!`);
+const register = (
+  name: string,
+  url: string,
+  partialConfig: Partial<Configuration>
+): Promise<void> => {
+  return new Promise((res, rej) => {
+    const fullConfig = calculateOverriddenConfig(partialConfig);
+    if (fullConfig instanceof StorkError) {
+      rej(fullConfig);
+      return;
     }
 
-    this.entities[name].attachToDom();
+    if (entities[name] && !fullConfig.forceOverwrite) {
+      rej(
+        new StorkError(
+          `You're registering an index named \`${name}\`, but that already exists. If this is expected, set forceOverwrite to true in your Javascript config to allow overwriting indexes.`
+        )
+      );
+    }
+
+    const entity = new Entity(name, url, fullConfig);
+    entities[name] = entity;
+
+    loadIndexFromUrl(url, {
+      progress: percentage => {
+        entity.setDownloadProgress(percentage);
+      },
+
+      load: response => {
+        runAfterWasmLoaded(() => {
+          entity.registerIndex(new Uint8Array(response)).then(res).catch(rej);
+        });
+      },
+
+      error: () => {
+        entity.setDownloadError();
+        rej();
+      }
+    });
+  });
+};
+
+const attachToDom = (name: string): void => {
+  console.log(52, "attachToDom");
+  if (!entities[name]) {
+    throw new Error(`Index ${name} has not been registered!`);
   }
-}
+
+  entities[name].attachToDom();
+};
+
+const entityIsReady = (name: string): boolean => {
+  return entities[name]?.state != "ready";
+};
+
+const debug = (): Record<string, unknown> => ({
+  entities: { ...entities },
+  entitiesCount: entities.length
+});
+
+export { register, attachToDom, entityIsReady, debug };
