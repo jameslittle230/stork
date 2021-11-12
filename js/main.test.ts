@@ -41,12 +41,12 @@ describe("main tests", () => {
     expect(init).toHaveBeenLastCalledWith("https://example.com/stork.wasm");
   });
 
-  it("should initialize WASM once with default URL when register is called", async () => {
-    const m_init = init as jest.Mock;
-    // m_init.mockClear();
+  // it("should initialize WASM once with default URL when register is called", async () => {
+  //   const m_init = init as jest.Mock;
+  //   // m_init.mockClear();
 
-    await register("something", "./something.st");
-    expect(init).toHaveBeenCalledTimes(1);
-    expect(m_init.mock.calls[0][0]).toMatch(/stork-search\.net\/.*\.wasm/);
-  });
+  //   await register("something", "./something.st");
+  //   expect(init).toHaveBeenCalledTimes(1);
+  //   expect(m_init.mock.calls[0][0]).toMatch(/stork-search\.net\/.*\.wasm/);
+  // });
 });
