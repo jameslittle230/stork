@@ -1,6 +1,5 @@
 [input]
 html_selector = "main > article.post > .single__content"
-# break_on_file_error = true
 
 [[input.files]]
 url = "https://bowdoinorient.com/2021/02/19/from-zoom-hangouts-to-soup-cans-bowdoins-crew-team-gets-creative-during-social-distancing/"
@@ -27,9 +26,5 @@ url = "https://bowdoinorient.com/2021/02/18/college-reports-125-conduct-violatio
 title = "College reports 125 conduct violations during fall semester; launches COVID conduct dashboard"
 
 [[input.files]]
-url = "https://bowdoinorient.com/2020/02/18/college-reports-125-conduct-violations-during-fall-semester-launches-covid-conduct-dashboard/"
+url = "https://bowdoinorient.com/url-does-not-exist"
 title = "This URL does not exist."
-
-[output]
-# debug = true
-filename = "bowdoin-orient.st"

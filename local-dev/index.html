@@ -48,7 +48,7 @@
         />
         <div data-stork="federalist-output" class="stork-output"></div>
       </div>
-      
+
       <div class="stork-wrapper stork-wrapper-basic">
         <p class="subtitle">beepboop</p>
         <input
@@ -110,42 +110,51 @@
 
     <script src="/stork.js"></script>
     <script>
-      stork.initialize("http://127.0.0.1:8025/stork.wasm").then(() => {
-        console.log("Finished downloading WASM")
-      }).catch(e => {
-        console.error(e);
-      }); // download WASM
+      stork
+        .initialize("http://127.0.0.1:8025/stork.wasm")
+        .then(() => {
+          console.log("Finished downloading WASM");
+        })
+        .catch(e => {
+          console.error(e);
+        }); // download WASM
 
-      stork.downloadIndex("federalist", "/federalist.st", {
-        showProgress: true,
-        showScores: true,
-        printIndexInfo: true,
-        onQueryUpdate: (query, results) => {
-          console.log(query, results);
-        },
-        onResultSelected: (query, result) => {
-          console.log("Fake analytics log...");
-          return new Promise(function (resolve) {
-            setTimeout(resolve, 2000);
-          });
-        },
-        onResultsHidden: () => {
-          console.log("Goodbye, results!");
-        },
-        onInputCleared: () => {
-          console.log("Goodbye, input!");
-        }
-      }).then(() => {
-        console.log("Finished downloading index");
-      }).catch(e => {
-        console.error(e);
-      })
+      stork
+        .downloadIndex("federalist", "/federalist.st", {
+          showProgress: true,
+          showScores: true,
+          printIndexInfo: true,
+          onQueryUpdate: (query, results) => {
+            console.log(query, results);
+          },
+          onResultSelected: (query, result) => {
+            console.log("Fake analytics log...");
+            return new Promise(function (resolve) {
+              setTimeout(resolve, 2000);
+            });
+          },
+          onResultsHidden: () => {
+            console.log("Goodbye, results!");
+          },
+          onInputCleared: () => {
+            console.log("Goodbye, input!");
+          }
+        })
+        .then(() => {
+          console.log("Finished downloading index");
+        })
+        .catch(e => {
+          console.error(e);
+        });
 
-      stork.downloadIndex("federalist", "/federalist.st", {forceOverwrite: true}).then(() => {
-        console.log("Finished downloading index");
-      }).catch(e => {
-        console.error(e);
-      })
+      stork
+        .downloadIndex("federalist", "/federalist.st", { forceOverwrite: true })
+        .then(() => {
+          console.log("Finished downloading index");
+        })
+        .catch(e => {
+          console.error(e);
+        });
 
       stork.attach("federalist"); // hook into HTML on page
       window.setTimeout(() => {
@@ -159,7 +168,9 @@
       //   "https://files.stork-search.net/federalist.st",
       //   { showCloseButton: false }
       // );
-      stork.register("beepboop", "/beepboop.st");
+      stork.register("beepboop", "/beepboop.st", {
+        resultNoun: { singular: "boop", plural: "boops" }
+      });
       // stork.register("doesnotexist", "/doesNotExist.st");
       // stork.register("bad", "/federalist.st");
     </script>

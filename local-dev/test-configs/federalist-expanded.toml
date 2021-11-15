@@ -1,12 +1,11 @@
 # An expanded version of federalist.toml to test a different way of laying out
 # the configuration file.
-
 [input]
 base_directory = "test/federalist"
 url_prefix = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#"
 stemming = "French"
 
-[[input.files]] 
+[[input.files]]
 path = "federalist-1.txt"
 url = "TheFederalistPapers-1"
 title = "Introduction"
