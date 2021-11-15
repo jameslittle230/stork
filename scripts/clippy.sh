@@ -1,5 +1,4 @@
 #!/bin/bash
-cargo clean
 cargo clippy -- --W clippy::pedantic \
 -A clippy::upper_case_acronyms \
 -A clippy::missing_panics_doc \
