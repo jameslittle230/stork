@@ -57,7 +57,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # args from ./scripts/clippy.sh
-          args: -D clippy::pedantic -A clippy::upper_case_acronyms -A clippy::missing_panics_doc -A clippy::missing_errors_doc -A clippy::too_many_lines -A clippy::must_use_candidate -A clippy::module_name_repetitions
+          args: -- -D clippy::pedantic -A clippy::upper_case_acronyms -A clippy::missing_panics_doc -A clippy::missing_errors_doc -A clippy::too_many_lines -A clippy::must_use_candidate -A clippy::module_name_repetitions
 
   cargo_fmt:
     name: "Run Cargo Format Check"
