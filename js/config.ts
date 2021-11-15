@@ -8,6 +8,7 @@ export interface Configuration {
   showCloseButton: boolean;
   minimumQueryLength: number;
   forceOverwrite: boolean;
+  resultNoun: { singular: string; plural: string };
   onQueryUpdate?: (query: string, results: unknown) => unknown;
   onResultSelected?: (query: string, result: unknown) => unknown;
   onResultsHidden?: () => unknown;
@@ -21,6 +22,7 @@ export const defaultConfig: Readonly<Configuration> = {
   showCloseButton: true,
   minimumQueryLength: 3,
   forceOverwrite: false,
+  resultNoun: { singular: "file", plural: "files" },
   onQueryUpdate: undefined,
   onResultSelected: undefined,
   onResultsHidden: undefined,

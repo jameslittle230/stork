@@ -51,11 +51,11 @@ export class Entity {
       return "Filtering...";
     } else if (this.results) {
       if (this.totalResultCount === 0) {
-        return "No files found.";
+        return `No ${this.config.resultNoun.plural} found.`;
       } else if (this.totalResultCount === 1) {
-        return "1 file found.";
+        return `1 ${this.config.resultNoun.singular} found.`;
       } else {
-        return `${this.totalResultCount} files found.`;
+        return `${this.totalResultCount} ${this.config.resultNoun.plural} found.`;
       }
     }
 
