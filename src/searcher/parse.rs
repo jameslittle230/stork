@@ -194,7 +194,7 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
 
 #[cfg(test)]
 mod successfully_parse_historical_index_versions {
-    use super::*;
+    use super::{IndexVersion, ParsedIndex};
     use std::convert::TryFrom;
     use std::fs;
     use std::io::{BufReader, Read};
@@ -236,7 +236,10 @@ mod bad_blob_tests {
         let badstring = "bad index".as_bytes();
         let err = ParsedIndex::try_from(badstring).unwrap_err();
         assert!(
-            err == IndexParseError::BadVersionSize(7089057378828444773, VersionSizeProblem::Long),
+            err == IndexParseError::BadVersionSize(
+                7_089_057_378_828_444_773,
+                VersionSizeProblem::Long
+            ),
             "Bad error type, found {:?}",
             err
         );

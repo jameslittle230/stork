@@ -1,5 +1,5 @@
 #!/bin/bash
-cargo clippy -- --W clippy::pedantic \
+cargo clippy --fix --allow-dirty -- --W clippy::pedantic \
 -A clippy::upper_case_acronyms \
 -A clippy::missing_panics_doc \
 -A clippy::missing_errors_doc \

@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use crate::common::InternalWordAnnotation;
 use crate::LatestVersion::structs::{AnnotatedWord, AnnotatedWordList};
-use kuchiki::{traits::*, ElementData, NodeDataRef};
+use kuchiki::{
+    traits::{ElementIterator, NodeIterator, TendrilSink},
+    ElementData, NodeDataRef,
+};
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
@@ -18,8 +21,7 @@ pub fn generate(
             .html_selector_override
             .as_ref()
             .or(config.global.html_selector.as_ref())
-            .map(|a| a.as_str())
-            .unwrap_or("main")
+            .map_or("main", std::string::String::as_str)
     };
 
     let exclude_selector: Option<&str> = {
@@ -28,7 +30,7 @@ pub fn generate(
             .exclude_html_selector_override
             .as_ref()
             .or(config.global.exclude_html_selector.as_ref())
-            .map(|a| a.as_str())
+            .map(std::string::String::as_str)
     };
 
     if let Ok(css_matches) = document.select(selector) {
@@ -88,9 +90,10 @@ pub fn generate(
                                 word,
                                 internal_annotations: {
                                     if let Some(latest_id) = latest_id.clone() {
-                                        vec![InternalWordAnnotation::UrlSuffix(
-                                            format!("#{}", latest_id).to_string(),
-                                        )]
+                                        vec![InternalWordAnnotation::UrlSuffix(format!(
+                                            "#{}",
+                                            latest_id
+                                        ))]
                                     } else {
                                         vec![]
                                     }
@@ -457,7 +460,7 @@ mod tests {
                     .internal_annotations
                     .into_iter()
                     .map(|word_annotation| match word_annotation {
-                        InternalWordAnnotation::UrlSuffix(suffix) => suffix.to_string(),
+                        InternalWordAnnotation::UrlSuffix(suffix) => suffix,
                     })
                     .next()
                     .unwrap()
@@ -514,7 +517,7 @@ mod tests {
         let computed: usize = annotated_words
             .word_list
             .into_iter()
-            .map(|annotated_word| annotated_word.internal_annotations.into_iter().count())
+            .map(|annotated_word| annotated_word.internal_annotations.len())
             .sum();
 
         assert_eq!(computed, 0)

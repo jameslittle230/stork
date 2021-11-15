@@ -61,7 +61,7 @@ fn main() {
                             &output_file,
                         ]);
                         let submatches = global_matches.subcommand_matches("build").unwrap();
-                        build_handler(&submatches, &global_matches)
+                        build_handler(submatches, &global_matches)
                     }
                     Err(e) => {
                         Err(e)
@@ -74,13 +74,13 @@ fn main() {
                     "stork", "search", "--input", values[0], "--query", values[1],
                 ]);
                 let submatches = global_matches.subcommand_matches("search").unwrap();
-                search_handler(&submatches, &global_matches)
+                search_handler(submatches, &global_matches)
             } else if let Some(input_file) = app_matches.value_of("test") {
                 print_nudging_string("test");
                 let global_matches =
                     app().get_matches_from(vec!["stork", "test", "--input", input_file]);
                 let submatches = global_matches.subcommand_matches("search").unwrap();
-                test_handler(&submatches, &global_matches)
+                test_handler(submatches, &global_matches)
             } else {
                 let _ = app().print_help();
                 Err(StorkCommandLineError::InvalidCommandLineArguments(
@@ -162,7 +162,7 @@ fn write_index_bytes(path: &str, bytes: &[u8]) -> Result<usize, StorkCommandLine
     };
 
     writer
-        .write(&bytes)
+        .write(bytes)
         .map_err(StorkCommandLineError::WriteError)
 }
 

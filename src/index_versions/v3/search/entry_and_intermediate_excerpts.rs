@@ -123,8 +123,8 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 crate::searcher::Excerpt {
                     text,
                     highlight_ranges,
-                    internal_annotations,
                     score,
+                    internal_annotations,
                     fields,
                 }
             })

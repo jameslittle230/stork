@@ -21,9 +21,9 @@ pub fn search(index: &Index, query: &str) -> SearchOutput {
     // into intermediate excerpts
     let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
         .iter()
-        .flat_map(|word| index.containers.get_key_value(word))
-        .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
-        .flat_map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
+        .filter_map(|word| index.containers.get_key_value(word))
+        .map(|(word, ctr)| ContainerWithQuery::new(ctr.clone(), word))
+        .flat_map(|ctr_query| ctr_query.get_intermediate_excerpts(index))
         .collect();
 
     for mut ie in &mut intermediate_excerpts {
@@ -46,9 +46,9 @@ pub fn search(index: &Index, query: &str) -> SearchOutput {
         .iter()
         .map(|(entry_index, ies)| {
             let data = EntryAndIntermediateExcerpts {
-                entry: index.entries[*entry_index].to_owned(),
+                entry: index.entries[*entry_index].clone(),
                 config: index.config.clone(),
-                intermediate_excerpts: ies.to_owned(),
+                intermediate_excerpts: ies.clone(),
             };
             OutputResult::from(data)
         })
@@ -83,7 +83,7 @@ impl ContainerWithQuery {
         let mut output = vec![];
         // Put container's results in output
         for (entry_index, result) in &self.results {
-            for excerpt in result.excerpts.to_owned() {
+            for excerpt in result.excerpts.clone() {
                 output.push(IntermediateExcerpt {
                     query: self.query.to_string(),
                     entry_index: *entry_index,
@@ -99,8 +99,8 @@ impl ContainerWithQuery {
         // Put alias containers' results in output
         for (alias_target, alias_score) in &self.aliases {
             if let Some(target_container) = index.containers.get(alias_target) {
-                for (entry_index, result) in target_container.results.to_owned() {
-                    for excerpt in result.excerpts.to_owned() {
+                for (entry_index, result) in target_container.results.clone() {
+                    for excerpt in result.excerpts.clone() {
                         output.push(IntermediateExcerpt {
                             query: alias_target.to_string(),
                             entry_index,

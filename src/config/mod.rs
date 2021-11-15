@@ -48,7 +48,7 @@ impl Config {
         if str.is_empty() {
             return Err(ConfigReadErr::EmptyString);
         }
-        toml::from_str(&str).map_err(ConfigReadErr::UnparseableInput)
+        toml::from_str(str).map_err(ConfigReadErr::UnparseableInput)
     }
 }
 
