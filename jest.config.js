@@ -7,5 +7,5 @@ module.exports = {
   modulePathIgnorePatterns: ["<rootDir>/target/*"],
   collectCoverage: true,
   collectCoverageFrom: ["js/**/*.ts"],
-  roots: ['js']
+  roots: ["js"]
 };

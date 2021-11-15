@@ -31,7 +31,7 @@ module.exports = {
         {
           from: path.resolve(__dirname, "pkg", "stork_bg.wasm"),
           to: "stork.wasm"
-        },
+        }
       ],
       { copyUnmodified: true }
     )
@@ -43,7 +43,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: require.resolve("@open-wc/webpack-import-meta-loader")
-      },
+      }
     ]
   }
 };
