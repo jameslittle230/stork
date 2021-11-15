@@ -86,7 +86,7 @@ jobs:
     runs-on: "ubuntu-20.04"
     steps:
       - uses: actions/checkout@v2
-      - run: cargo build --verbose --release
+      - run: cargo build --verbose --release --all-features # just build-indexer
       - uses: actions/upload-artifact@v1
         with:
           name: stork-ubuntu-20-04
@@ -98,7 +98,7 @@ jobs:
     runs-on: "macos-10.15"
     steps:
       - uses: actions/checkout@v2
-      - run: cargo build --verbose --release
+      - run: cargo build --verbose --release --all-features # just build-indexer
       - uses: actions/upload-artifact@v1
         with:
           name: stork-macos-10-15
@@ -117,11 +117,14 @@ jobs:
           use-tool-cache: true
 
       - name: Build WASM
-        run: wasm-pack build --target web --out-name stork  -- --no-default-features
+        run: wasm-pack build --target web --out-name stork  -- --no-default-features # just build-wasm
 
       - run: yarn install
 
-      - run: yarn webpack --mode=production
+      - run: yarn webpack config webpack.prod.js # just build-js
+        
+      - run: |
+          cp themes/*.css ./dist/
 
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1
@@ -150,7 +153,7 @@ jobs:
       - run: ls -lR
       - run: chmod +x ./stork
       - name: Build Federalist index file
-        run: ./stork build -i ./test/federalist-config/federalist.toml -o federalist.st
+        run: ./stork build build --input local-dev/test-configs/federalist.toml --output federalist.st # just build-federalist-index
 
       - name: Upload JS/WASM artifacts
         uses: actions/upload-artifact@v1

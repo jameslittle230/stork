@@ -35,7 +35,8 @@ jobs:
         with:
           crate: wasm-pack
           use-tool-cache: true
-      - run: wasm-pack build --target web -- --no-default-features
+
+      - run: wasm-pack build --target web -- --no-default-features # just build-wasm
       - run: yarn install
       - run: yarn lint
       - run: yarn test --coverage
@@ -51,21 +52,18 @@ jobs:
             components: clippy
             toolchain: stable
             override: true
+      
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+          # args from ./scripts/clippy.sh
+          args: --W clippy::pedantic -A clippy::upper_case_acronyms -A clippy::missing_panics_doc -A clippy::missing_errors_doc -A clippy::too_many_lines -A clippy::must_use_candidate -A clippy::module_name_repetitions
 
   cargo_fmt:
     name: "Run Cargo Format Check"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
-        with:
-            components: clippy
-            toolchain: stable
-            override: true
       - run: cargo fmt -- --check
 
   benchmark:
