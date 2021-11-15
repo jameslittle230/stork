@@ -10,9 +10,10 @@ coverage
 
 # Test Files
 scripts/*_exe.sh
-test/federalist/*.txt
-test/3b1b/*.srt
-test/*.st
+/local-dev/test-corpora/federalist/*.txt
+/local-dev/test-corpora/3b1b/*.srt
+/local-dev/test-indexes/*.st
+/local-dev-dist
 yarn-error.log
 
 # Development Files
@@ -25,3 +26,4 @@ yarn-error.log
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
 [._]sw[a-p]
+
