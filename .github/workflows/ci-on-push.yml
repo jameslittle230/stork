@@ -86,15 +86,27 @@ jobs:
           repository: jameslittle230/federalist
           path: ./test/federalist
       - uses: actions/setup-python@v2
+
       - name: Set up wasm-pack
         uses: actions-rs/install@v0.1
         with:
           crate: wasm-pack
           use-tool-cache: true
+
+      - name: Set up just
+        uses: actions-rs/install@v0.1
+        with:
+          crate: just
+          use-tool-cache: true
+
       - name: Set up criterion
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-criterion
           use-tool-cache: true
+      
+      - run: just build-js
+      - run: just build-federalist-index
+
       - name: Run benchmark
         run: python3 scripts/generate_stats.py

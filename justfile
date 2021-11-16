@@ -39,13 +39,16 @@ super-clean: clean
 
 
 fetch-federalist-corpus:
-    @echo "fetch-federalist-corpus WIP"
+    rm -rf local-dev/test-corpora/federalist
+    git clone git@github.com:jameslittle230/federalist.git local-dev/test-corpora/federalist
 
 fetch-3b1b-corpus:
     @echo "fetch-3b1b-corpus WIP"
 
-build-federalist-index: build-indexer-dev fetch-federalist-corpus
-    cargo run -q --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
+solo-build-federalist-index:
+    cargo run --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
+
+build-federalist-index: build-indexer-dev fetch-federalist-corpus solo-build-federalist-index
 
 build-all-indexes: build-federalist-index fetch-3b1b-corpus
     -cargo run -q --all-features -- build --input local-dev/test-configs/3b1b.toml           --output local-dev/test-indexes/3b1b.st
