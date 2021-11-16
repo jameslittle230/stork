@@ -107,9 +107,9 @@ pub fn generate(
 
         if word_list.is_empty() {
             return Err(WordListGenerationError::EmptyWordList);
-        } else {
-            return Ok(AnnotatedWordList { word_list });
         }
+
+        return Ok(AnnotatedWordList { word_list });
     }
 
     Err(WordListGenerationError::SelectorNotPresent(

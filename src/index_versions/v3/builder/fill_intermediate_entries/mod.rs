@@ -189,10 +189,10 @@ fn truncate_with_ellipsis_to_length(
     let long_message: String = grapheme_iter.clone().take(length + 1).collect();
 
     let truncated = {
-        let ellipsis = if short_message != long_message {
-            ellipsis
-        } else {
+        let ellipsis = if short_message == long_message {
             ""
+        } else {
+            ellipsis
         };
 
         format!("{}{}", short_message, ellipsis)
