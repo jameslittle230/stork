@@ -38,8 +38,8 @@ jobs:
 
       - run: wasm-pack build --target web -- --no-default-features # just build-wasm
       - run: yarn install
-      - run: yarn lint
-      - run: yarn test --coverage
+      - run: yarn eslint js/**/*.ts # just lint
+      - run: yarn jest --coverage # just test
       - run: bash <(curl -s https://codecov.io/bash) -cF javascript
 
   clippy_check:
