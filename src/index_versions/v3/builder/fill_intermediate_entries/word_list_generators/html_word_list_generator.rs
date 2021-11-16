@@ -17,7 +17,7 @@ pub fn generate(
             .file
             .html_selector_override
             .as_ref()
-            .or(config.global.html_selector.as_ref())
+            .or_else(|| config.global.html_selector.as_ref())
             .map_or("main", std::string::String::as_str)
     };
 
@@ -26,7 +26,7 @@ pub fn generate(
             .file
             .exclude_html_selector_override
             .as_ref()
-            .or(config.global.exclude_html_selector.as_ref())
+            .or_else(|| config.global.exclude_html_selector.as_ref())
             .map(std::string::String::as_str)
     };
 
@@ -125,6 +125,7 @@ mod tests {
         LatestVersion::structs::AnnotatedWordList,
     };
 
+    #[allow(clippy::field_reassign_with_default)]
     fn reader_config_from_html_selectors(
         include: Option<&str>,
         exclude: Option<&str>,

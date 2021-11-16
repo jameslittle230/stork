@@ -163,6 +163,7 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
                 return Err(IndexParseError::FileTooShort);
             }
 
+            #[allow(clippy::cast_possible_truncation)]
             let (version_bytes, _rest) = rest.split_at(version_size as usize);
             let version = String::from_utf8(version_bytes.to_vec());
 

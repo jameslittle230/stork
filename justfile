@@ -39,10 +39,10 @@ super-clean: clean
 
 
 fetch-federalist-corpus:
-    echo "WIP"
+    @echo "fetch-federalist-corpus WIP"
 
 fetch-3b1b-corpus:
-    echo "WIP"
+    @echo "fetch-3b1b-corpus WIP"
 
 build-federalist-index: build-indexer-dev fetch-federalist-corpus
     cargo run -q --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st

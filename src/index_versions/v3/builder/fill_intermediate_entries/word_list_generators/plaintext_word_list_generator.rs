@@ -4,6 +4,7 @@ use crate::LatestVersion::{
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
+#[allow(clippy::unnecessary_wraps)]
 pub fn generate(
     _config: &ReaderConfig,
     read_result: &ReadResult,

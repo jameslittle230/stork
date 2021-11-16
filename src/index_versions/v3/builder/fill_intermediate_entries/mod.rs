@@ -238,7 +238,7 @@ mod tests {
                 &WordListGenerationError::EmptyWordList
             )
         } else {
-            assert!(false, "Result is {:?}", r);
+            panic!("Result is {:?}", r);
         }
     }
 
@@ -281,7 +281,7 @@ mod tests {
             let grapheme_count = UnicodeSegmentation::graphemes(string, true).count();
 
             for i in 0..(grapheme_count + 3) {
-                let _ = truncate_with_ellipsis_to_length(string, i, None);
+                let _truncation = truncate_with_ellipsis_to_length(string, i, None);
             }
         }
     }

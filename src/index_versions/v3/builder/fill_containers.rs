@@ -150,6 +150,7 @@ fn string_is_cjk_ideographic(s: &[char]) -> bool {
         .fold(true, |acc, x| acc & x)
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn char_is_cjk_ideograph(c: &char) -> bool {
     // Block ranges sourced from https://en.wikipedia.org/wiki/CJK_Unified_Ideographs#CJK_Unified_Ideographs_blocks
     matches!(c,

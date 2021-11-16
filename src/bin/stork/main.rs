@@ -47,7 +47,7 @@ fn main() {
                 match config
                     .map_err(|_| StorkCommandLineError::IndexReadError)
                     .and_then(|config| {
-                        config.output.UNUSED_filename.ok_or(
+                        config.output.UNUSED_filename.ok_or_else(||
                             StorkCommandLineError::InvalidCommandLineArguments("You've used the old-style command line interface (`stork --build`) with an index file that is missing an output filename, so the output location of your index is ambiguous.".to_string()),
                         )
                     }) {
@@ -82,7 +82,7 @@ fn main() {
                 let submatches = global_matches.subcommand_matches("search").unwrap();
                 test_handler(submatches, &global_matches)
             } else {
-                let _ = app().print_help();
+                let _result = app().print_help();
                 Err(StorkCommandLineError::InvalidCommandLineArguments(
                     "Invalid subcommand, expected one of `build`, `search`, or `test`".to_string(),
                 ))
@@ -102,7 +102,7 @@ fn read_stdin_bytes() -> Option<Vec<u8>> {
 
     let mut stdin_buffer = Vec::<u8>::new();
     if atty::isnt(Stream::Stdin) {
-        let _ = io::stdin().read(&mut stdin_buffer);
+        let _bytes_read = io::stdin().read(&mut stdin_buffer);
         return Some(stdin_buffer);
     }
 

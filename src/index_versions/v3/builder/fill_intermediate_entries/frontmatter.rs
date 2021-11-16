@@ -36,6 +36,7 @@ pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields,
 }
 
 #[cfg(test)]
+#[allow(clippy::unnecessary_mut_passed)]
 mod tests {
     use super::*;
     #[test]
