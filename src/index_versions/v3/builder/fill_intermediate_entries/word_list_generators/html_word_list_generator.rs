@@ -2,10 +2,7 @@ use std::collections::HashMap;
 
 use crate::common::InternalWordAnnotation;
 use crate::LatestVersion::structs::{AnnotatedWord, AnnotatedWordList};
-use kuchiki::{
-    traits::{ElementIterator, NodeIterator, TendrilSink},
-    ElementData, NodeDataRef,
-};
+use kuchiki::{traits::TendrilSink, ElementData, NodeDataRef};
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
