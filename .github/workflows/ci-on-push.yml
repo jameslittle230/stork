@@ -75,7 +75,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: jameslittle230/federalist
-          path: ./test/federalist
+          path: ./local-dev/test-corpora/federalist
       - uses: actions/setup-python@v2
 
       - name: Set up wasm-pack
@@ -84,11 +84,7 @@ jobs:
           crate: wasm-pack
           use-tool-cache: true
 
-      - name: Set up just
-        uses: actions-rs/install@v0.1
-        with:
-          crate: just
-          use-tool-cache: true
+      - run: wasm-pack build --target web --out-name stork -- --no-default-features
 
       - name: Set up criterion
         uses: actions-rs/install@v0.1
@@ -96,8 +92,9 @@ jobs:
           crate: cargo-criterion
           use-tool-cache: true
       
-      - run: just build-js
-      - run: just build-federalist-index
+      - run: yarn install
+      - run: yarn webpack --config webpack.prod.js
+      - run: cargo run --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
 
       - name: Run benchmark
         run: python3 scripts/generate_stats.py
