@@ -163,6 +163,7 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
                 return Err(IndexParseError::FileTooShort);
             }
 
+            #[allow(clippy::cast_possible_truncation)]
             let (version_bytes, _rest) = rest.split_at(version_size as usize);
             let version = String::from_utf8(version_bytes.to_vec());
 
@@ -194,7 +195,7 @@ impl std::convert::TryFrom<&IndexFromFile> for ParsedIndex {
 
 #[cfg(test)]
 mod successfully_parse_historical_index_versions {
-    use super::*;
+    use super::{IndexVersion, ParsedIndex};
     use std::convert::TryFrom;
     use std::fs;
     use std::io::{BufReader, Read};
@@ -212,17 +213,26 @@ mod successfully_parse_historical_index_versions {
 
     #[test]
     fn can_get_version_of_0_5_3_index() {
-        validate_version!("./test-assets/federalist-min-0.5.3.st", IndexVersion::V2);
+        validate_version!(
+            "./src/test-indexes/federalist-min-0.5.3.st",
+            IndexVersion::V2
+        );
     }
 
     #[test]
     fn can_get_version_of_0_6_0_index() {
-        validate_version!("./test-assets/federalist-min-0.6.0.st", IndexVersion::V2);
+        validate_version!(
+            "./src/test-indexes/federalist-min-0.6.0.st",
+            IndexVersion::V2
+        );
     }
 
     #[test]
     fn can_get_version_of_1_0_0_index() {
-        validate_version!("./test-assets/federalist-min-0.7.0.st", IndexVersion::V3);
+        validate_version!(
+            "./src/test-indexes/federalist-min-0.7.0.st",
+            IndexVersion::V3
+        );
     }
 }
 
@@ -236,7 +246,10 @@ mod bad_blob_tests {
         let badstring = "bad index".as_bytes();
         let err = ParsedIndex::try_from(badstring).unwrap_err();
         assert!(
-            err == IndexParseError::BadVersionSize(7089057378828444773, VersionSizeProblem::Long),
+            err == IndexParseError::BadVersionSize(
+                7_089_057_378_828_444_773,
+                VersionSizeProblem::Long
+            ),
             "Bad error type, found {:?}",
             err
         );

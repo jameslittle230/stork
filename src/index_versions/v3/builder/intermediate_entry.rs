@@ -27,7 +27,7 @@ impl From<&NormalizedEntry> for Entry {
 #[cfg(test)]
 mod tests {
     use super::NormalizedEntry;
-    use crate::index_versions::v3::structs::*;
+    use crate::index_versions::v3::structs::{AnnotatedWordList, Entry};
     use std::collections::HashMap;
 
     #[test]

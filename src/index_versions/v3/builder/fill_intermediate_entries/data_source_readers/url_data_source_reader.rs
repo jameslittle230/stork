@@ -5,7 +5,7 @@ pub(crate) fn read(
     _url: &str,
     _config: &ReaderConfig,
 ) -> Result<ReadResult, WordListGenerationError> {
-    Err(WordListGenerationError::UnknownContentType)
+    Err(WordListGenerationError::WebPageNotFetched)
 }
 
 #[cfg(feature = "web-scraping")]
@@ -18,7 +18,6 @@ pub(crate) fn read(
     use std::io::Read;
 
     fn filetype_from_mime(mime: &Mime) -> Option<Filetype> {
-        use crate::config::Filetype;
         match (mime.type_(), mime.subtype()) {
             (mime::TEXT, mime::PLAIN) => Some(Filetype::PlainText),
             (mime::TEXT, mime::HTML) => Some(Filetype::HTML),

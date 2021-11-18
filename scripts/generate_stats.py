@@ -3,19 +3,19 @@ import sys
 import json
 import subprocess
 
-# Step 1: Build the project from scratch
-subprocess.run(["./scripts/build.sh"])
+# Step 0: run `just build-js`
 
-# Step 2: get file sizes for various distributed files
+# Step 1: get file sizes for various distributed files
 files = [
-    './dist/federalist.st',
+    './dist/stork.js',
     './dist/stork.wasm',
-    './dist/stork.js'
+    './local-dev/test-indexes/federalist.st'
 ]
 
-sizes = dict([(file.split('./dist/')[1], float(os.path.getsize(file))/1000) for file in files])
+sizes = dict([(file.split('/')[-1], float(os.path.getsize(file))/1000)
+             for file in files])
 
-# Step 3: Run benchmarks and get mean runtime for each
+# Step 2: Run benchmarks and get mean runtime for each
 benchmarks = [
     "build/federalist",
     "search/federalist/liberty"
@@ -45,9 +45,9 @@ for bench_name in benchmarks:
 
     bench_time_ms = float(jq_cmd.stdout)
 
-    # Step 4: Print out results
     sizes.update({
         bench_name: bench_time_ms
     })
 
+# Step 3: Print out results
 print(json.dumps(sizes, indent=2))

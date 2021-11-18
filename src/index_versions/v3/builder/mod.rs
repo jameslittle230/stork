@@ -30,7 +30,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
 
     let mut intermediate_entries: Vec<NormalizedEntry> = Vec::new();
     let mut document_errors: Vec<DocumentError> = Vec::new();
-    fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)?;
+    fill_intermediate_entries(config, &mut intermediate_entries, &mut document_errors)?;
 
     if !document_errors.is_empty() {
         eprintln!(
@@ -55,7 +55,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
     fill_stems(&intermediate_entries, &mut stems);
 
     let mut containers: HashMap<String, Container> = HashMap::new();
-    fill_containers(&config, &intermediate_entries, &stems, &mut containers);
+    fill_containers(config, &intermediate_entries, &stems, &mut containers);
 
     let entries: Vec<Entry> = intermediate_entries.iter().map(Entry::from).collect();
 
@@ -69,9 +69,9 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
 
     Ok((
         Index {
+            config,
             entries,
             containers,
-            config,
         },
         document_errors,
     ))
@@ -95,7 +95,7 @@ fn remove_surrounding_punctuation(input: &str) -> String {
 mod tests {
     use super::*;
     use crate::config::File;
-    use crate::config::*;
+    use crate::config::{Config, DataSource, Filetype, InputConfig};
 
     fn generate_invalid_file_missing_selector() -> File {
         File {

@@ -1,12 +1,8 @@
-# An index configuration file that generates a short debug index
-# from the federalist corpus, to determine how the index struct
-# is laid out and serialized.
-
 [input]
 base_directory = "test/federalist"
 url_prefix = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#"
 
-[[input.files]] 
+[[input.files]]
 path = "federalist-1.txt"
 url = "TheFederalistPapers-1"
 title = "Introduction"

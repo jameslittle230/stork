@@ -62,7 +62,7 @@ impl Nudger {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::*;
+    use crate::config::{Config, InputConfig, OutputConfig};
 
     #[test]
     fn create_nudge() {

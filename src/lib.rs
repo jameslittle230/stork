@@ -41,10 +41,7 @@ pub fn parse_and_cache_index(
 pub fn search_from_cache(name: &str, query: &str) -> Result<searcher::SearchOutput, SearchError> {
     let parsed_indices = INDEX_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
     let lock = parsed_indices.lock().unwrap();
-    let index = lock
-        .get(name)
-        .to_owned()
-        .ok_or(SearchError::NamedIndexNotInCache)?;
+    let index = lock.get(name).ok_or(SearchError::NamedIndexNotInCache)?;
     searcher::search(index, query)
 }
 

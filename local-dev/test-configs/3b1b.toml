@@ -3,63 +3,63 @@ base_directory = "test/3b1b"
 url_prefix = "https://www.youtube.com/watch?v="
 title_boost = "Ridiculous"
 
-[[input.files]] 
+[[input.files]]
 path = "ch1.srt"
 url = "WUvTyaaNkzM"
 title = "The Essence of Calculus, Chapter 1"
 
-[[input.files]] 
+[[input.files]]
 path = "ch2.srt"
 url = "9vKqVkMQHKk"
 title = "The paradox of the derivative [2]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch3.srt"
 url = "S0_qX4VJhMQ"
 title = "Derivative formulas through geometry [3]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch4.srt"
 url = "YG15m2VwSjA"
 title = "Visualizing the chain rule and product rule [4]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch5.srt"
 url = "m2MIpDrF7Es"
 title = "What's so special about Euler's number e? [5]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch6.srt"
 url = "qb40J4N1fa4"
 title = "Implicit differentiation, what's going on here? [6]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch7.srt"
 url = "kfF40MiS7zA"
 title = "Limits, L'Hopital's rule, and epsilon delta definitions [7]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch8.srt"
 url = "rfG8ce4nNh0"
 title = "Integration and the fundamental theorem of calculus [8]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch9.srt"
 url = "FnJqaIESC2s"
 title = "What does area have to do with slope? [9]"
 
-[[input.files]] 
+[[input.files]]
 path = "ch10.srt"
 url = "BLkz5LGWihw"
 title = "Higher order derivatives [10]"
 
-[[input.files]] 
-path = "ch10.srt"
+[[input.files]]
+path = "ch11.srt"
 url = "3d6DsjIBzJ4"
 title = "Taylor series [11]"
 
-[[input.files]] 
-path = "ch10.srt"
+[[input.files]]
+path = "ch12.srt"
 url = "CfW845LNObM"
 title = "What they won't teach you in calculus [12]"
 

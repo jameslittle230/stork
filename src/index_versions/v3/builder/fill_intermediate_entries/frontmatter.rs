@@ -8,14 +8,14 @@ pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields,
     match handling {
         FrontmatterConfig::Ignore => default_output,
         FrontmatterConfig::Omit => {
-            if let Ok((_yaml, text)) = parse_and_find_content(&buffer) {
+            if let Ok((_yaml, text)) = parse_and_find_content(buffer) {
                 (HashMap::new(), Box::new(text.trim().to_string()))
             } else {
                 default_output
             }
         }
         FrontmatterConfig::Parse => {
-            if let Ok((Some(Yaml::Hash(map)), text)) = parse_and_find_content(&buffer) {
+            if let Ok((Some(Yaml::Hash(map)), text)) = parse_and_find_content(buffer) {
                 let fields = map
                     .into_iter()
                     .map(|(k, v)| {
@@ -36,6 +36,7 @@ pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields,
 }
 
 #[cfg(test)]
+#[allow(clippy::unnecessary_mut_passed)]
 mod tests {
     use super::*;
     #[test]

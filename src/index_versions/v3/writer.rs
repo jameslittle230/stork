@@ -31,7 +31,7 @@ impl Index {
 
         for vec in &byte_vectors_to_write {
             bytes.extend_from_slice(&(vec.len() as u64).to_be_bytes());
-            bytes.extend_from_slice(&vec);
+            bytes.extend_from_slice(vec);
         }
 
         bytes

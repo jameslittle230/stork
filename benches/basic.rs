@@ -3,7 +3,7 @@ use std::{path::PathBuf, time::Duration};
 use criterion::{criterion_group, criterion_main, Criterion};
 
 fn build_federalist(c: &mut Criterion) {
-    let path = PathBuf::from("./test/federalist-config/federalist.toml");
+    let path = PathBuf::from("./benches/federalist.toml");
     let config = stork_search::config::Config::from_file(path).unwrap();
 
     let mut group = c.benchmark_group("build");
@@ -15,7 +15,7 @@ fn build_federalist(c: &mut Criterion) {
 }
 
 fn search_federalist_for_liberty(c: &mut Criterion) {
-    let path = PathBuf::from("./test/federalist-config/federalist.toml");
+    let path = PathBuf::from("./benches/federalist.toml");
     let config = stork_search::config::Config::from_file(path).unwrap();
     let index = stork_search::build(&config).unwrap();
 

@@ -54,7 +54,7 @@ impl ContainerWithQuery {
         let mut output = vec![];
         // Put container's results in output
         for (entry_index, result) in &self.results {
-            for excerpt in result.excerpts.to_owned() {
+            for excerpt in result.excerpts.clone() {
                 output.push(IntermediateExcerpt {
                     query: self.query.to_string(),
                     entry_index: *entry_index,
@@ -67,8 +67,8 @@ impl ContainerWithQuery {
         // Put alias containers' results in output
         for (alias_target, alias_score) in &self.aliases {
             if let Some(target_container) = index.queries.get(alias_target) {
-                for (entry_index, result) in target_container.results.to_owned() {
-                    for excerpt in result.excerpts.to_owned() {
+                for (entry_index, result) in target_container.results.clone() {
+                    for excerpt in result.excerpts.clone() {
                         output.push(IntermediateExcerpt {
                             query: alias_target.to_string(),
                             entry_index,
@@ -218,9 +218,9 @@ pub fn internal_search(index: &Index, query: &str) -> SearchOutput {
     // Get containers for each word in the query
     let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
         .iter()
-        .flat_map(|word| index.queries.get_key_value(word))
-        .map(|(word, ctr)| ContainerWithQuery::new(ctr.to_owned(), word))
-        .flat_map(|ctr_query| ctr_query.get_intermediate_excerpts(&index))
+        .filter_map(|word| index.queries.get_key_value(word))
+        .map(|(word, ctr)| ContainerWithQuery::new(ctr.clone(), word))
+        .flat_map(|ctr_query| ctr_query.get_intermediate_excerpts(index))
         .collect();
 
     for mut ie in &mut intermediate_excerpts {
@@ -243,8 +243,8 @@ pub fn internal_search(index: &Index, query: &str) -> SearchOutput {
         .iter()
         .map(|(entry_index, ies)| {
             let data = EntryAndIntermediateExcerpts {
-                entry: index.entries[*entry_index].to_owned(),
-                intermediate_excerpts: ies.to_owned(),
+                entry: index.entries[*entry_index].clone(),
+                intermediate_excerpts: ies.clone(),
             };
             OutputResult::from(data)
         })
@@ -269,7 +269,7 @@ mod tests {
 
     #[test]
     fn e2e_v2_search_works() {
-        let file = fs::File::open("./test-assets/federalist-min-0.6.0.st").unwrap();
+        let file = fs::File::open("./src/test-indexes/federalist-min-0.6.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);

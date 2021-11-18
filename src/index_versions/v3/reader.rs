@@ -4,6 +4,8 @@ use std::convert::{TryFrom, TryInto};
 
 impl TryFrom<&IndexFromFile> for Index {
     type Error = rmp_serde::decode::Error;
+
+    #[allow(clippy::cast_possible_truncation)]
     fn try_from(file: &IndexFromFile) -> Result<Self, Self::Error> {
         let (version_size_bytes, rest) = file.split_at(std::mem::size_of::<u64>());
         let version_size = u64::from_be_bytes(version_size_bytes.try_into().unwrap());

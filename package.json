@@ -40,35 +40,10 @@
     "ts-jest": "^26.0.0",
     "ts-loader": "^7.0.5",
     "typescript": "~3.8.0",
-    "webpack": "^4.41.4",
-    "webpack-cli": "^3.3.10"
+    "webpack": "^5.64.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-merge": "^5.8.0"
   },
-  "scripts": {
-    "develop": "./scripts/develop.sh",
-    "build": "./scripts/build.sh",
-
-    "build:wasm:dev": "wasm-pack build --target web --out-name stork --dev  -- --no-default-features",
-    "build:wasm:prod": "wasm-pack build --target web --out-name stork  -- --no-default-features",
-
-    "build:test-index:federalist": "cargo run -- build -i test/federalist-config/federalist.toml -o test/federalist.st && mkdir -p dist && cp test/*.st dist",
-    "build:test-index:threeblue": "cargo run -- build -i test/3b1b-config/3b1b.toml -o test/3b1b.st && mkdir -p dist && cp test/*.st dist",
-
-    "build:js:dev": "yarn webpack --mode=development",
-    "build:js:prod": "yarn webpack --mode=production",
-
-    "lint": "yarn eslint js/**/*.ts",
-    "test": "jest",
-    "serve": "./scripts/serve.sh",
-
-    "clippy": "./scripts/clippy.sh",
-
-    "clean": "rm -rf target pkg dist coverage node_modules"
-  },
-  "//": [
-    "typescript-estree only supports typescript <3.8.0 as of 2020-05-25. Upgrade the version if possible:",
-    "https://www.npmjs.com/package/typescript",
-    "https://github.com/typescript-eslint/typescript-eslint/issues/1436"
-  ],
   "dependencies": {
     "stork-search": "./pkg"
   }

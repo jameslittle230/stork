@@ -66,7 +66,7 @@ impl ReaderConfig {
             .unwrap_or(&self.global.stemming);
 
         match current_stem_config {
-            StemmingConfig::Language(alg) => Some(alg.to_owned()),
+            StemmingConfig::Language(alg) => Some(*alg),
             StemmingConfig::None => None,
         }
     }
@@ -81,13 +81,13 @@ pub(super) fn fill_intermediate_entries(
         return Err(IndexGenerationError::NoFilesSpecified);
     }
 
-    let progress_bar = build_progress_bar(&config);
+    let progress_bar = build_progress_bar(config);
 
     for stork_file in config
         .input
         .files
         .iter()
-        .progress_with(progress_bar.to_owned())
+        .progress_with(progress_bar.clone())
     {
         let reader_config = ReaderConfig {
             global: config.input.clone(),
@@ -189,10 +189,10 @@ fn truncate_with_ellipsis_to_length(
     let long_message: String = grapheme_iter.clone().take(length + 1).collect();
 
     let truncated = {
-        let ellipsis = if short_message != long_message {
-            ellipsis
-        } else {
+        let ellipsis = if short_message == long_message {
             ""
+        } else {
+            ellipsis
         };
 
         format!("{}{}", short_message, ellipsis)
@@ -238,7 +238,7 @@ mod tests {
                 &WordListGenerationError::EmptyWordList
             )
         } else {
-            assert!(false, "Result is {:?}", r);
+            panic!("Result is {:?}", r);
         }
     }
 
@@ -269,19 +269,19 @@ mod tests {
     fn test_truncate_with_ellipsis_on_naughty_strings() {
         // https://github.com/minimaxir/big-list-of-naughty-strings/blob/master/blns.txt#L152
         let naughty_strings = vec![
-            "ÅÍÎÏ˝ÓÔÒÚÆ☃",
-            "Œ„´‰ˇÁ¨ˆØ∏”’",
-            "`⁄€‹›ﬁﬂ‡°·‚—±",
-            "田中さんにあげて下さい",
-            "和製漢語",
-            "👨‍👩‍👦 👨‍👩‍👧‍👦 👨‍👨‍👦 👩‍👩‍👧 👨‍👦 👨‍👧‍👦 👩‍👦 👩‍👧‍👦",
+            "\u{c5}\u{cd}\u{ce}\u{cf}\u{2dd}\u{d3}\u{d4}\u{f8ff}\u{d2}\u{da}\u{c6}\u{2603}",
+            "\u{152}\u{201e}\u{b4}\u{2030}\u{2c7}\u{c1}\u{a8}\u{2c6}\u{d8}\u{220f}\u{201d}\u{2019}",
+            "`\u{2044}\u{20ac}\u{2039}\u{203a}\u{fb01}\u{fb02}\u{2021}\u{b0}\u{b7}\u{201a}\u{2014}\u{b1}",
+            "\u{7530}\u{4e2d}\u{3055}\u{3093}\u{306b}\u{3042}\u{3052}\u{3066}\u{4e0b}\u{3055}\u{3044}",
+            "\u{548c}\u{88fd}\u{6f22}\u{8a9e}",
+            "\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f466} \u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}\u{200d}\u{1f466} \u{1f468}\u{200d}\u{1f468}\u{200d}\u{1f466} \u{1f469}\u{200d}\u{1f469}\u{200d}\u{1f467} \u{1f468}\u{200d}\u{1f466} \u{1f468}\u{200d}\u{1f467}\u{200d}\u{1f466} \u{1f469}\u{200d}\u{1f466} \u{1f469}\u{200d}\u{1f467}\u{200d}\u{1f466}",
         ];
 
         for string in naughty_strings {
             let grapheme_count = UnicodeSegmentation::graphemes(string, true).count();
 
             for i in 0..(grapheme_count + 3) {
-                let _ = truncate_with_ellipsis_to_length(string, i, None);
+                let _truncation = truncate_with_ellipsis_to_length(string, i, None);
             }
         }
     }

@@ -4,8 +4,6 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { version } = require("./package.json");
 const { DefinePlugin } = require("webpack");
 
-const dist = path.resolve(__dirname, "dist");
-
 module.exports = {
   resolve: {
     extensions: [".ts", ".tsx", ".js"]
@@ -14,9 +12,12 @@ module.exports = {
     index: "./js/main.ts"
   },
   output: {
-    path: dist,
+    path: path.resolve(__dirname, "dist"),
     filename: "stork.js",
     library: "stork"
+  },
+  experiments: {
+    asyncWebAssembly: true
   },
   devtool: "inline-source-map",
   plugins: [
@@ -30,16 +31,6 @@ module.exports = {
         {
           from: path.resolve(__dirname, "pkg", "stork_bg.wasm"),
           to: "stork.wasm"
-        },
-        {
-          from: path.resolve(__dirname, "test/static", "*"),
-          to: ".",
-          flatten: true
-        },
-        {
-          from: path.resolve(__dirname, "test", "*.st"),
-          to: ".",
-          flatten: true
         }
       ],
       { copyUnmodified: true }
@@ -48,7 +39,7 @@ module.exports = {
   module: {
     rules: [
       { test: /\.ts?$/, loader: "ts-loader" },
-      { test: /\.js$/, loader: "source-map-loader" },
+      { test: /\.js$/, loader: "source-map-loader", sideEffects: true },
       {
         test: /\.js$/,
         loader: require.resolve("@open-wc/webpack-import-meta-loader")

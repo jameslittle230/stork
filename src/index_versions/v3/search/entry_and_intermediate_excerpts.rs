@@ -15,6 +15,7 @@ pub(super) struct EntryAndIntermediateExcerpts {
     pub(super) intermediate_excerpts: Vec<IntermediateExcerpt>,
 }
 
+#[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
 impl From<EntryAndIntermediateExcerpts> for OutputResult {
     fn from(data: EntryAndIntermediateExcerpts) -> Self {
         let entry = data.entry;
@@ -123,8 +124,8 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                 crate::searcher::Excerpt {
                     text,
                     highlight_ranges,
-                    internal_annotations,
                     score,
+                    internal_annotations,
                     fields,
                 }
             })

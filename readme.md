@@ -108,7 +108,7 @@ $ stork build --input federalist.toml --output federalist.st
 This will create a new file at `federalist.st`. You can search through it with the same command line tool:
 
 ```bash
-$ stork search --index federalist.st --query "liberty" 
+$ stork search --index federalist.st --query "liberty"
 ```
 
 To embed a Stork search interface on your website, first upload the index file to your web server, then pass its URL to the `stork.register()` function in your web page's Javascript.

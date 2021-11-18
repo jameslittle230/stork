@@ -19,7 +19,7 @@ pub fn fill_containers(
 ) {
     for (entry_index, entry) in intermediate_entries.iter().enumerate() {
         let words_in_title: Vec<AnnotatedWord> = entry.title.make_annotated_words();
-        let words_in_contents: Vec<AnnotatedWord> = entry.annotated_word_list.word_list.to_owned();
+        let words_in_contents: Vec<AnnotatedWord> = entry.annotated_word_list.word_list.clone();
 
         let word_lists = vec![
             (WordListSource::Title, words_in_title),
@@ -127,7 +127,7 @@ fn fill_other_containers_alias_maps_with_reverse_stems(
 ) {
     if let Some(stem_algorithm) = entry.stem_algorithm {
         let stem = Stemmer::create(stem_algorithm)
-            .stem(&normalized_word)
+            .stem(normalized_word)
             .to_string();
         if let Some(reverse_stems_vector) = stems.get(&stem) {
             for reverse_stem in reverse_stems_vector {
@@ -150,6 +150,7 @@ fn string_is_cjk_ideographic(s: &[char]) -> bool {
         .fold(true, |acc, x| acc & x)
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn char_is_cjk_ideograph(c: &char) -> bool {
     // Block ranges sourced from https://en.wikipedia.org/wiki/CJK_Unified_Ideographs#CJK_Unified_Ideographs_blocks
     matches!(c,
