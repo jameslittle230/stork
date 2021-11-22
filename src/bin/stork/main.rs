@@ -127,17 +127,18 @@ fn read_stdin() -> Option<String> {
 }
 
 fn read_from_path(path: &str) -> Result<String, StorkCommandLineError> {
-    match path {
-        "-" => match read_stdin() {
+    if path == "-" {
+        return match read_stdin() {
             Some(string) => Ok(string),
             None => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
-        },
-        _ => {
-            let pathbuf = std::path::PathBuf::from(path);
-            std::fs::read_to_string(&pathbuf)
-                .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
-        }
+        };
     }
+
+    // handle path == "" case, perhaps
+
+    let pathbuf = std::path::PathBuf::from(path);
+    std::fs::read_to_string(&pathbuf)
+        .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
 }
 
 #[cfg(not(feature = "build"))]
