@@ -1,0 +1,32 @@
+@import url(https://files.stork-search.net/basic.css);
+
+body:not(.stork-multitheme),
+.stork-wrapper-flat {
+  --stork-input-shadow: 0;
+  --stork-results-shadow: 0;
+  --stork-results-border-color: hsl(0, 0%, 80%);
+}
+
+body:not(.stork-multitheme) .stork-close-button,
+.stork-wrapper-flat .stork-close-button {
+  border-radius: 50%;
+  background: hsla(0, 0%, 80%, 1);
+  border: none;
+  color: hsl(0, 0%, 40%);
+}
+
+body:not(.stork-multitheme) .stork-close-button svg,
+.stork-wrapper-flat .stork-close-button svg {
+  width: 0.6em;
+  top: 2px;
+}
+
+body:not(.stork-multitheme) .stork-close-button:hover,
+.stork-wrapper-flat .stork-close-button:hover {
+  background: hsla(0, 0%, 70%, 1);
+}
+
+body:not(.stork-multitheme) .stork-close-button:active,
+.stork-wrapper-flat .stork-close-button:active {
+  background: hsla(0, 0%, 60%, 1);
+}

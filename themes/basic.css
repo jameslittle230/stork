@@ -1,114 +1,136 @@
-.stork-wrapper,
-.stork-wrapper-basic {
+:root {
+  --stork-border-color: hsl(0, 0%, 65%);
+  --stork-background-color: hsla(0, 0%, 97%, 1);
+  --stork-font-family: inherit;
+  --stork-size-multiplier: 1;
+  --stork-accent-color: hsl(210, 72%, 45%);
+
+  --stork-input-width: 100%;
+  --stork-input-border-radius: 8px;
+  --stork-input-text-color: black;
+  --stork-input-shadow: 1;
+
+  --stork-results-width: 100%;
+  --stork-results-border-radius: 4px;
+  --stork-results-shadow: 1;
+  --stork-results-hover-color: hsl(210, 65%, 75%);
+  --stork-results-title-color: black;
+  --stork-results-excerpt-color: black;
+  --stork-results-highlight-color: rgb(245, 230, 26);
+  --stork-results-border-color: var(--stork-border-color);
+}
+
+.stork-wrapper {
   position: relative;
-  font-family: sans-serif;
+  font-family: var(--stork-font-family);
   box-sizing: border-box;
+  font-size: 1em * var(--stork-size-multiplier);
 }
 
 .stork-wrapper *,
 .stork-wrapper *:before,
-.stork-wrapper *:after,
-.stork-wrapper-basic *,
-.stork-wrapper-basic *:before,
-.stork-wrapper-basic *:after {
+.stork-wrapper *:after {
   box-sizing: border-box;
 }
 
-.stork-input,
-.stork-wrapper-basic .stork-input {
-  width: 100%;
+.stork-input {
+  width: var(--stork-input-width);
   height: 2.4em;
   font-size: 1em;
-  padding: 0.4em 2em 0.4em 0.8em;
-  border: 1px solid hsla(0, 0%, 0%, 0.2);
-  border-radius: 4px;
+  padding: 0.4em 0.8em;
   position: relative;
-  color: black;
+  box-shadow: inset 0 0.1em 0.3em
+    hsla(0, 0%, 0%, calc(var(--stork-input-shadow) * 0.25));
+  border: 1px solid var(--stork-border-color);
+  border-radius: var(--stork-input-border-radius);
+  background-color: var(--stork-background-color);
+  color: var(--stork-input-text-color);
+  font-family: var(--stork-font-family);
 }
 
-.stork-progress,
-.stork-wrapper-basic .stork-progress {
+.stork-input:focus {
+  outline: none;
+}
+
+.stork-progress {
   position: absolute;
   display: block;
   content: "";
-  bottom: 0;
-  left: 0;
-  background-color: hsla(210, 67%, 58%, 1);
-  box-shadow: 0 0 8px hsla(210, 67%, 78%, 0.8);
-  height: 2px;
-  transition: width 0.15s ease, opacity 0.2s ease 0.3s;
+  bottom: 1px;
+  background-color: var(--stork-accent-color);
+  box-shadow: 0 0 8px var(--stork-accent-color);
+  height: 1px;
+  transition: width 0.25s ease, opacity 0.4s ease 0.4s;
 }
 
-.stork-output,
-.stork-wrapper-basic .stork-output {
+.stork-output {
   position: absolute;
-  width: 100%;
+  width: var(--stork-results-width);
   margin-top: 0.5em;
-  border-radius: 4px;
-  box-shadow: 0 0.9px 2.2px hsla(0, 0%, 0%, 0.02),
-    0 2.1px 5.3px hsla(0, 0%, 0%, 0.028), 0 3.9px 10px hsla(0, 0%, 0%, 0.035),
-    0 6.9px 17.9px hsla(0, 0%, 0%, 0.042), 0 13px 33.4px hsla(0, 0%, 0%, 0.05),
-    0 31px 80px hsla(0, 0%, 0%, 0.07);
+  border-radius: var(--stork-results-border-radius);
   display: flex;
   flex-direction: column;
   z-index: 100;
-  color: black;
+  color: var(--stork-results-title-color);
   font-weight: 400;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: var(--stork-font-family);
 }
 
 .stork-attribution a:link,
-.stork-wrapper-basic .stork-attribution a:link {
-  color: hsl(192, 82%, 44%);
+.stork-attribution a:visited {
+  color: var(--stork-accent-color);
 }
 
-.stork-output-visible,
-.stork-wrapper-basic .stork-output-visible {
-  background: hsl(0, 0%, 100%);
-  border: 1px solid hsla(0, 0%, 0%, 0.1);
+.stork-output-visible {
+  border: 1px solid var(--stork-border-color);
+  box-shadow: 0px 0px 2.2px
+      rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.02)),
+    0px 0px 5.3px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.028)),
+    0px 0px 10px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.035)),
+    0px 0px 17.9px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.042)),
+    0px 0px 33.4px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.05)),
+    0px 0px 80px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.07));
+  background: var(--stork-background-color);
 }
 
-.stork-message,
-.stork-wrapper-basic .stork-message {
+.stork-message {
   width: 100%;
   padding: 0.5em 1em;
-  color: hsla(0, 0%, 0%, 0.8);
+  color: var(--stork-results-title-color);
 }
 
-.stork-attribution,
-.stork-wrapper-basic .stork-attribution {
+.stork-attribution {
   width: 100%;
   padding: 0.5em 1em;
   font-size: 0.8em;
-  color: hsla(0, 0%, 0%, 0.8);
+  color: var(--stork-results-title-color);
 }
 
-.stork-results,
-.stork-wrapper-basic .stork-results {
+.stork-results {
   margin: 0;
-  padding: 0;
+  padding: 0.25em 0;
   width: 100%;
   list-style-type: none;
   max-height: 25em;
   overflow-y: scroll;
-  border-top: 1px solid hsla(0, 0%, 80%, 1);
-  border-bottom: 1px solid hsla(0, 0%, 80%, 1);
+  border-top: 1px solid var(--stork-border-color);
+  border-bottom: 1px solid var(--stork-border-color);
+  box-shadow: inset 0em 0.7em 0.7em -0.7em hsla(0, 0%, 0%, calc(var(
+              --stork-results-shadow
+            ) * 0.34)),
+    inset 0em -0.7em 0.7em -0.7em
+      hsl(0, 0%, 0%, calc(var(--stork-results-shadow) * 0.34));
 }
 
-.stork-result,
-.stork-wrapper-basic .stork-result {
-  font-size: 0.8em;
-  border-bottom: 1px solid hsla(0, 0%, 90%, 1);
+.stork-result:not(:last-child) {
+  border-bottom: 1px solid var(--stork-results-border-color);
 }
 
-.stork-result.selected,
-.stork-wrapper-basic .stork-result.stork-result.selected {
-  background: hsl(192, 82%, 78%);
+.stork-result.selected {
+  background: var(--stork-results-hover-color);
 }
 
-.stork-result a:link,
-.stork-result a:visited {
+.stork-result a:link {
   padding: 1em;
   display: block;
   color: currentcolor;
@@ -119,29 +141,42 @@
   margin: 0;
 }
 
-.stork-result .stork-title {
+.stork-title {
   font-weight: bold;
-  font-size: 1.1em;
-  margin-bottom: 0.8em;
+  font-size: 0.95em;
+  margin: 0 0 0.75em 0;
+  color: var(--stork-results-title-color);
+
+  /* Flexbox container for the title and the score, when debugging */
+  display: flex;
+  justify-content: space-between;
 }
 
-.stork-result .stork-excerpt {
-  margin-bottom: 0.8em;
+.stork-excerpt {
+  font-size: 0.8em;
   line-height: 1;
+  margin: 0;
+  color: var(--stork-results-excerpt-color);
+
+  /* Flexbox container for the title and the score, when debugging */
+  display: flex;
+  justify-content: space-between;
 }
 
-.stork-highlight,
-.stork-wrapper-basic .stork-highlight {
-  background-color: hsl(59, 98%, 58%);
+.stork-excerpt:not(:last-of-type) {
+  margin-bottom: 0.6em;
 }
 
-.stork-error,
-.stork-wrapper-basic .stork-error {
+.stork-highlight {
+  background-color: var(--stork-results-highlight-color);
+  padding: 0 0.1em;
+}
+
+.stork-error {
   outline: 2px solid hsl(0, 89%, 46%);
 }
 
-.stork-close-button,
-.stork-wrapper-basic .stork-close-button {
+.stork-close-button {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -149,21 +184,29 @@
   height: 1.5em;
   width: 1.5em;
   padding: 0px;
+  background: linear-gradient(
+    to bottom,
+    hsl(0, 0%, 85%) 0%,
+    hsl(0, 0%, 75%) 100%
+  );
+  border: 1px solid hsla(0, 0%, 50%, 0.8);
   font-size: 1.1em;
-  background: hsla(0, 0%, 0%, 0.2);
-  color: black;
-  border: none;
+  color: hsl(0, 0%, 45%);
   border-radius: 15%;
   line-height: 1;
 }
 
-.stork-close-button:hover,
-.stork-wrapper-basic .stork-close-button:hover {
-  background: hsla(0, 0%, 0%, 0.3);
+.stork-close-button svg {
+  width: 0.8em;
+  position: relative;
+  top: 1px;
+}
+
+.stork-close-button:hover {
+  background: hsla(0, 0%, 70%);
   cursor: pointer;
 }
 
-.stork-close-button:active,
-.stork-wrapper-basic .stork-close-button:active {
-  background: hsla(0, 0%, 0%, 0.4);
+.stork-close-button:active {
+  background: hsla(0, 0%, 65%);
 }
