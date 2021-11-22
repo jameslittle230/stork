@@ -127,10 +127,11 @@ fn read_stdin() -> Option<String> {
 }
 
 fn read_from_path(path: &str) -> Result<String, StorkCommandLineError> {
-    match (path, read_stdin()) {
-        ("-", Some(stdin)) => Ok(stdin),
-        ("-", None) => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
-        // handle ("", Some) or ("", None), perhaps
+    match path {
+        "-" => match read_stdin() {
+            Some(string) => Ok(string),
+            None => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
+        },
         _ => {
             let pathbuf = std::path::PathBuf::from(path);
             std::fs::read_to_string(&pathbuf)
