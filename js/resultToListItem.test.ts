@@ -25,11 +25,9 @@ test("resultToListItem happy path", () => {
   // @ts-ignore
   expect((node as Element).innerHTML).toEqualDisregardingWhitespace(
     `<a href="https://jameslittle.me">
-      <div style="display: flex; justify-content: space-between">
-        <p class="stork-title">Result Title</p>
-      </div>
-      <div style="display: flex; justify-content: space-between">
-        <p class="stork-excerpt">
+      <div class="stork-title"><p>Result Title</p></div>
+      <div class="stork-excerpt">
+        <p>
           ...This is the text of the excerpt....
         </p>
       </div>
