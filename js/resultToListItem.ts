@@ -14,8 +14,8 @@ export function resultToListItem(
   template.innerHTML = `
 <li class="stork-result${options.selected ? " selected" : ""}">
   <a href="${result.entry.url}">
-    <div style="display: flex; justify-content: space-between">
-      <p class="stork-title">${highlight(
+    <div class="stork-title">
+      <p>${highlight(
         result.entry.title,
         result.title_highlight_ranges || []
       )}</p>
@@ -23,7 +23,7 @@ export function resultToListItem(
     </div>
       ${result.excerpts
         .map(
-          e => `<div style="display: flex; justify-content: space-between"><p class="stork-excerpt">
+          e => `<div class="stork-excerpt"><p>
         ...${highlight(e.text, e.highlight_ranges || [])}...
         </p>
         ${options.showScores ? `<code>${e.score}</code>` : ""}

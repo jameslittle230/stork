@@ -5,13 +5,14 @@
     <title>Stork Test/Development Page</title>
     <link rel="stylesheet" href="/dark.css" />
     <link rel="stylesheet" href="/basic.css" />
+    <link rel="stylesheet" href="/flat.css" />
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>"
     />
     <style>
       .search-wrap {
-        max-width: 550px;
+        max-width: 640px;
         display: flex;
         flex-direction: column;
       }
@@ -32,11 +33,11 @@
       }
       body {
         background-color: lightgray;
-        font-family: sans-serif;
+        font-family: "Inter UI";
       }
     </style>
   </head>
-  <body>
+  <body class="stork-multitheme">
     <h1>Stork Test Page</h1>
     <div class="search-wrap">
       <div class="stork-wrapper stork-wrapper-basic">
@@ -79,6 +80,15 @@
           />
           <div data-stork="federalist-dark-output" class="stork-output"></div>
         </div>
+      </div>
+      <div class="stork-wrapper stork-wrapper-flat">
+        <p class="subtitle">Flat Mode!</p>
+        <input
+          data-stork="federalist-flat"
+          placeholder="liberty"
+          class="stork-input"
+        />
+        <div data-stork="federalist-flat-output" class="stork-output"></div>
       </div>
 
       <div class="stork-wrapper stork-wrapper">
@@ -162,17 +172,18 @@
         stork.attach("federalist"); // hook into HTML on page
       }, 2500);
 
-      // stork.register("federalist-dark", "/federalist.st");
-      // stork.register(
-      //   "federalist-prod",
-      //   "https://files.stork-search.net/federalist.st",
-      //   { showCloseButton: false }
-      // );
+      stork.register("federalist-dark", "/federalist.st");
+      stork.register("federalist-flat", "/federalist.st");
+      stork.register(
+        "federalist-prod",
+        "https://files.stork-search.net/federalist.st",
+        { showCloseButton: false }
+      );
       stork.register("beepboop", "/beepboop.st", {
         resultNoun: { singular: "boop", plural: "boops" }
       });
-      // stork.register("doesnotexist", "/doesNotExist.st");
-      // stork.register("bad", "/federalist.st");
+      stork.register("doesnotexist", "/doesNotExist.st");
+      stork.register("bad", "/federalist.st");
     </script>
   </body>
 </html>
