@@ -102,7 +102,7 @@ fn read_stdin_bytes() -> Option<Vec<u8>> {
 
     let mut stdin_buffer = Vec::<u8>::new();
     if atty::isnt(Stream::Stdin) {
-        let _bytes_read = io::stdin().read(&mut stdin_buffer);
+        let _bytes_read = io::stdin().read_to_end(&mut stdin_buffer);
         return Some(stdin_buffer);
     }
 
