@@ -58,7 +58,7 @@ pub fn generate(
                     let contents: String = (|| {
                         let mut output = "".to_string();
                         if let Some(element_data) = node_ref.as_element() {
-                            if config.output.save_nearest_html_index {
+                            if config.output.save_nearest_html_id {
                                 if let Some(id) = element_data.attributes.borrow().get("id") {
                                     latest_id = Some(id.to_string());
                                 }
@@ -440,7 +440,7 @@ mod tests {
 
         let reader_config = {
             let mut output = OutputConfig::default();
-            output.save_nearest_html_index = true;
+            output.save_nearest_html_id = true;
             ReaderConfig {
                 global: InputConfig::default(),
                 file: File::default(),
@@ -502,7 +502,7 @@ mod tests {
 
         let reader_config = {
             let mut output = OutputConfig::default();
-            output.save_nearest_html_index = false;
+            output.save_nearest_html_id = false;
             ReaderConfig {
                 global: InputConfig::default(),
                 file: File::default(),
