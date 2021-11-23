@@ -102,7 +102,7 @@ fn read_stdin_bytes() -> Option<Vec<u8>> {
 
     let mut stdin_buffer = Vec::<u8>::new();
     if atty::isnt(Stream::Stdin) {
-        let _bytes_read = io::stdin().read(&mut stdin_buffer);
+        let _bytes_read = io::stdin().read_to_end(&mut stdin_buffer);
         return Some(stdin_buffer);
     }
 
@@ -110,16 +110,20 @@ fn read_stdin_bytes() -> Option<Vec<u8>> {
 }
 
 fn read_bytes_from_path(path: &str) -> Result<Vec<u8>, StorkCommandLineError> {
-    match (path, read_stdin_bytes()) {
-        ("-", Some(stdin)) => Ok(stdin),
-        ("-", None) => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
-        // handle ("", Some) or ("", None), perhaps
-        _ => {
-            let pathbuf = std::path::PathBuf::from(path);
-            std::fs::read(&pathbuf)
-                .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
-        }
+    // To test:
+    // cargo run -- search -i - -q "liberty" < test.st
+
+    if path == "-" {
+        return match read_stdin_bytes() {
+            Some(stdin) => Ok(stdin),
+            None => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
+        };
     }
+
+    // handle path == "" case, perhaps
+
+    let pathbuf = std::path::PathBuf::from(path);
+    std::fs::read(&pathbuf).map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
 }
 
 fn read_stdin() -> Option<String> {
@@ -127,6 +131,9 @@ fn read_stdin() -> Option<String> {
 }
 
 fn read_from_path(path: &str) -> Result<String, StorkCommandLineError> {
+    // To test:
+    // cargo run -- build -i - -o - < local-dev/test-configs/federalist.toml > test.st
+
     if path == "-" {
         return match read_stdin() {
             Some(string) => Ok(string),
