@@ -110,16 +110,17 @@ fn read_stdin_bytes() -> Option<Vec<u8>> {
 }
 
 fn read_bytes_from_path(path: &str) -> Result<Vec<u8>, StorkCommandLineError> {
-    match (path, read_stdin_bytes()) {
-        ("-", Some(stdin)) => Ok(stdin),
-        ("-", None) => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
-        // handle ("", Some) or ("", None), perhaps
-        _ => {
-            let pathbuf = std::path::PathBuf::from(path);
-            std::fs::read(&pathbuf)
-                .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
-        }
+    if path == "-" {
+        return match read_stdin_bytes() {
+            Some(stdin) => Ok(stdin),
+            None => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
+        };
     }
+
+    // handle path == "" case, perhaps
+
+    let pathbuf = std::path::PathBuf::from(path);
+    std::fs::read(&pathbuf).map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
 }
 
 fn read_stdin() -> Option<String> {
