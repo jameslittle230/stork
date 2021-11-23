@@ -98,10 +98,7 @@ impl fmt::Display for IndexParseError {
                 format!("Unknown index version `{}` found", string)
             },
 
-            IndexParseError::DecodeError(error) => format!(
-                "Could not decode index, bruh! (internal error {}). If you see this, please file a bug: https://jil.im/storkbug",
-                error
-            )
+            IndexParseError::DecodeError(_error) => "Could not decode index (internal error). If you see this, please file a bug: https://jil.im/storkbug".to_string()
         };
 
         write!(f, "{}", desc)
