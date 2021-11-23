@@ -110,6 +110,9 @@ fn read_stdin_bytes() -> Option<Vec<u8>> {
 }
 
 fn read_bytes_from_path(path: &str) -> Result<Vec<u8>, StorkCommandLineError> {
+    // To test:
+    // cargo run -- search -i - -q "liberty" < test.st
+    
     if path == "-" {
         return match read_stdin_bytes() {
             Some(stdin) => Ok(stdin),
@@ -128,6 +131,9 @@ fn read_stdin() -> Option<String> {
 }
 
 fn read_from_path(path: &str) -> Result<String, StorkCommandLineError> {
+    // To test:
+    // cargo run -- build -i - -o - < local-dev/test-configs/federalist.toml > test.st
+
     if path == "-" {
         return match read_stdin() {
             Some(string) => Ok(string),
