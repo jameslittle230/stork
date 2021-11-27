@@ -1,8 +1,8 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+use std::collections::HashMap;
+
+pub trait StorkIndex {}
+
+pub type Fields = HashMap<String, String>;
+
+mod stopwords;
+pub use stopwords::STOPWORDS as stopwords;

@@ -6,47 +6,6 @@ use crate::index_versions::{v2, v3};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialEq)]
-pub struct SearchOutput {
-    pub results: Vec<OutputResult>,
-    pub total_hit_count: usize,
-    pub url_prefix: String,
-}
-
-/**
- * Correlates an `OutputEntry` with a vector of excerpts. Represents a single
- * document that contains search results.
- */
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct OutputResult {
-    pub entry: OutputEntry,
-    pub excerpts: Vec<Excerpt>,
-    pub title_highlight_ranges: Vec<HighlightRange>,
-    pub score: usize,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct OutputEntry {
-    pub url: String,
-    pub title: String,
-    pub fields: Fields,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct Excerpt {
-    pub text: String,
-    pub highlight_ranges: Vec<HighlightRange>,
-    pub score: usize,
-    pub internal_annotations: Vec<InternalWordAnnotation>,
-    pub fields: Fields,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct HighlightRange {
-    pub beginning: usize,
-    pub end: usize,
-}
-
 #[derive(Debug)]
 pub enum SearchError {
     NamedIndexNotInCache,

@@ -1,11 +1,10 @@
 # Build Artifacts
-/target
+target
 **/*.rs.bk
 node_modules
-/dist
-/target
-/pkg
-/wasm-pack.log
+dist
+pkg
+wasm-pack.log
 coverage
 
 # Test Files

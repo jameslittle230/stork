@@ -1,8 +1,7 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+mod input;
+mod output;
+
+pub use input::IndexVersioningError;
+pub use input::VersionedIndex;
+
+pub use output::{Entry, Excerpt, HighlightRange, Output, Result};
