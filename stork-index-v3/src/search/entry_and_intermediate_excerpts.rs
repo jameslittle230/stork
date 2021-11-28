@@ -118,7 +118,13 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                     .first()
                     .map_or_else(Vec::default, |first| first.internal_annotations.clone());
 
-                Excerpt { text, highlight_ranges, score, internal_annotations, fields }
+                Excerpt {
+                    text,
+                    highlight_ranges,
+                    score,
+                    internal_annotations,
+                    fields,
+                }
             })
             .collect();
 
