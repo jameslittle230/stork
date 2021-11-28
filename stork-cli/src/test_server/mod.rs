@@ -1,14 +1,13 @@
-extern crate stork_search as stork;
-use stork::LatestVersion::structs::Index;
+use bytes::Bytes;
 
 #[cfg(not(feature = "test-server"))]
-pub fn serve(_index: &Index, _port: u16) -> Result<(), Box<dyn std::error::Error>> {
+pub fn serve(_index: Bytes, _port: u16) -> Result<(), Box<dyn std::error::Error>> {
     println!("Stork was not compiled with test server support. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
     panic!()
 }
 
 #[cfg(feature = "test-server")]
-pub fn serve(index: &Index, port: u16) -> Result<(), Box<dyn std::error::Error>> {
+pub fn serve(index: &Bytes, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     use hyper::service::{make_service_fn, service_fn};
     use hyper::{Body, Request, Response, Server, StatusCode};
     use std::convert::Infallible;
@@ -25,7 +24,7 @@ pub fn serve(index: &Index, port: u16) -> Result<(), Box<dyn std::error::Error>>
             // `service_fn` is a helper to convert a function that
             // returns a Response into a `Service`.
             let bytes = index_bytes.clone();
-            async move {
+            async {
                 Ok::<_, Infallible>(service_fn(move |request: Request<Body>| {
                     let bytes_2 = bytes.clone();
                     async move {

@@ -1,26 +1,18 @@
 use clap::{crate_version, App, AppSettings, Arg, SubCommand};
 
 pub fn app() -> App<'static, 'static> {
-    let config_input_arg: Arg = Arg::with_name("config")
-        .long("input")
-        .short("i")
-        .help("The path to your configuration file")
-        .takes_value(true)
-        .value_name("PATH")
-        .required(true);
-
     App::new("Stork")
+        .bin_name("stork")
         .version(crate_version!())
         .author("James Little <https://jameslittle.me>")
-        .about("https://stork-search.net - Impossibly fast web search, made for static sites.")
-        // .setting(AppSettings::SubcommandRequiredElseHelp) // TODO: When 2.0.0 is released, uncomment this
+        .about("Impossibly fast web search, made for static sites - https://stork-search.net")
         .setting(AppSettings::VersionlessSubcommands)
-        .arg(
-            Arg::with_name("timing")
-                .short("t")
-                .long("timing")
-                .help("Displays information on the command line about how long an operation took"),
-        )
+        .setting(AppSettings::UnifiedHelpMessage)
+        .setting(AppSettings::ColoredHelp)
+        .setting(AppSettings::DeriveDisplayOrder)
+        .setting(AppSettings::GlobalVersion)
+        // .setting(AppSettings::SubcommandRequiredElseHelp) // TODO: When 2.0.0 is released, uncomment this
+        .max_term_width(100)
         .arg(
             Arg::with_name("build")
                 .takes_value(true)
@@ -43,16 +35,28 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(
             SubCommand::with_name("build")
                 .about("Builds an index from a configuration and writes it to a file")
-                .arg(config_input_arg.clone())
+                .arg(Arg::with_name("config")
+                    .long("input")
+                    .short("i")
+                    .help("The path to your configuration file, or - for stdin")
+                    .takes_value(true)
+                    .value_name("CONFIG_PATH")
+                    .required(true))
                 .arg(
                     Arg::with_name("output")
                         .short("o")
                         .long("output")
                         .takes_value(true)
+                        .value_name("OUTPUT_PATH")
                         .required(true)
-                        .help("The path of the index file that will be written"),
+                        .help("The path of the index file that will be written, or - for stdout"),
                 )
-                .display_order(1),
+                .arg(
+                    Arg::with_name("timing")
+                        .short("t")
+                        .long("timing")
+                        .help("Displays the duration of the build operation"),
+                )
         )
         .subcommand(
             SubCommand::with_name("search")
@@ -62,6 +66,7 @@ pub fn app() -> App<'static, 'static> {
                         .short("i")
                         .long("index")
                         .takes_value(true)
+                        .value_name("INDEX_PATH")
                         .help("The path of the index file that should be searched.")
                         .required(true),
                 )
@@ -70,21 +75,37 @@ pub fn app() -> App<'static, 'static> {
                         .short("q")
                         .long("query")
                         .takes_value(true)
-                        .help("The search query to look up")
+                        .value_name("SEARCH_QUERY")
+                        .help("The text with which to search the index")
                         .required(true),
+                )
+                .arg(
+                    Arg::with_name("timing")
+                        .short("t")
+                        .long("timing")
+                        .help("Displays the duration of the search operation"),
                 )
                 .arg(
                     Arg::with_name("json")
                         .long("json")
                         .display_order(100)
-                        .help("If present, the output will be formatted as JSON."),
+                        .help("Formats the search results as JSON"),
                 )
-                .display_order(2),
         )
         .subcommand(
             SubCommand::with_name("test")
-                .about("Serves a test web page so you can experiment with an index you're building")
-                .arg(config_input_arg.clone())
+                .about("Serves a test web page so you can experiment with an index you're building.")
+                .long_about("Serves a test web page so you can experiment with an index you're building. Pass in either a configuration file or a fully-built index.")
+                .arg(
+                    Arg::with_name("config")
+                        .long("config")
+                        .short("c")
+                        .help("The path to your configuration file, or - for stdin")
+                        .takes_value(true)
+                        .value_name("CONFIG_PATH")
+                        .required(false)
+                        .conflicts_with("index_path"),
+                )
                 .arg(
                     Arg::with_name("port")
                         .help("The port on which to serve the test web page.")
@@ -94,7 +115,16 @@ pub fn app() -> App<'static, 'static> {
                         .value_name("PORT")
                         .required(false),
                 )
-                .display_order(3),
+                .arg(
+                    Arg::with_name("index_path")
+                        .long("index")
+                        .short("x")
+                        .help("The path to your index file")
+                        .takes_value(true)
+                        .value_name("INDEX_PATH")
+                        .required(false)
+                        .conflicts_with("config"),
+                )
         )
 }
 
@@ -109,15 +139,21 @@ mod tests {
             "stork build --input something.toml --output something.st",
             "stork search --index something.st --query my-query",
             "stork search --index - --query -",
-            "stork --timing search --index - --query -",
-            "stork -t search --index - --query -",
+            "stork search --index - --query - --timing",
+            "stork search --index - --query - -t",
             "stork search --index something.st --query my-query --json",
             "stork search -i something.st -q my-query",
-            "stork -t search --index something.st --query my-query --json",
-            "stork --timing search -i something.st -q my-query",
-            "stork test -p 1620 -i something.st",
-            "stork test -i something.st -p 1620",
-            "stork test -i something.st",
+            "stork search -t --index something.st --query my-query --json",
+            "stork search --timing -i something.st -q my-query",
+            "stork search -t -i something.st -q my-query",
+            "stork search --timing -i something.st -q my-query",
+            "stork test -p 1620 -c something.toml",
+            "stork test -p 1620 -x something.st",
+            "stork test -c something.toml -p 1620",
+            "stork test -c something.toml",
+            "stork test --config something.toml",
+            "stork test -x something.st",
+            "stork test --index something.st",
             "stork --build something.toml",
             "stork --search something.toml my-query",
             "stork --test something.st",
@@ -125,7 +161,7 @@ mod tests {
 
         for input in valid_inputs {
             app()
-                .get_matches_from_safe(input.split(' '))
+                .get_matches_from_safe(input.split(" "))
                 .unwrap_or_else(|e| panic!("Error with input {:?}: {}", &input, e));
         }
     }
@@ -134,20 +170,21 @@ mod tests {
         let invalid_inputs = vec![
             "stork build -i something.toml",
             "stork build --input something.toml",
+            "stork build --o -",
             "stork search -i something.st -j my-query -j",
             "stork --build something.toml --input asdf",
             "stork --build something.toml --output asdf",
+            "stork --timing search --index - --query -",
+            "stork -t search --index - --query -",
             "stork search --index something.st",
             "stork search --query my-query",
-            "stork search --index - --query - --timing",
-            "stork search --index - --query - -t",
-            "stork search --index - -t --query -",
-            "stork search --index - --timing --query -",
+            "stork test --index something.st --input something.toml",
+            "stork test -x something.st -i something.toml",
         ];
 
         for input in invalid_inputs {
             assert!(
-                app().get_matches_from_safe(input.split(' ')).is_err(),
+                app().get_matches_from_safe(input.split(" ")).is_err(),
                 "{} seemed to be a valid input",
                 input
             )

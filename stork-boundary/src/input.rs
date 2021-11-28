@@ -46,15 +46,12 @@ impl TryFrom<Bytes> for VersionedIndex {
             "stork-2" => Ok(VersionedIndex::V2(buffer)),
             "stork-3" => {
                 let index_size = {
-                    dbg!(buffer.remaining(), u64_size);
                     let index_size = buffer.get_u64();
                     let index_size: usize = index_size
                         .try_into()
                         .map_err(|_| IndexVersioningError::BadSegmentSize(index_size))?;
                     Ok::<usize, IndexVersioningError>(index_size)
                 }?;
-
-                dbg!(index_size);
 
                 let index_bytes = buffer.split_to(index_size);
 
