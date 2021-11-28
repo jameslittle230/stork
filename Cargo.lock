@@ -1710,7 +1710,7 @@ version = "0.1.0"
 
 [[package]]
 name = "stork-wasm"
-version = "0.1.0"
+version = "1.4.0"
 dependencies = [
  "bytes",
  "console_error_panic_hook",

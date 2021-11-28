@@ -45,6 +45,6 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "stork-search": "./pkg"
+    "stork-search": "./stork-wasm/pkg"
   }
 }

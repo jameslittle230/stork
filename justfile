@@ -38,11 +38,12 @@ super-clean: clean
 
 
 
-
-
 fetch-federalist-corpus:
     rm -rf local-dev/test-corpora/federalist
-    git clone git@github.com:jameslittle230/federalist.git local-dev/test-corpora/federalist
+    wget https://github.com/stork-search/federalist/archive/refs/heads/master.zip -O federalist.zip
+    unzip federalist.zip
+    mv federalist-master local-dev/test-corpora/federalist
+    rm federalist.zip
 
 fetch-3b1b-corpus:
     @echo "fetch-3b1b-corpus WIP"
