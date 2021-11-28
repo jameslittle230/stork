@@ -24,7 +24,7 @@ impl TryFrom<Bytes> for VersionedIndex {
                 .try_into()
                 .map_err(|_| IndexVersioningError::BadSegmentSize(version_size))?;
 
-            if version_size < 1 || version_size > 32 {
+            if !(1..=32).contains(&version_size) {
                 return Err(IndexVersioningError::BadVersionSize(
                     version_size.try_into().unwrap(),
                 ));
@@ -55,7 +55,7 @@ impl TryFrom<Bytes> for VersionedIndex {
 
                 let index_bytes = buffer.split_to(index_size);
 
-                return Ok(VersionedIndex::V3(index_bytes));
+                Ok(VersionedIndex::V3(index_bytes))
             }
             _ => Err(IndexVersioningError::UnknownVersionString(version_string)),
         }
@@ -115,7 +115,7 @@ mod tests {
         let bytes = Bytes::try_from("this is not an index".as_bytes()).unwrap();
         assert_eq!(
             VersionedIndex::try_from(bytes).unwrap_err(),
-            IndexVersioningError::BadVersionSize(8388070249163485984)
+            IndexVersioningError::BadVersionSize(8_388_070_249_163_485_984)
         )
     }
 
@@ -177,7 +177,7 @@ mod tests {
         );
 
         assert_eq!(
-            VersionedIndex::try_from(bytes.clone()).unwrap_err().to_string(),
+            VersionedIndex::try_from(bytes).unwrap_err().to_string(),
             "Invalid index: could not parse version string as valid UTF8. Stork recieved error `invalid utf-8 sequence of 1 bytes from index 0`"
         );
     }

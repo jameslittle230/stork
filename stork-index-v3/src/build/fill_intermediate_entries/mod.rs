@@ -171,7 +171,7 @@ fn build_progress_bar(config: &Config) -> ProgressBar {
 
 fn tick_progress_bar_with_filename(progress_bar: &ProgressBar, filename: &str) {
     let message = truncate_with_ellipsis_to_length(filename, 21, None);
-    progress_bar.set_message(message.clone());
+    progress_bar.set_message(message);
     progress_bar.tick();
 }
 

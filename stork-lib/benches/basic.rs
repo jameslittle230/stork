@@ -33,11 +33,11 @@ fn search_federalist_for_liberty(c: &mut Criterion) {
         "some long query that won't return results but let's see how it does",
     ];
 
-    queries.iter().for_each(|query| {
+    for query in &queries {
         group.bench_function(query.to_owned(), |b| {
             b.iter(|| stork_lib::V3Search(&index, query.to_owned()))
         });
-    });
+    }
 }
 
 criterion_group!(benches, build_federalist, search_federalist_for_liberty);

@@ -79,12 +79,12 @@ pub fn index_from_bytes(bytes: Bytes) -> Result<ParsedIndex, IndexParseError> {
         #[cfg(feature = "read-v2")]
         VersionedIndex::V2(bytes) => V2Index::try_from(bytes)
             .map_err(|e| IndexParseError::V2Error(e.to_string()))
-            .map(|index| ParsedIndex::V2(index)),
+            .map(ParsedIndex::V2),
 
         #[cfg(feature = "read-v3")]
         VersionedIndex::V3(bytes) => V3Index::try_from(bytes)
             .map_err(|e| IndexParseError::V3Error(e.to_string()))
-            .map(|index| ParsedIndex::V3(index)),
+            .map(ParsedIndex::V3),
 
         _ => Err(IndexParseError::ParseError()),
     }
@@ -188,5 +188,5 @@ pub fn search(index: Bytes, query: &str) -> Result<Output, SearchError> {
 
 pub fn get_output_filename_from_old_style_config(config: &str) -> Option<String> {
     let config = Config::try_from(config).ok()?;
-    return config.output.UNUSED_filename;
+    config.output.UNUSED_filename
 }

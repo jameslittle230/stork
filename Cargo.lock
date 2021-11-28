@@ -1671,6 +1671,7 @@ dependencies = [
  "kuchiki",
  "markdown",
  "mime",
+ "pretty_assertions",
  "reqwest",
  "rmp-serde",
  "rust-stemmers",

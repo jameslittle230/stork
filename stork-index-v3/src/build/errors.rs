@@ -38,10 +38,11 @@ pub enum IndexGenerationError {
     #[error("No files could be indexed")]
     NoValidFiles,
 
+    #[allow(clippy::all)]
     #[error(
         "{} found while indexing files. If you want to fail silently and still build an index, remove `break_on_file_error` from your config.\n{}", 
         pluralize_with_count(.0.len(), "error", "errors"),
-        DocumentError::display_list(&.0)
+        DocumentError::display_list(.0)
     )]
     DocumentErrors(Vec<DocumentError>),
 }
@@ -76,10 +77,33 @@ impl std::fmt::Display for DocumentError {
 }
 
 impl DocumentError {
-    pub fn display_list(vec: &Vec<DocumentError>) -> String {
+    pub fn display_list(vec: &[DocumentError]) -> String {
         vec.iter()
-            .map(|error| error.to_string())
+            .map(ToString::to_string)
             .collect::<Vec<String>>()
             .join("\n")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_documenterrors_display() {
+        let computed = DocumentError {
+            file: File {
+                title: "test".to_string(),
+                ..Default::default()
+            },
+            word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
+                "/test",
+            )),
+        }
+        .to_string();
+
+        let expected = "- The file `/test` could not be found.\n  ";
+        assert_eq!(computed, expected);
     }
 }

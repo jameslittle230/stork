@@ -88,9 +88,10 @@ pub fn wasm_search(name: &str, query: &str) -> String {
             .ok_or_else(|| WasmSearchError::NamedIndexNotInCache(name.to_string()))?;
 
         #[allow(unreachable_patterns)]
+        #[allow(clippy::match_wildcard_for_single_variants)]
         match index {
             #[cfg(feature = "v3")]
-            ParsedIndex::V3(index) => Ok(V3Search(&index, query)),
+            ParsedIndex::V3(index) => Ok(V3Search(index, query)),
 
             #[cfg(feature = "v2")]
             ParsedIndex::V2(index) => Ok(V2Search(&index, query)),

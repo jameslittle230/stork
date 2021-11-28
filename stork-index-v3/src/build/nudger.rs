@@ -48,7 +48,7 @@ impl From<&Config> for Nudger {
 impl Nudger {
     pub(super) fn print(&self) {
         if !self.nudges.is_empty() {
-            eprintln!("{}", "Config Warnings:");
+            eprintln!("Config Warnings:");
         }
 
         for nudge in &self.nudges {
@@ -60,7 +60,7 @@ impl Nudger {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use stork_config::*;
+    use stork_config::{InputConfig, OutputConfig};
 
     #[test]
     fn create_nudge() {

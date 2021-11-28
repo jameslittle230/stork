@@ -40,18 +40,18 @@ fn main() {
                 // gotta wrap it in a closure so our question marks work
                 let wrapper = || -> CmdResult {
                     print_nudging_string("build");
-                    let config = read_from_path(&config_path)?;
+                    let config = read_from_path(config_path)?;
                     let output_path = get_output_filename_from_old_style_config(&config)
                         .ok_or_else(|| {
                             let msg = "You've used the old-style command line interface (`stork --build`) with an index file that is missing an output filename, so Stork can't figure out where to write your index.";
                             StorkCommandLineError::InvalidCommandLineArguments(msg)
                         })?;
 
-                    #[cfg_attr(rustfmt, rustfmt_skip)]
+                    #[rustfmt::skip]
                     let itr = vec!["stork", "build", "--input", config_path, "--output", &output_path];
                     let global_matches = app().get_matches_from(itr);
                     let submatches = global_matches.subcommand_matches("build").unwrap();
-                    build_handler(&submatches, &global_matches)
+                    build_handler(submatches, &global_matches)
                 };
                 wrapper()
             } else if let Some(values_iter) = app_matches.values_of("search") {
@@ -61,13 +61,13 @@ fn main() {
                     "stork", "search", "--input", values[0], "--query", values[1],
                 ]);
                 let submatches = global_matches.subcommand_matches("search").unwrap();
-                search_handler(&submatches, &global_matches)
+                search_handler(submatches, &global_matches)
             } else if let Some(input_file) = app_matches.value_of("test") {
                 print_nudging_string("test");
                 let global_matches =
                     app().get_matches_from(vec!["stork", "test", "--input", input_file]);
                 let submatches = global_matches.subcommand_matches("search").unwrap();
-                test_handler(&submatches, &global_matches)
+                test_handler(submatches, &global_matches)
             } else {
                 let _ = app().print_help();
                 Ok(())
@@ -92,7 +92,7 @@ fn build_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdRes
 
     let build_time = Instant::now();
 
-    let bytes_written = write_bytes(output_path, build_output.bytes)?;
+    let bytes_written = write_bytes(output_path, &build_output.bytes)?;
 
     let end_time = Instant::now();
 
@@ -157,10 +157,10 @@ fn test_handler(submatches: &ArgMatches, _global_matches: &ArgMatches) -> CmdRes
     if let Some(config_path) = submatches.value_of("config") {
         let config = read_from_path(config_path)?;
         let output = build_index(&config)?;
-        test_server::serve(output.bytes, port).map_err(|_| StorkCommandLineError::ServerError)
+        test_server::serve(&output.bytes, port).map_err(|_| StorkCommandLineError::ServerError)
     } else if let Some(index_path) = submatches.value_of("index") {
         let index = read_bytes_from_path(index_path)?;
-        test_server::serve(index, port).map_err(|_| StorkCommandLineError::ServerError)
+        test_server::serve(&index, port).map_err(|_| StorkCommandLineError::ServerError)
     } else {
         Err(StorkCommandLineError::InvalidCommandLineArguments(
             "Test server requires either --config or --index",

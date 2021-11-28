@@ -51,7 +51,7 @@ pub fn read_from_path(path: &str) -> Result<String, StorkCommandLineError> {
     }
 }
 
-pub fn write_bytes(path: &str, bytes: Bytes) -> Result<usize, StorkCommandLineError> {
+pub fn write_bytes(path: &str, bytes: &Bytes) -> Result<usize, StorkCommandLineError> {
     let mut writer: Box<dyn Write> = if path == "-" {
         Box::new(stdout())
     } else {

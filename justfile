@@ -7,11 +7,13 @@ _yarn:
 
 
 
+_js-test: build-wasm _yarn
+    yarn jest --coverage
 
-
-test: _yarn
+_rust-test:
     cargo test
-    yarn jest
+
+test: _js-test _rust-test
 
 format: _yarn
     cargo fmt
@@ -91,7 +93,7 @@ build-indexer-dev:
     cargo build --all-features
 
 build-wasm-dev:
-    wasm-pack build --target web --out-name stork --dev -- --no-default-features
+    cd stork-wasm && wasm-pack build --target web --out-name stork --dev -- --no-default-features --features="v3"
 
 solo-build-js-dev:
     yarn webpack --config webpack.dev.js

@@ -161,7 +161,7 @@ mod tests {
 
         for input in valid_inputs {
             app()
-                .get_matches_from_safe(input.split(" "))
+                .get_matches_from_safe(input.split(' '))
                 .unwrap_or_else(|e| panic!("Error with input {:?}: {}", &input, e));
         }
     }
@@ -184,7 +184,7 @@ mod tests {
 
         for input in invalid_inputs {
             assert!(
-                app().get_matches_from_safe(input.split(" ")).is_err(),
+                app().get_matches_from_safe(input.split(' ')).is_err(),
                 "{} seemed to be a valid input",
                 input
             )

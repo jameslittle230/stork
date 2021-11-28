@@ -1,7 +1,7 @@
 use bytes::Bytes;
 
 #[cfg(not(feature = "test-server"))]
-pub fn serve(_index: Bytes, _port: u16) -> Result<(), Box<dyn std::error::Error>> {
+pub fn serve(_index: &Bytes, _port: u16) -> Result<(), Box<dyn std::error::Error>> {
     println!("Stork was not compiled with test server support. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
     panic!()
 }

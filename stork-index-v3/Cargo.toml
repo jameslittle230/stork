@@ -28,3 +28,4 @@ unicode-segmentation = "1.8.0"
 
 [dev-dependencies]
 serde_json = "1.0.68"
+pretty_assertions = "1.0.0"

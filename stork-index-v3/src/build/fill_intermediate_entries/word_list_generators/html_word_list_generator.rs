@@ -1,6 +1,6 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 use crate::{AnnotatedWord, AnnotatedWordList};
-use kuchiki::{traits::*, ElementData, NodeDataRef};
+use kuchiki::{traits::TendrilSink, ElementData, NodeDataRef};
 use std::collections::HashMap;
 use stork_boundary::InternalWordAnnotation;
 
