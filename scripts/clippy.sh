@@ -11,3 +11,4 @@ cargo clippy --fix --allow-dirty -- --W clippy::pedantic \
 -A clippy::semicolon_if_nothing_returned \
 -A clippy::default_trait_access \
 -A clippy::field_reassign_with_default \
+-A clippy::let_underscore_drop \

@@ -1,0 +1,23 @@
+[package]
+name = "stork-cli"
+version = "1.4.0"
+edition = "2021"
+
+[features]
+default = ["v1-compat", "read-v2", "read-v3", "build-v3-web-scraping"]
+v1-compat = []
+read-v2 = ["stork-lib/read-v2"]
+read-v3 = ["stork-lib/read-v3"]
+build-v3 = ["stork-lib/build-v3"]
+build-v3-web-scraping = ["stork-lib/build-v3-web-scraping"]
+
+[dependencies]
+atty = "0.2.14"
+bytes = "1.1.0"
+clap = { version = "2.33.3", features = ["color"] }
+colored = "2.0.0"
+num-format = "0.4.0"
+serde = "1.0.130"
+serde_json = "1.0.68"
+stork-lib = { path = "../stork-lib", default-features = false }
+thiserror = "1.0.29"

@@ -8,11 +8,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/cache@v2
+        id: cache  
+        with:
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-rust_tests-${{ hashFiles('**/Cargo.lock') }}  
+
       - name: Set up wasm-pack
+        if: steps.cache.outputs.cache-hit != 'true'  
         uses: actions-rs/install@v0.1
         with:
           crate: wasm-pack
-          use-tool-cache: true
 
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
@@ -20,27 +26,41 @@ jobs:
           version: '0.15.0'
           args: '-- --test-threads 1'
 
-      - name: Upload code coverage
-        run: |
-          cargo tarpaulin --out Xml
-          bash <(curl -s https://codecov.io/bash)
+      - run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}
 
   js_tests:
     name: "Run JS Tests"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-js_tests-${{ hashFiles('**/Cargo.lock') }}  
+     
       - name: Set up wasm-pack
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions-rs/install@v0.1
         with:
           crate: wasm-pack
-          use-tool-cache: true
+      
+      - name: Set up just
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions-rs/install@v0.1
+        with:
+          crate: just
 
-      - run: wasm-pack build --target web -- --no-default-features # just build-wasm
-      - run: yarn install
-      - run: yarn eslint js/**/*.ts # just lint
-      - run: yarn jest --coverage # just test
-      - run: bash <(curl -s https://codecov.io/bash) -cF javascript
+      - run: just _js-test
+        
+      - run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}
 
   clippy_check:
     name: "Run Clippy Check"
@@ -53,11 +73,7 @@ jobs:
             toolchain: stable
             override: true
       
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # args from ./scripts/clippy.sh
-          args: -- -D clippy::pedantic -A clippy::upper_case_acronyms -A clippy::missing_panics_doc -A clippy::missing_errors_doc -A clippy::too_many_lines -A clippy::must_use_candidate -A clippy::module_name_repetitions -A clippy::semicolon_if_nothing_returned -A clippy::default_trait_access -A clippy::field_reassign_with_default
+      - run: ./scripts/clippy.sh
 
   cargo_fmt:
     name: "Run Cargo Format Check"
@@ -71,30 +87,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Checkout Federalist Papers Repository
-        uses: actions/checkout@v2
-        with:
-          repository: jameslittle230/federalist
-          path: ./local-dev/test-corpora/federalist
       - uses: actions/setup-python@v2
+        
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-benchmark-${{ hashFiles('**/Cargo.lock') }}  
 
       - name: Set up wasm-pack
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions-rs/install@v0.1
         with:
           crate: wasm-pack
-          use-tool-cache: true
 
-      - run: wasm-pack build --target web --out-name stork -- --no-default-features
+      - name: Set up just
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions-rs/install@v0.1
+        with:
+          crate: just
 
       - name: Set up criterion
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-criterion
-          use-tool-cache: true
       
-      - run: yarn install
-      - run: yarn webpack --config webpack.prod.js
-      - run: cargo run --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
-
-      - name: Run benchmark
-        run: python3 scripts/generate_stats.py
+      - run: just build-js
+      - run: just build-federalist-index  
+      - run: python3 scripts/generate_stats.py

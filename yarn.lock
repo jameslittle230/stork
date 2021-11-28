@@ -5193,8 +5193,8 @@ stealthy-require@^1.1.1:
   resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.1.tgz#35b09875b4ff49f26a777e509b3090a3226bf24b"
   integrity sha1-NbCYdbT/SfJqd35QmzCQoyJr8ks=
 
-stork-search@./pkg:
-  version "1.2.1"
+stork-search@./stork-wasm/pkg:
+  version "0.1.0"
 
 stream-each@^1.1.0:
   version "1.2.3"

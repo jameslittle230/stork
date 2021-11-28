@@ -1,0 +1,30 @@
+# The main Federalist index configuration file. This produces the Federalist
+# search index seen on the home page of stork-search.net.
+[input]
+base_directory = "./local-dev/test-corpora/federalist"
+url_prefix = "https://www.gutenberg.org/files/1404/1404-h/1404-h.htm#link2H_4_"
+files = [
+    { path = "federalist-1.txt", url = "0001", title = "General Introduction" },
+    { path = "federalist-2.txt", url = "0002", title = "Concerning Dangers from Foreign Force and Influence" },
+    { path = "federalist-3.txt", url = "0003", title = "Concerning Dangers from Foreign Force and Influence pt 2" },
+    { path = "federalist-4.txt", url = "0004", title = "Concerning Dangers from Foreign Force and Influence pt 3" },
+    { path = "federalist-5.txt", url = "0005", title = "Concerning Dangers from Foreign Force and Influence pt 4" },
+    { path = "federalist-6.txt", url = "0006", title = "Concerning Dangers from Dissensions Between the States" },
+    { path = "federalist-7.txt", url = "0007", title = "Concerning Dangers from Dissensions Between the States pt 2" },
+    { path = "federalist-8.txt", url = "0008", title = "The Consequences of Hostilities Between the States" },
+    { path = "federalist-9.txt", url = "0009", title = "The Union as a Safeguard Against Domestic Faction and Insurrection" },
+    { path = "federalist-10.txt", url = "0010", title = "The Union as a Safeguard Against Domestic Faction and Insurrection pt 2" },
+    { path = "federalist-11.txt", url = "0011", title = "The Utility of the Union in Respect to Commercial Relations and a Navy" },
+    { path = "federalist-12.txt", url = "0012", title = "The Utility of the Union In Respect to Revenue" },
+    { path = "federalist-13.txt", url = "0013", title = "Advantage of the Union in Respect to Economy in Government" },
+    { path = "federalist-14.txt", url = "0014", title = "Objections to the Proposed Constitution From Extent of Territory Answered" },
+    { path = "federalist-15.txt", url = "0015", title = "The Insufficiency of the Present Confederation to Preserve the Union" },
+    { path = "federalist-16.txt", url = "0016", title = "The Insufficiency of the Present Confederation to Preserve the Union pt 2" },
+    { path = "federalist-17.txt", url = "0017", title = "The Insufficiency of the Present Confederation to Preserve the Union pt 3" },
+    { path = "federalist-18.txt", url = "0018", title = "The Insufficiency of the Present Confederation to Preserve the Union pt 4" },
+    { path = "federalist-19.txt", url = "0019", title = "The Insufficiency of the Present Confederation to Preserve the Union pt 5" },
+    { path = "federalist-20.txt", url = "0020", title = "The Insufficiency of the Present Confederation to Preserve the Union pt 6" }
+]
+
+[output]
+debug = false
