@@ -11,7 +11,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}  
+          key: ${{ runner.os }}-cargo-rust_tests-${{ hashFiles('**/Cargo.lock') }}  
 
       - name: Set up wasm-pack
         if: steps.cache.outputs.cache-hit != 'true'  
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}  
+          key: ${{ runner.os }}-cargo-js_tests-${{ hashFiles('**/Cargo.lock') }}  
      
       - name: Set up wasm-pack
         if: steps.cache.outputs.cache-hit != 'true'
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}  
+          key: ${{ runner.os }}-cargo-benchmark-${{ hashFiles('**/Cargo.lock') }}  
 
       - name: Set up wasm-pack
         if: steps.cache.outputs.cache-hit != 'true'
