@@ -1,5 +1,6 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
-use crate::{config::Filetype, LatestVersion::structs::AnnotatedWordList};
+use crate::AnnotatedWordList;
+use stork_config::Filetype;
 
 pub mod html_word_list_generator;
 pub mod markdown_word_list_generator;

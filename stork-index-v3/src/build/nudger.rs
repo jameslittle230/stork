@@ -1,6 +1,4 @@
-use colored::Colorize;
-
-use crate::config::Config;
+use stork_config::Config;
 
 /**
  * Nudge users to build better config files.
@@ -50,7 +48,7 @@ impl From<&Config> for Nudger {
 impl Nudger {
     pub(super) fn print(&self) {
         if !self.nudges.is_empty() {
-            eprintln!("{}", "Config Warnings:".yellow());
+            eprintln!("{}", "Config Warnings:");
         }
 
         for nudge in &self.nudges {
@@ -62,7 +60,7 @@ impl Nudger {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{Config, InputConfig, OutputConfig};
+    use stork_config::*;
 
     #[test]
     fn create_nudge() {

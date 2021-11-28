@@ -1,7 +1,5 @@
 mod input;
 mod output;
 
-pub use input::IndexVersioningError;
-pub use input::VersionedIndex;
-
-pub use output::{Entry, Excerpt, HighlightRange, Output, Result};
+pub use input::{IndexVersioningError, VersionedIndex};
+pub use output::{Entry, Excerpt, HighlightRange, InternalWordAnnotation, Output, Result};

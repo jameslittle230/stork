@@ -1,15 +1,13 @@
-use super::{
-    super::scores::{PREFIX_SCORE, STEM_SCORE},
-    annotated_words_from_string::AnnotatedWordable,
-};
+use crate::build::annotated_words_from_string::AnnotatedWordable;
+use crate::scores::{PREFIX_SCORE, STEM_SCORE};
 
 use super::{
     remove_surrounding_punctuation, AnnotatedWord, Container, Excerpt, NormalizedEntry,
     SearchResult, WordListSource,
 };
-use crate::config::Config;
 use rust_stemmers::Stemmer;
 use std::{collections::HashMap, convert::TryInto, ops::Range};
+use stork_config::Config;
 
 pub fn fill_containers(
     config: &Config,
@@ -186,11 +184,10 @@ fn char_is_cjk_ideograph(c: &char) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        config::Config,
-        LatestVersion::{builder::intermediate_entry::NormalizedEntry, structs::AnnotatedWordList},
-    };
+    use crate::build::intermediate_entry::NormalizedEntry;
+    use crate::AnnotatedWordList;
     use std::collections::HashMap;
+    use stork_config::Config;
 
     use super::fill_containers;
 

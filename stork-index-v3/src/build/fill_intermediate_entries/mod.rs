@@ -10,11 +10,9 @@ mod frontmatter;
 use self::frontmatter::parse_frontmatter;
 
 use super::{IndexGenerationError, NormalizedEntry};
-use crate::config::{
-    Config, DataSource, File, Filetype, InputConfig, OutputConfig, StemmingConfig,
-};
 use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator, ProgressStyle};
 use std::{collections::HashMap, convert::TryInto};
+use stork_config::{Config, DataSource, File, Filetype, InputConfig, OutputConfig, StemmingConfig};
 
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -173,7 +171,7 @@ fn build_progress_bar(config: &Config) -> ProgressBar {
 
 fn tick_progress_bar_with_filename(progress_bar: &ProgressBar, filename: &str) {
     let message = truncate_with_ellipsis_to_length(filename, 21, None);
-    progress_bar.set_message(&message);
+    progress_bar.set_message(message.clone());
     progress_bar.tick();
 }
 
@@ -203,17 +201,11 @@ fn truncate_with_ellipsis_to_length(
 
 #[cfg(test)]
 mod tests {
-    use unicode_segmentation::UnicodeSegmentation;
-
-    use crate::{
-        config::{Config, DataSource, File, InputConfig, OutputConfig},
-        LatestVersion::builder::{
-            errors::{DocumentError, IndexGenerationError, WordListGenerationError},
-            intermediate_entry::NormalizedEntry,
-        },
-    };
-
     use super::{fill_intermediate_entries, truncate_with_ellipsis_to_length};
+    use crate::build::errors::{DocumentError, IndexGenerationError, WordListGenerationError};
+    use crate::build::intermediate_entry::NormalizedEntry;
+    use stork_config::{Config, DataSource, File, InputConfig, OutputConfig};
+    use unicode_segmentation::UnicodeSegmentation;
 
     #[test]
     fn break_on_file_error_breaks() {

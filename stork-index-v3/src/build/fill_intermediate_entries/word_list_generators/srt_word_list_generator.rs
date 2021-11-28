@@ -1,13 +1,10 @@
-use crate::{
-    common::InternalWordAnnotation,
-    config::{SRTConfig, SRTTimestampFormat},
-    LatestVersion::{
-        builder::{
-            annotated_words_from_string::AnnotatedWordable, fill_intermediate_entries::ReaderConfig,
-        },
-        structs::{AnnotatedWord, AnnotatedWordList},
-    },
-};
+use stork_boundary::InternalWordAnnotation;
+use stork_config::{SRTConfig, SRTTimestampFormat};
+
+use crate::build::annotated_words_from_string::AnnotatedWordable;
+use crate::build::fill_intermediate_entries::ReaderConfig;
+use crate::AnnotatedWord;
+use crate::AnnotatedWordList;
 
 use super::ReadResult;
 use super::WordListGenerationError;

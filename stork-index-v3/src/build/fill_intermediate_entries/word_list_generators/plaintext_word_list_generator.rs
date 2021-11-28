@@ -1,8 +1,5 @@
-use crate::LatestVersion::{
-    builder::annotated_words_from_string::AnnotatedWordable, structs::AnnotatedWordList,
-};
-
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
+use crate::{build::annotated_words_from_string::AnnotatedWordable, AnnotatedWordList};
 
 #[allow(clippy::unnecessary_wraps)]
 pub fn generate(

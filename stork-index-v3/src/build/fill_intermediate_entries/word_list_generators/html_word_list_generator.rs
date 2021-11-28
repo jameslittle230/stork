@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-
-use crate::common::InternalWordAnnotation;
-use crate::LatestVersion::structs::{AnnotatedWord, AnnotatedWordList};
-use kuchiki::{traits::TendrilSink, ElementData, NodeDataRef};
-
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
+use crate::{AnnotatedWord, AnnotatedWordList};
+use kuchiki::{traits::*, ElementData, NodeDataRef};
+use std::collections::HashMap;
+use stork_boundary::InternalWordAnnotation;
 
 pub fn generate(
     config: &ReaderConfig,
@@ -120,10 +118,8 @@ pub fn generate(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        config::{File, Filetype, InputConfig, OutputConfig},
-        LatestVersion::structs::AnnotatedWordList,
-    };
+    use crate::AnnotatedWordList;
+    use stork_config::{File, Filetype, InputConfig, OutputConfig};
 
     #[allow(clippy::field_reassign_with_default)]
     fn reader_config_from_html_selectors(

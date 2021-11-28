@@ -1,8 +1,8 @@
-use super::scores::STOPWORD_SCORE;
-use super::structs::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
-use crate::common::STOPWORDS;
-use crate::searcher::{OutputEntry, OutputResult, SearchOutput};
+use crate::scores::STOPWORD_SCORE;
+use crate::{AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult};
 use std::collections::HashMap;
+use stork_boundary::{Entry as OutputEntry, Output as SearchOutput, Result as OutputResult};
+use stork_shared::stopwords as STOPWORDS;
 
 pub mod intermediate_excerpt;
 use intermediate_excerpt::IntermediateExcerpt;
@@ -137,7 +137,7 @@ mod tests {
     use std::io::{BufReader, Read};
     #[test]
     fn e2e_v3_search_works() {
-        let file = fs::File::open("./src/test-indexes/federalist-min-0.7.0.st").unwrap();
+        let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
         let mut buf_reader = BufReader::new(file);
         let mut index_bytes: Vec<u8> = Vec::new();
         let _bytes_read = buf_reader.read_to_end(&mut index_bytes);

@@ -1,9 +1,9 @@
-use super::structs::{
+use crate::{
     AnnotatedWord, Container, Entry, Excerpt, Index, PassthroughConfig, SearchResult,
     WordListSource,
 };
-use crate::config::Config;
 use std::collections::HashMap;
+use stork_config::Config;
 
 mod fill_containers;
 mod fill_intermediate_entries;
@@ -13,7 +13,6 @@ mod annotated_words_from_string;
 pub mod errors;
 pub mod intermediate_entry;
 
-use colored::Colorize;
 use fill_containers::fill_containers;
 use fill_intermediate_entries::fill_intermediate_entries;
 use fill_stems::fill_stems;
@@ -25,7 +24,13 @@ use intermediate_entry::NormalizedEntry;
 pub mod nudger;
 use nudger::Nudger;
 
-pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenerationError> {
+#[derive(Debug)]
+pub struct BuildResult {
+    pub index: Index,
+    pub errors: Vec<DocumentError>,
+}
+
+pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
     Nudger::from(config).print();
 
     let mut intermediate_entries: Vec<NormalizedEntry> = Vec::new();
@@ -34,8 +39,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
 
     if !document_errors.is_empty() {
         eprintln!(
-            "{} {} error{} while indexing files. Your index was still generated, though the erroring files were omitted.",
-            "Warning:".yellow(),
+            "Warning: {} error{} while indexing files. Your index was still generated, though the erroring files were omitted.",
             document_errors.len(),
             match document_errors.len() {
                 1 => "",
@@ -59,7 +63,7 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
 
     let entries: Vec<Entry> = intermediate_entries.iter().map(Entry::from).collect();
 
-    let config = PassthroughConfig {
+    let passthrough_config = PassthroughConfig {
         url_prefix: config.input.url_prefix.clone(),
         title_boost: config.input.title_boost.clone(),
         excerpt_buffer: config.output.excerpt_buffer,
@@ -67,14 +71,16 @@ pub fn build(config: &Config) -> Result<(Index, Vec<DocumentError>), IndexGenera
         displayed_results_count: config.output.displayed_results_count,
     };
 
-    Ok((
-        Index {
-            config,
-            entries,
-            containers,
-        },
-        document_errors,
-    ))
+    let index = Index {
+        entries,
+        containers,
+        config: passthrough_config,
+    };
+
+    Ok(BuildResult {
+        index,
+        errors: document_errors,
+    })
 }
 
 fn remove_surrounding_punctuation(input: &str) -> String {
@@ -93,9 +99,9 @@ fn remove_surrounding_punctuation(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use stork_config::{DataSource, File, Filetype, InputConfig};
+
     use super::*;
-    use crate::config::File;
-    use crate::config::{Config, DataSource, Filetype, InputConfig};
 
     fn generate_invalid_file_missing_selector() -> File {
         File {
@@ -140,15 +146,16 @@ mod tests {
 
         let build_results = build(&config).unwrap();
 
-        assert_eq!(build_results.1.len(), 1);
+        assert_eq!(build_results.errors.len(), 1);
 
-        let error_msg = build_results.1.first().unwrap().to_string();
+        let expected = &WordListGenerationError::SelectorNotPresent(".article".to_string());
+        let computed = &build_results
+            .errors
+            .first()
+            .unwrap()
+            .word_list_generation_error;
 
-        assert!(
-            error_msg.contains("HTML selector `.article` is not present in the file"),
-            "{}",
-            error_msg
-        );
+        assert_eq!(expected, computed);
     }
 
     #[test]
@@ -165,10 +172,15 @@ mod tests {
         };
 
         let build_results = build(&config).unwrap();
-        assert_eq!(build_results.1.len(), 1);
+        assert_eq!(build_results.errors.len(), 1);
 
-        let error_msg = build_results.1.first().unwrap().to_string();
-        assert!(error_msg.contains("No words in word list"));
+        let expected = &WordListGenerationError::EmptyWordList;
+        let computed = &build_results
+            .errors
+            .first()
+            .unwrap()
+            .word_list_generation_error;
+        assert_eq!(expected, computed);
     }
 
     #[test]
@@ -202,7 +214,7 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(build(&config).unwrap().1.len(), 1);
-        assert_eq!(build(&config).unwrap().0.entries.len(), 1);
+        assert_eq!(build(&config).unwrap().errors.len(), 1);
+        assert_eq!(build(&config).unwrap().index.entries.len(), 1);
     }
 }

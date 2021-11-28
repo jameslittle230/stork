@@ -1,10 +1,7 @@
+use crate::{Entry, PassthroughConfig, WordListSource};
 use std::collections::HashMap;
-
-use crate::{
-    config::TitleBoost,
-    searcher::{HighlightRange, OutputEntry, OutputResult},
-    LatestVersion::structs::{Entry, PassthroughConfig, WordListSource},
-};
+use stork_boundary::{Entry as BoundaryEntry, Excerpt, HighlightRange, Result};
+use stork_config::TitleBoost;
 
 use super::intermediate_excerpt::IntermediateExcerpt;
 
@@ -16,7 +13,7 @@ pub(super) struct EntryAndIntermediateExcerpts {
 }
 
 #[allow(clippy::cast_possible_wrap, clippy::cast_possible_truncation)]
-impl From<EntryAndIntermediateExcerpts> for OutputResult {
+impl From<EntryAndIntermediateExcerpts> for Result {
     fn from(data: EntryAndIntermediateExcerpts) -> Self {
         let entry = data.entry;
         let excerpt_buffer = data.config.excerpt_buffer as usize;
@@ -57,7 +54,7 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
             ies_grouped_by_word_index.push(vec![ie])
         }
 
-        let mut excerpts: Vec<crate::searcher::Excerpt> = ies_grouped_by_word_index
+        let mut excerpts: Vec<Excerpt> = ies_grouped_by_word_index
             .iter()
             .map(|ies| {
                 let minimum_word_index = ies
@@ -121,11 +118,11 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
                     .first()
                     .map_or_else(Vec::default, |first| first.internal_annotations.clone());
 
-                crate::searcher::Excerpt {
+                Excerpt {
                     text,
                     highlight_ranges,
-                    score,
                     internal_annotations,
+                    score,
                     fields,
                 }
             })
@@ -161,8 +158,8 @@ impl From<EntryAndIntermediateExcerpts> for OutputResult {
 
         let score = excerpts.first().map_or(0, |first| first.score) + title_boost_modifier;
 
-        OutputResult {
-            entry: OutputEntry::from(entry),
+        Result {
+            entry: BoundaryEntry::from(entry),
             excerpts,
             title_highlight_ranges,
             score,
@@ -205,7 +202,7 @@ mod tests {
                 },
             ],
         };
-        let output_result = OutputResult::from(entry_and_intermediate_excerpts);
+        let output_result = Result::from(entry_and_intermediate_excerpts);
         let title_highlight_ranges = output_result.title_highlight_ranges;
         println!("{:?}", title_highlight_ranges);
         assert!(
@@ -248,7 +245,7 @@ mod tests {
             ],
         };
 
-        let output_result = OutputResult::from(entry_and_intermediate_excerpts);
+        let output_result = Result::from(entry_and_intermediate_excerpts);
         let excerpt = output_result.excerpts.first().unwrap();
         let excerpt_chars = excerpt.text.chars().collect::<Vec<char>>();
         let first_highlight_range = &excerpt.highlight_ranges.first().unwrap();

@@ -1,5 +1,5 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
-use crate::config::{DataSource, Filetype};
+use stork_config::{DataSource, Filetype};
 
 pub mod filepath_data_source_reader;
 pub mod url_data_source_reader;

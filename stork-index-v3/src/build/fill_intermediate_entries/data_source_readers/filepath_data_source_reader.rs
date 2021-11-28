@@ -1,10 +1,10 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
-use crate::config::Filetype;
 use std::{
     fs::File,
     io::{BufReader, Read},
     path::Path,
 };
+use stork_config::Filetype;
 
 pub(crate) fn read(
     path: &str,
@@ -13,7 +13,8 @@ pub(crate) fn read(
     let base_directory_path = Path::new(&config.global.base_directory);
     let full_pathname = base_directory_path.join(&path);
 
-    let file = File::open(&full_pathname).map_err(|_| WordListGenerationError::FileNotFound)?;
+    let file = File::open(&full_pathname)
+        .map_err(|_| WordListGenerationError::FileNotFound(full_pathname.clone()))?;
     let mut buf_reader = BufReader::new(file);
     let mut buffer = String::new();
     let _bytes_read = buf_reader.read_to_string(&mut buffer);

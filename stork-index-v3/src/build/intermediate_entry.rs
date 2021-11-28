@@ -1,9 +1,6 @@
-use super::super::structs::AnnotatedWordList;
-use super::super::structs::Entry;
-use crate::common::Fields;
-
-extern crate rust_stemmers;
+use crate::{AnnotatedWordList, Entry};
 use rust_stemmers::Algorithm;
+use stork_shared::Fields;
 
 pub struct NormalizedEntry {
     pub(super) annotated_word_list: AnnotatedWordList,
@@ -26,8 +23,9 @@ impl From<&NormalizedEntry> for Entry {
 
 #[cfg(test)]
 mod tests {
+    use super::Entry;
     use super::NormalizedEntry;
-    use crate::index_versions::v3::structs::{AnnotatedWordList, Entry};
+    use crate::AnnotatedWordList;
     use std::collections::HashMap;
 
     #[test]
