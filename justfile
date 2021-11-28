@@ -46,7 +46,7 @@ fetch-3b1b-corpus:
     @echo "fetch-3b1b-corpus WIP"
 
 solo-build-federalist-index:
-    cargo run --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
+    cargo run -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
 
 build-federalist-index: build-indexer-dev fetch-federalist-corpus solo-build-federalist-index
 
@@ -67,7 +67,12 @@ build-indexer:
     cargo build --release --all-features
 
 build-wasm:
-    wasm-pack build --target web --out-name stork -- --no-default-features
+    cd stork-wasm && wasm-pack build --target web --out-name stork -- --no-default-features --features="v3"
+    wc -c < ./stork-wasm/pkg/stork_bg.wasm
+
+build-wasm-all-features:
+    cd stork-wasm && wasm-pack build --target web --out-name stork -- --features="v2, v3"
+    wc -c < ./stork-wasm/pkg/stork_bg.wasm
 
 solo-build-js:
     yarn webpack --config webpack.prod.js

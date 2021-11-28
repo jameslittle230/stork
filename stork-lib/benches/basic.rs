@@ -1,47 +1,42 @@
-use std::{convert::TryFrom, path::PathBuf, time::Duration};
-use stork_config::{Config, ConfigReadError};
-
 use criterion::{criterion_group, criterion_main, Criterion};
+use std::{convert::TryFrom, path::PathBuf, time::Duration};
+use stork_config::Config;
 
-// impl TryFrom<&PathBuf> for Config {
-//     type Error = ConfigReadError;
-
-//     fn try_from(value: &PathBuf) -> Result<Self, Self::Error> {
-//         let contents = std::fs::read_to_string(value).unwrap();
-//         Config::try_from(contents.as_str())
-//     }
-// }
+fn config_from_path(path: &str) -> Config {
+    let path = PathBuf::from(path);
+    let contents = std::fs::read_to_string(path).unwrap();
+    return Config::try_from(contents.as_str()).unwrap();
+}
 
 fn build_federalist(c: &mut Criterion) {
-    let path = PathBuf::from("./test/federalist-config/federalist.toml");
-    let config = Config::try_from(&path).unwrap();
+    let config = config_from_path("../test-assets/federalist.toml");
 
     let mut group = c.benchmark_group("build");
     group.measurement_time(Duration::from_secs(12));
 
     group.bench_function("federalist", |b| {
-        b.iter(|| stork_lib::build(&config).unwrap())
+        b.iter(|| stork_lib::V3Build(&config).unwrap())
     });
 }
 
 fn search_federalist_for_liberty(c: &mut Criterion) {
-    let path = PathBuf::from("./test/federalist-config/federalist.toml");
-    let config = Config::try_from(&path).unwrap();
-    let index = stork_search::build(&config).unwrap();
+    let config = config_from_path("../test-assets/federalist.toml");
+    let index = stork_lib::V3Build(&config).unwrap().index;
 
     let mut group = c.benchmark_group("search/federalist");
     group.measurement_time(Duration::from_secs(10));
 
-    group.bench_function("liberty", |b| {
-        b.iter(|| stork_search::search_with_index(&index, "liberty"))
-    });
+    let queries = vec![
+        "liberty",
+        "lib",
+        "liber old world",
+        "some long query that won't return results but let's see how it does",
+    ];
 
-    group.bench_function("lib", |b| {
-        b.iter(|| stork_search::search_with_index(&index, "lib"))
-    });
-
-    group.bench_function("liber old world", |b| {
-        b.iter(|| stork_search::search_with_index(&index, "lib"))
+    queries.iter().for_each(|query| {
+        group.bench_function(query.to_owned(), |b| {
+            b.iter(|| stork_lib::V3Search(&index, query.to_owned()))
+        });
     });
 }
 
