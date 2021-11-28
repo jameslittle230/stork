@@ -43,3 +43,9 @@ pub struct HighlightRange {
     pub beginning: usize,
     pub end: usize,
 }
+
+#[derive(Serialize, Clone, Debug, PartialEq)]
+pub struct IndexMetadata {
+    #[serde(rename = "indexVersion")]
+    pub index_version: String,
+}
