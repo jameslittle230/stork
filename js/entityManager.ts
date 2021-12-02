@@ -58,7 +58,7 @@ const attachToDom = (name: string): void => {
 };
 
 const entityIsReady = (name: string): boolean => {
-  return entities[name]?.state != "ready";
+  return entities[name]?.state === "ready";
 };
 
 const debug = (): Record<string, unknown> => ({
