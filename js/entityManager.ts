@@ -49,7 +49,6 @@ const register = (
 };
 
 const attachToDom = (name: string): void => {
-  console.log(52, "attachToDom");
   if (!entities[name]) {
     throw new Error(`Index ${name} has not been registered!`);
   }
