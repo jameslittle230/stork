@@ -1644,6 +1644,7 @@ dependencies = [
  "pretty_assertions",
  "rust-stemmers",
  "serde",
+ "serde_json",
  "smart-default",
  "thiserror",
  "toml",
