@@ -85,6 +85,7 @@ pub enum Filetype {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+    use serde_json::Error as JsonError;
     use toml::de::Error;
 
     #[test]
@@ -93,6 +94,15 @@ mod tests {
         let error: Error = toml::from_str::<File>(toml).unwrap_err();
         let computed = error.to_string();
         let expected = "missing field `url` at line 1 column 1";
+        assert_eq!(computed, expected);
+    }
+
+    #[test]
+    fn json_file_with_only_title_fails() {
+        let json = r#"{"title": "Derp"}"#;
+        let error: JsonError = serde_json::from_str::<File>(json).unwrap_err();
+        let computed = error.to_string();
+        let expected = "missing field `url` at line 1 column 17";
         assert_eq!(computed, expected);
     }
 
@@ -107,11 +117,31 @@ mod tests {
     }
 
     #[test]
+    fn json_file_with_title_and_url_assumes_url_is_source() {
+        let json = r#"{"title": "Derp", "url": "blorp"}"#;
+        let file: File = serde_json::from_str(json).unwrap();
+        assert_eq!(file.explicit_source, None);
+        assert_eq!(file.source(), DataSource::URL("blorp".into()));
+        assert_eq!(file.url, "blorp");
+    }
+
+    #[test]
     fn file_with_explicit_url_source() {
         let toml = r#"title = "Derp"
         url = "blorp"
         src_url = "google.com""#;
         let file: File = toml::from_str(toml).unwrap();
+        assert_eq!(
+            file.explicit_source,
+            Some(DataSource::URL("google.com".into()))
+        );
+        assert_eq!(file.source(), DataSource::URL("google.com".into()));
+        assert_eq!(file.url, "blorp");
+    }
+    #[test]
+    fn json_file_with_explicit_url_source() {
+        let json = r#"{"title": "Derp", "url": "blorp", "src_url": "google.com"}"#;
+        let file: File = serde_json::from_str(json).unwrap();
         assert_eq!(
             file.explicit_source,
             Some(DataSource::URL("google.com".into()))
@@ -131,6 +161,15 @@ mod tests {
     }
 
     #[test]
+    fn json_file_with_only_src_url_fails() {
+        let json = r#"{"title": "Derp", "src_url": "google.com"}"#;
+        let error: JsonError = serde_json::from_str::<File>(json).unwrap_err();
+        let computed = error.to_string();
+        let expected = "missing field `url` at line 1 column 42";
+        assert_eq!(computed, expected);
+    }
+
+    #[test]
     fn file_with_multiple_sources_fails() {
         let toml = r#"title = "Derp"
         url = "apple.com"
@@ -143,6 +182,15 @@ mod tests {
     }
 
     #[test]
+    fn json_file_with_multiple_sources_fails() {
+        let json = r#"{"title": "Derp", "url": "apple.com", "src_url": "google.com", "contents": "According to all known laws of aviation..."}"#;
+        let error: JsonError = serde_json::from_str::<File>(json).unwrap_err();
+        let computed = error.to_string();
+        let expected = "unknown field `contents` at line 1 column 120";
+        assert_eq!(computed, expected);
+    }
+
+    #[test]
     fn file_with_multiple_sources_fails_contents_first() {
         let toml = r#"title = "Derp"
         url = "apple.com"
@@ -151,6 +199,17 @@ mod tests {
         let error: Error = toml::from_str::<File>(toml).unwrap_err();
         let computed = error.to_string();
         let expected = "unknown field `src_url` at line 1 column 1";
+        assert_eq!(computed, expected);
+    }
+
+    #[test]
+    fn json_file_with_multiple_sources_fails_contents_first() {
+        let json = r#"{"title": "Derp", "url": "apple.com",
+        "contents": "According to all known laws of aviation...",
+        "src_url": "google.com"}"#;
+        let error: JsonError = serde_json::from_str::<File>(json).unwrap_err();
+        let computed = error.to_string();
+        let expected = "unknown field `src_url` at line 3 column 32";
         assert_eq!(computed, expected);
     }
 }

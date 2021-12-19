@@ -37,7 +37,31 @@ impl TryFrom<&str> for Config {
             return Err(ConfigReadError::EmptyString);
         }
 
-        toml::from_str(value).map_err(ConfigReadError::UnparseableInput)
+        let toml_output = toml::from_str::<Self>(value);
+        let json_output = serde_json::from_str::<Self>(value);
+
+        match (toml_output, json_output) {
+            (Ok(toml_config), _) => Ok(toml_config),
+
+            (Err(_), Ok(json_config)) => Ok(json_config),
+
+            (Err(toml_error), Err(json_error)) => {
+                if let Some((mut toml_line, mut toml_col)) = toml_error.line_col() {
+                    toml_line += 1;
+                    toml_col += 1;
+                    dbg!(toml_line, toml_col, json_error.line(), json_error.column());
+                    if toml_line > json_error.line()
+                        || (toml_line == json_error.line() && toml_col > json_error.column())
+                    {
+                        Err(ConfigReadError::UnparseableTomlInput(toml_error))
+                    } else {
+                        Err(ConfigReadError::UnparseableJsonInput(json_error))
+                    }
+                } else {
+                    Err(ConfigReadError::UnparseableJsonInput(json_error))
+                }
+            }
+        }
     }
 }
 
@@ -49,39 +73,14 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn empty_string_returns_default_config() {
-        let contents = r#""#;
-        let config: Config = toml::from_str(contents).unwrap();
-        assert_eq!(config, Config::default())
-    }
-
-    #[test]
     fn empty_string_via_tryfrom_returns_error() {
         let contents = r#""#;
         let error = Config::try_from(contents).unwrap_err();
         assert_eq!(error, ConfigReadError::EmptyString)
     }
 
-    /// This test also makes sure that our default values don't change without being accounted for in tests.
-    #[test]
-    fn simple_config_is_parseable() {
-        let contents = r#"
-[input]
-base_directory = "test/federalist"
-files = [
-    {path = "federalist-1.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1", title = "Introduction"},
-    {path = "federalist-2.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2", title = "Concerning Dangers from Foreign Force and Influence"},
-    {path = "federalist-3.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3", title = "Concerning Dangers from Foreign Force and Influence 2"},
-]
-
-[output]
-filename = "test/federalist.st"
-debug = true
-    "#;
-
-        let computed: Config = toml::from_str(contents).unwrap();
-
-        let expected = Config {
+    fn get_default_config() -> Config {
+        Config {
             input: InputConfig {
                 UNUSED_surrounding_word_count: None,
                 base_directory: "test/federalist".into(),
@@ -153,26 +152,90 @@ debug = true
                 minimum_index_ideographic_substring_length: 1,
             },
             output: OutputConfig {
-                UNUSED_filename: Some(
-                    "test/federalist.st".to_string(),
-                ),
+                UNUSED_filename: None,
                 debug: true,
                 save_nearest_html_id: false,
                 excerpt_buffer: 8,
                 excerpts_per_result: 5,
                 displayed_results_count: 10,
             },
-        };
+        }
+    }
+
+    // This test also makes sure that our default values don't change
+    // without being accounted for in tests.
+    #[test]
+    fn simple_toml_config_is_parseable() {
+        let contents = r#"
+[input]
+base_directory = "test/federalist"
+files = [
+    {path = "federalist-1.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1", title = "Introduction"},
+    {path = "federalist-2.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2", title = "Concerning Dangers from Foreign Force and Influence"},
+    {path = "federalist-3.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3", title = "Concerning Dangers from Foreign Force and Influence 2"},
+]
+
+[output]
+debug = true
+    "#;
+
+        let computed = Config::try_from(contents).unwrap();
+        let expected = get_default_config();
 
         assert_eq!(computed, expected)
     }
 
     #[test]
-    fn unknown_top_level_key_fails_with_toml_error() {
-        let contents = r#"[bad_key]"#;
-        let result: toml::de::Error = toml::from_str::<Config>(contents).unwrap_err();
-        let computed = result.to_string();
-        let expected = "unknown field `bad_key`, expected `input` or `output` at line 1 column 1";
+    fn simple_json_config_is_parseable() {
+        let contents = r#"
+        {
+            "input": {
+                "base_directory": "test/federalist",
+                "files": [
+                    {
+                        "path": "federalist-1.txt",
+                        "url": "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1",
+                        "title": "Introduction"
+                    },
+                    {
+                        "path": "federalist-2.txt",
+                        "url": "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2",
+                        "title": "Concerning Dangers from Foreign Force and Influence"
+                    },
+                    {
+                        "path": "federalist-3.txt",
+                        "url": "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3",
+                        "title": "Concerning Dangers from Foreign Force and Influence 2"
+                    }
+                ]
+            },
+            "output": {
+                "debug": true
+            }
+        }
+    "#;
+
+        let computed = Config::try_from(contents).unwrap();
+        let expected = get_default_config();
+
+        assert_eq!(computed, expected)
+    }
+
+    #[test]
+    fn bad_toml_syntax_fails_with_toml_error() {
+        let contents = r#"[input] {}"#;
+        let error = Config::try_from(contents).unwrap_err();
+        let computed = error.to_string();
+        let expected = "Cannot parse config as TOML. Stork recieved error: `expected newline, found a left brace at line 1 column 9`";
+        assert_eq!(computed, expected);
+    }
+    #[test]
+    fn bad_json_syntax_fails_with_json_error() {
+        let contents = r#"{"input", ]}"#;
+        let error = Config::try_from(contents).unwrap_err();
+        let computed = error.to_string();
+        let expected =
+            "Cannot parse config as JSON. Stork recieved error: `expected `:` at line 1 column 9`";
         assert_eq!(computed, expected);
     }
 
