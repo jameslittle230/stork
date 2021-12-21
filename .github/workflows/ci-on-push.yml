@@ -88,6 +88,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          token: ${{ secrets.GH_API_PAT }}
           submodules: recursive
 
       - uses: actions/setup-python@v2
