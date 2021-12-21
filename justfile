@@ -38,26 +38,19 @@ super-clean: clean
 
 
 
-fetch-federalist-corpus:
-    rm -rf local-dev/test-corpora/federalist
-    wget https://github.com/stork-search/federalist/archive/refs/heads/master.zip -O federalist.zip
-    unzip federalist.zip
-    mv federalist-master local-dev/test-corpora/federalist
-    rm federalist.zip
-
-fetch-3b1b-corpus:
-    @echo "fetch-3b1b-corpus WIP"
+fetch-test-corpora:
+    git submodule init
+    git submodule update
 
 solo-build-federalist-index:
     cargo run -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
 
-build-federalist-index: build-indexer-dev fetch-federalist-corpus solo-build-federalist-index
+build-federalist-index: build-indexer-dev fetch-test-corpora solo-build-federalist-index
 
-build-all-indexes: build-federalist-index fetch-3b1b-corpus
+build-all-indexes: build-federalist-index
     -cargo run -q --all-features -- build --input local-dev/test-configs/3b1b.toml           --output local-dev/test-indexes/3b1b.st
     -cargo run -q --all-features -- build --input local-dev/test-configs/beepboop.toml       --output local-dev/test-indexes/beepboop.st
     -cargo run -q --all-features -- build --input local-dev/test-configs/bowdoin-orient.toml --output local-dev/test-indexes/bowdoin-orient.st
-    -cargo run -q --all-features -- build --input local-dev/test-configs/web-pages.toml      --output local-dev/test-indexes/web-pages.st
 
 
 
