@@ -87,6 +87,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_API_PAT }}
+          submodules: recursive
+
       - uses: actions/setup-python@v2
         
       - uses: actions/cache@v2
@@ -114,5 +118,5 @@ jobs:
           crate: cargo-criterion
       
       - run: just build-js
-      - run: just build-federalist-index  
+      - run: just solo-build-federalist-index # Don't do the submodule dance since we did it already in the checkout action 
       - run: python3 scripts/generate_stats.py

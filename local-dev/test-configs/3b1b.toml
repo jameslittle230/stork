@@ -1,5 +1,5 @@
 [input]
-base_directory = "test/3b1b"
+base_directory = "local-dev/test-corpora/3b1b"
 url_prefix = "https://www.youtube.com/watch?v="
 title_boost = "Ridiculous"
 
@@ -62,7 +62,3 @@ title = "Taylor series [11]"
 path = "ch12.srt"
 url = "CfW845LNObM"
 title = "What they won't teach you in calculus [12]"
-
-[output]
-filename = "test/3b1b.st"
-debug = false

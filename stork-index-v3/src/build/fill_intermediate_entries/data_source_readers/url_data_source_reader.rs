@@ -1,21 +1,21 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
-#[cfg(not(feature = "web-scraping"))]
+#[cfg(not(feature = "build-web-scraping"))]
 pub(crate) fn read(
     _url: &str,
     _config: &ReaderConfig,
 ) -> Result<ReadResult, WordListGenerationError> {
-    Err(WordListGenerationError::WebPageNotFetched)
+    Err(WordListGenerationError::FeatureNotAvailable)
 }
 
-#[cfg(feature = "web-scraping")]
+#[cfg(feature = "build-web-scraping")]
 pub(crate) fn read(
     url: &str,
     config: &ReaderConfig,
 ) -> Result<ReadResult, WordListGenerationError> {
-    use crate::config::Filetype;
     use mime::Mime;
     use std::io::Read;
+    use stork_config::Filetype;
 
     fn filetype_from_mime(mime: &Mime) -> Option<Filetype> {
         match (mime.type_(), mime.subtype()) {

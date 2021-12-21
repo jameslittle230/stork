@@ -24,6 +24,9 @@ pub enum WordListGenerationError {
 
     #[error("After parsing the document, there were no words found in the word list.")]
     EmptyWordList,
+
+    #[error("Stork was not built with the `web-scraping` feature enabled.")]
+    FeatureNotAvailable,
 }
 
 fn pluralize_with_count(count: usize, singular: &str, plural: &str) -> String {
