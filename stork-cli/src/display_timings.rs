@@ -28,7 +28,7 @@ macro_rules! display_timings {
             )*
         ]
         .iter()
-        .map(|ts| format!("\t{}", ts.to_string()))
+        .map(|ts| format!("{}", ts.to_string()))
         .collect::<Vec<String>>()
         .join("\n")
     }

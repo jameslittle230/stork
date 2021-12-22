@@ -20,7 +20,11 @@ num-format = "0.4.0"
 serde = "1.0.130"
 serde_json = "1.0.68"
 stork-lib = { path = "../stork-lib", default-features = false }
+textwrap = { version = "0.14.2", features = ["terminal_size"] }
 thiserror = "1.0.29"
+
+[dev-dependencies]
+pretty_assertions = "1.0.0"
 
 [[bin]]
 name = "stork"

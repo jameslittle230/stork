@@ -4,7 +4,10 @@ use std::fmt::Display;
 
 use num_format::{Locale, ToFormattedString};
 
-use stork_boundary::{IndexMetadata, IndexVersioningError, Output, VersionedIndex};
+pub use stork_boundary::{
+    Entry, Excerpt, HighlightRange, IndexMetadata, IndexVersioningError, InternalWordAnnotation,
+    Output, Result as StorkResult, VersionedIndex,
+};
 use stork_config::Config;
 use stork_config::ConfigReadError;
 

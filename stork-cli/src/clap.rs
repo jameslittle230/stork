@@ -85,11 +85,19 @@ pub fn app() -> App<'static, 'static> {
                         .long("timing")
                         .help("Displays the duration of the search operation"),
                 )
+                .arg(Arg::with_name("deprecated_json")
+                    .long("json")
+                    .hidden(true)
+                )
                 .arg(
-                    Arg::with_name("json")
-                        .long("json")
+                    Arg::with_name("format")
+                        .long("format")
                         .display_order(100)
-                        .help("Formats the search results as JSON"),
+                        .takes_value(true)
+                        .value_name("FORMAT")
+                        .possible_values(&["json", "pretty"])
+                        .default_value("json")
+                        .help("The output format for the returned search results"),
                 )
         )
         .subcommand(
@@ -142,6 +150,8 @@ mod tests {
             "stork search --index - --query - --timing",
             "stork search --index - --query - -t",
             "stork search --index something.st --query my-query --json",
+            "stork search --index something.st --query my-query --format json",
+            "stork search --index something.st --query my-query --format pretty",
             "stork search -i something.st -q my-query",
             "stork search -t --index something.st --query my-query --json",
             "stork search --timing -i something.st -q my-query",
@@ -176,6 +186,7 @@ mod tests {
             "stork --build something.toml --output asdf",
             "stork --timing search --index - --query -",
             "stork -t search --index - --query -",
+            "stork search --index something.st --query my-query --format bleh",
             "stork search --index something.st",
             "stork search --query my-query",
             "stork test --index something.st --input something.toml",
