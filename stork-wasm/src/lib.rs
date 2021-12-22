@@ -176,7 +176,6 @@ mod tests {
         assert_eq!(str, r#"{"indexVersion":"stork-3"}"#);
 
         let results = wasm_search("cache-name-two", "liberty");
-        dbg!(&results);
         assert_eq!(
             results,
             r#"{"error": "Index `cache-name-two` has not been registered. You need to register the index before performing searches with it."}"#
