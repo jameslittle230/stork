@@ -7,12 +7,15 @@
 ### New Features
 
 - Configuration files can now be in JSON format, in addition to TOML format
+- CLI: The `--json` flag for the `search` subcommand is now deprecated, as it did nothing in previous versions of Stork.
+- CLI: A new command line option for the `search` subcommand, `--format <VALUE>`, now determines how search results will be displayed in the terminal. The default value is `json`, which will display the search results in the JSON format understood by the browser module. A new value, `pretty`, will format the search results in a readable, understandable way. In the 2.0.0 Stork release, `pretty` will be the default value for this flag.
 
 ### Bug Fixes
 
 - Removes a stray `console.log` from the Javascript application
 - Fixes a Javascript runtime bug where registered indexes weren't always reporting as ready
-- Fixes a crash when the indexed contents contained words longer than 128 characters ()
+- Fixes a crash when the indexed contents contained words longer than 128 characters
+- The `--timings` flag previously did nothing. Now, when included with the `build` or `search` subcommands, timing information will be displayed at the end of the terminal output via stderr.
 
 ## v1.3.0
 
