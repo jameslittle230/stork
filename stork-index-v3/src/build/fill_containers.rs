@@ -111,9 +111,9 @@ fn fill_other_containers_alias_maps_with_prefixes(
             .or_insert_with(Container::new)
             .aliases;
 
-        let _alias_score = alises_map
-            .entry(normalized_word.to_string())
-            .or_insert(PREFIX_SCORE - ((chars.len() - n).try_into().unwrap_or(0)));
+        let _alias_score = alises_map.entry(normalized_word.to_string()).or_insert(
+            PREFIX_SCORE.saturating_sub(chars.len().saturating_sub(n).try_into().unwrap()),
+        );
     }
 }
 
