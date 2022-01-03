@@ -12,6 +12,7 @@
 
 - Removes a stray `console.log` from the Javascript application
 - Fixes a Javascript runtime bug where registered indexes weren't always reporting as ready
+- Fixes a crash when the indexed contents contained words longer than 128 characters ()
 
 ## v1.3.0
 

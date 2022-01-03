@@ -217,4 +217,28 @@ mod tests {
         assert_eq!(build(&config).unwrap().errors.len(), 1);
         assert_eq!(build(&config).unwrap().index.entries.len(), 1);
     }
+
+    #[test]
+    fn long_normalized_word_can_be_indexed() {
+        // Bug reported in issue 227.
+        // @TODO: Should the prefix aliaser handle long words differently? I'm not sure if
+        // a search for `prism` or `csharp` will return any results with this input.
+        let config = Config {
+            input: InputConfig {
+                files: vec![
+                    File {
+                        filetype: Some(Filetype::Markdown),
+                        explicit_source: Some(DataSource::Contents(
+                            "https://prismjs.com/download.html#themes=prism&languages=markup+css+clike+javascript+bash+c+csharp+cpp+go+java+markdown+python+scss+sql+toml+yaml&plugins=toolbar+copy-to-clipboard".to_string())),
+                        ..Default::default()
+                    }
+                ],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let build_results = build(&config).unwrap();
+        assert!(build_results.errors.is_empty());
+    }
 }
