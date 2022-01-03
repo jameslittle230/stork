@@ -219,7 +219,10 @@ mod tests {
     }
 
     #[test]
-    fn issue_227_markdown_url_contents_panic() {
+    fn long_normalized_word_can_be_indexed() {
+        // Bug reported in issue 227.
+        // @TODO: Should the prefix aliaser handle long words differently? I'm not sure if
+        // a search for `prism` or `csharp` will return any results with this input.
         let config = Config {
             input: InputConfig {
                 files: vec![
