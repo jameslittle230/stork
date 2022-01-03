@@ -59,7 +59,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn happy_path() {
+    fn display_pretty_search_results_given_output() {
         let results = Output {
             results: vec![stork_lib::StorkResult {
                 entry: stork_lib::Entry {
@@ -89,6 +89,6 @@ mod tests {
             url_prefix: "".to_string(),
         };
 
-        assert_eq!(pretty_print_search_results(&results), "title\n");
+        assert_eq!(pretty_print_search_results(&results), "\u{1b}[1;32mSome Document Title\u{1b}[0m\n<https://example.com>\n    - \u{1b}[33mT\u{1b}[0mhis is the excerpt of the text\n\n21 total results available");
     }
 }
