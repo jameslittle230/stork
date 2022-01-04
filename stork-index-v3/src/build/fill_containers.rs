@@ -112,7 +112,8 @@ fn fill_other_containers_alias_maps_with_prefixes(
             .aliases;
 
         let _alias_score = alises_map.entry(normalized_word.to_string()).or_insert(
-            PREFIX_SCORE.saturating_sub(chars.len().saturating_sub(n).try_into().unwrap()),
+            PREFIX_SCORE
+                .saturating_sub(chars.len().saturating_sub(n).try_into().unwrap_or(u8::MAX)),
         );
     }
 }

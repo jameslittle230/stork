@@ -241,4 +241,28 @@ mod tests {
         let build_results = build(&config).unwrap();
         assert!(build_results.errors.is_empty());
     }
+
+    #[test]
+    fn longer_normalized_word_can_be_indexed() {
+        // Bug reported in issue 230.
+        // @TODO: Should the prefix aliaser handle long words differently? I'm not sure if
+        // a search for `prism` or `csharp` will return any results with this input.
+        let config = Config {
+            input: InputConfig {
+                files: vec![
+                    File {
+                        filetype: Some(Filetype::Markdown),
+                        explicit_source: Some(DataSource::Contents(
+                            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg/390px-Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg".to_string())),
+                        ..Default::default()
+                    }
+                ],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        let build_results = build(&config).unwrap();
+        assert!(build_results.errors.is_empty());
+    }
 }
