@@ -110,7 +110,7 @@ pub struct IndexDescription {
     pub entries_count: usize,
     pub tokens_count: usize,
     pub index_size_bytes: usize,
-    pub warnings: String,
+    pub warnings: Vec<DocumentError>,
 }
 
 #[cfg(feature = "build-v3")]
@@ -120,7 +120,7 @@ impl From<&V3BuildResult> for IndexDescription {
             entries_count: build_result.index.entries_len(),
             tokens_count: build_result.index.search_term_count(),
             index_size_bytes: Bytes::from(&build_result.index).len(),
-            warnings: DocumentError::display_list(&build_result.errors),
+            warnings: build_result.errors.clone(),
         }
     }
 }
@@ -129,18 +129,20 @@ impl From<&V3BuildResult> for IndexDescription {
 impl Display for IndexDescription {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
-            r#"Index stats:
-- {} entries
-- {} search terms
-- {} bytes ({} bytes per entry, {} bytes per search term)
-
-{}"#,
+            r#"{}Index stats:
+  - {} entries
+  - {} search terms
+  - {} bytes per entry
+  - {} bytes per search term"#,
+            if self.warnings.is_empty() {
+                "".to_string()
+            } else {
+                DocumentError::display_list(&self.warnings) + "\n"
+            },
             self.entries_count.to_formatted_string(&Locale::en),
             self.tokens_count.to_formatted_string(&Locale::en),
-            self.index_size_bytes.to_formatted_string(&Locale::en),
             (self.index_size_bytes / self.entries_count).to_formatted_string(&Locale::en),
             (self.index_size_bytes / self.tokens_count).to_formatted_string(&Locale::en),
-            &self.warnings
         ))
     }
 }

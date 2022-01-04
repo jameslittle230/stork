@@ -19,6 +19,9 @@ pub enum WordListGenerationError {
     #[error("The web page could not be fetched")]
     WebPageNotFetched,
 
+    #[error("When fetched, the web page returned a {0} status code.")]
+    WebPageErrorfulStatusCode(u16),
+
     #[error("Content-Type is not present or invalid")]
     UnknownContentType,
 
@@ -72,16 +75,21 @@ impl std::fmt::Display for DocumentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "- {}\n  {}",
+            "In file `{}`: {}",
+            self.file,
             self.word_list_generation_error.to_string(),
-            self.file
         )
     }
 }
 
 impl DocumentError {
     pub fn display_list(vec: &[DocumentError]) -> String {
-        vec.iter()
+        format!(
+            "Warning: Stork couldn't include {} file{} in the index because of the following errors:\n",
+            vec.len(),
+            if vec.len() == 1 { "" } else { "s" }
+        ) + &vec
+            .iter()
             .map(ToString::to_string)
             .collect::<Vec<String>>()
             .join("\n")

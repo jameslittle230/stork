@@ -50,7 +50,6 @@ Goodbye!"#
                 frontmatter_fields: None,
             },
         )
-        .ok()
         .unwrap()
         .word_list
         .iter()

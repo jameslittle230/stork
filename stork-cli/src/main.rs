@@ -100,10 +100,10 @@ fn build_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdRes
 
     eprintln!(
         "{} Index built successfully, wrote {} bytes.",
-        "Success:".green(),
-        bytes_written
+        "Success:".green().to_string(),
+        bytes_written.to_formatted_string(&Locale::en)
     );
-    eprint!("{}", build_output.description);
+    eprintln!("{}", build_output.description);
 
     if submatches.is_present("timing") {
         eprintln!(
