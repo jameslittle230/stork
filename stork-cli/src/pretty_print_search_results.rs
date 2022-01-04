@@ -89,6 +89,15 @@ mod tests {
             url_prefix: "".to_string(),
         };
 
-        assert_eq!(pretty_print_search_results(&results), "\u{1b}[1;32mSome Document Title\u{1b}[0m\n<https://example.com>\n    - \u{1b}[33mT\u{1b}[0mhis is the excerpt of the text\n\n21 total results available");
+        assert_eq!(
+            pretty_print_search_results(&results),
+            format!(
+                "{}{}{}{}",
+                "Some Document Title".bold().green(),
+                "\n<https://example.com>\n    - ",
+                "T".yellow(),
+                "his is the excerpt of the text\n\n21 total results available".normal()
+            )
+        );
     }
 }
