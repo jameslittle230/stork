@@ -53,8 +53,11 @@ impl fmt::Display for File {
             "{}",
             match &self.source() {
                 DataSource::FilePath(path) => path,
-                DataSource::Contents(_contents) => &self.title,
                 DataSource::URL(url) => url,
+
+                // if there's no string representation of where to find the file,
+                // just use the title
+                DataSource::Contents(_contents) => &self.title,
             }
         )
     }

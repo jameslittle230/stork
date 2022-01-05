@@ -85,9 +85,8 @@ impl std::fmt::Display for DocumentError {
 impl DocumentError {
     pub fn display_list(vec: &[DocumentError]) -> String {
         format!(
-            "Warning: Stork couldn't include {} file{} in the index because of the following errors:\n",
-            vec.len(),
-            if vec.len() == 1 { "" } else { "s" }
+            "Warning: Stork couldn't include {} in the index because of the following errors:\n",
+            pluralize_with_count(vec.len(), "file", "files"),
         ) + &vec
             .iter()
             .map(ToString::to_string)
@@ -100,12 +99,14 @@ impl DocumentError {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+    use stork_config::DataSource;
 
     #[test]
     fn test_documenterrors_display() {
         let computed = DocumentError {
             file: File {
-                title: "test".to_string(),
+                title: "My Test File".to_string(),
+                explicit_source: Some(DataSource::Contents("ignored".to_string())),
                 ..Default::default()
             },
             word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
@@ -114,7 +115,36 @@ mod tests {
         }
         .to_string();
 
-        let expected = "- The file `/test` could not be found.\n  ";
+        let expected = "In file `My Test File`: The file `/test` could not be found.";
+        assert_eq!(computed, expected);
+    }
+
+    #[test]
+    fn test_documenterror_list_display() {
+        let computed = DocumentError::display_list(&[
+            DocumentError {
+                file: File {
+                    title: "My Test File".to_string(),
+                    explicit_source: Some(DataSource::Contents("ignored".to_string())),
+                    ..Default::default()
+                },
+                word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
+                    "/test",
+                )),
+            },
+            DocumentError {
+                file: File {
+                    title: "My Test File 2".to_string(),
+                    explicit_source: Some(DataSource::Contents("ignored 2".to_string())),
+                    ..Default::default()
+                },
+                word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
+                    "/test2",
+                )),
+            },
+        ]);
+
+        let expected = "Warning: Stork couldn't include 2 files in the index because of the following errors:\nIn file `My Test File`: The file `/test` could not be found.\nIn file `My Test File 2`: The file `/test2` could not be found.";
         assert_eq!(computed, expected);
     }
 }
