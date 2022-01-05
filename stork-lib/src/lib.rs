@@ -1,7 +1,10 @@
 use bytes::Bytes;
 use std::convert::TryFrom;
+
+#[cfg(feature = "build-v3")]
 use std::fmt::Display;
 
+#[cfg(feature = "build-v3")]
 use num_format::{Locale, ToFormattedString};
 
 pub use stork_boundary::{
@@ -23,14 +26,17 @@ pub use stork_index_v3::search as V3Search;
 #[cfg(feature = "read-v3")]
 pub use stork_index_v3::Index as V3Index;
 
+#[cfg(feature = "read-v3")]
+pub use stork_index_v3::DocumentError;
+
 #[cfg(feature = "build-v3")]
 pub use stork_index_v3::build as V3Build;
 
 #[cfg(feature = "build-v3")]
 pub use stork_index_v3::BuildResult as V3BuildResult;
 
-#[cfg(feature = "build-v3")]
-pub use stork_index_v3::{DocumentError, IndexGenerationError};
+#[cfg(feature = "read-v3")]
+pub use stork_index_v3::IndexGenerationError;
 
 use thiserror::Error;
 
