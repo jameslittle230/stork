@@ -37,20 +37,6 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
     let mut document_errors: Vec<DocumentError> = Vec::new();
     fill_intermediate_entries(config, &mut intermediate_entries, &mut document_errors)?;
 
-    if !document_errors.is_empty() {
-        eprintln!(
-            "Warning: {} error{} while indexing files. Your index was still generated, though the erroring files were omitted.",
-            document_errors.len(),
-            match document_errors.len() {
-                1 => "",
-                _ => "s",
-            }
-        )
-    }
-    for error in &document_errors {
-        eprintln!("{}", &error);
-    }
-
     if intermediate_entries.is_empty() {
         return Err(IndexGenerationError::NoValidFiles);
     }

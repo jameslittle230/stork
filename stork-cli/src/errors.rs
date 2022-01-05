@@ -31,6 +31,9 @@ pub enum StorkCommandLineError {
     #[error("{0}")]
     SearchError(#[from] SearchError),
 
+    #[error("Couldn't display search results as JSON. Got error `{0}`")]
+    SearchResultJsonSerializationError(#[from] serde_json::Error),
+
     #[error("`{0}`")]
     InvalidCommandLineArguments(&'static str),
 }

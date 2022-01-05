@@ -49,7 +49,6 @@ impl TryFrom<&str> for Config {
                 if let Some((mut toml_line, mut toml_col)) = toml_error.line_col() {
                     toml_line += 1;
                     toml_col += 1;
-                    dbg!(toml_line, toml_col, json_error.line(), json_error.column());
                     if toml_line > json_error.line()
                         || (toml_line == json_error.line() && toml_col > json_error.column())
                     {

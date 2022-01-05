@@ -6,6 +6,7 @@ mod clap;
 mod display_timings;
 mod errors;
 mod io;
+mod pretty_print_search_results;
 mod test_server;
 
 use crate::clap::app;
@@ -14,6 +15,7 @@ use io::{read_bytes_from_path, read_from_path, write_bytes};
 use ::clap::ArgMatches;
 use errors::StorkCommandLineError;
 use num_format::{Locale, ToFormattedString};
+use pretty_print_search_results::pretty_print_search_results;
 use stork_lib::{build_index, get_output_filename_from_old_style_config, search};
 
 pub type ExitCode = i32;
@@ -96,15 +98,14 @@ fn build_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdRes
 
     let end_time = Instant::now();
 
-    eprint!("{}", build_output.description);
-
     eprintln!(
-        "Index built, {} bytes written to {}.",
-        bytes_written.to_formatted_string(&Locale::en),
-        output_path,
+        "{} Index built successfully, wrote {} bytes.",
+        "Success:".green().to_string(),
+        bytes_written.to_formatted_string(&Locale::en)
     );
+    eprintln!("{}", build_output.description);
 
-    if global_matches.is_present("timing") {
+    if submatches.is_present("timing") {
         eprintln!(
             "{}",
             display_timings![
@@ -132,9 +133,24 @@ fn search_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdRe
 
     let end_time = Instant::now();
 
-    println!("{}", serde_json::to_string_pretty(&results).unwrap());
-
-    if global_matches.is_present("timing") {
+    match submatches.value_of("format") {
+        Some("json") => {
+            match serde_json::to_string_pretty(&results).map_err(StorkCommandLineError::from) {
+                Ok(json) => println!("{}", json),
+                Err(error) => {
+                    return Err(error);
+                }
+            }
+        }
+        Some("pretty") => {
+            println!("{}", pretty_print_search_results(&results));
+        }
+        _ => {
+            let _ = app().print_help();
+            return Ok(());
+        }
+    }
+    if submatches.is_present("timing") {
         eprintln!(
             "{}",
             display_timings![
