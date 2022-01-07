@@ -41,6 +41,7 @@ if __name__ == "__main__":
         {"filename": "stork.wasm", "contentType": "application/wasm"},
         {"filename": "basic.css", "contentType": "text/css"},
         {"filename": "dark.css", "contentType": "text/css"},
+        {"filename": "flat.css", "contentType": "text/css"},
     ]
 
     binaries = [
