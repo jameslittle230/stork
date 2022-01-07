@@ -5,10 +5,12 @@ body:not(.stork-multitheme),
   --stork-input-shadow: 0;
   --stork-results-shadow: 0;
   --stork-results-border-color: hsl(0, 0%, 80%);
+  --stork-input-border-radius: 2em;
 }
 
 body:not(.stork-multitheme) .stork-close-button,
 .stork-wrapper-flat .stork-close-button {
+  margin: 0.6em;
   border-radius: 50%;
   background: hsla(0, 0%, 80%, 1);
   border: none;
@@ -18,7 +20,6 @@ body:not(.stork-multitheme) .stork-close-button,
 body:not(.stork-multitheme) .stork-close-button svg,
 .stork-wrapper-flat .stork-close-button svg {
   width: 0.6em;
-  top: 2px;
 }
 
 body:not(.stork-multitheme) .stork-close-button:hover,

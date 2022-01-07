@@ -136,7 +136,7 @@ export class EntityDom {
       'Powered by <a href="https://stork-search.net">Stork</a>';
 
     this.elements.closeButton.innerHTML = `
-<svg width="18px" height="18px" viewBox="0 0 23 24" xmlns="http://www.w3.org/2000/svg">
+<svg height="0.8em" viewBox="0 0 23 24" xmlns="http://www.w3.org/2000/svg">
 <g fill="none" fill-rule="evenodd" stroke-linecap="round">
 <g transform="translate(-700 -149)" stroke="currentcolor" stroke-width="4">
 <line id="a" x1="702.5" x2="720" y1="152.5" y2="170"/>
