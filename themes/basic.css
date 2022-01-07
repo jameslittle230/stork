@@ -3,7 +3,7 @@
   --stork-background-color: hsla(0, 0%, 97%, 1);
   --stork-font-family: inherit;
   --stork-size-multiplier: 1;
-  --stork-accent-color: hsl(210, 72%, 45%);
+  --stork-accent-color: #339af0;
 
   --stork-input-width: 100%;
   --stork-input-border-radius: 8px;
@@ -13,10 +13,10 @@
   --stork-results-width: 100%;
   --stork-results-border-radius: 4px;
   --stork-results-shadow: 1;
-  --stork-results-hover-color: hsl(210, 65%, 75%);
-  --stork-results-title-color: black;
-  --stork-results-excerpt-color: black;
-  --stork-results-highlight-color: rgb(245, 230, 26);
+  --stork-results-hover-color: #a5d8ff;
+  --stork-results-title-color: #343a40;
+  --stork-results-excerpt-color: #212529;
+  --stork-results-highlight-color: #ffec99;
   --stork-results-border-color: var(--stork-border-color);
 }
 
@@ -40,7 +40,7 @@
   padding: 0.4em 0.8em;
   position: relative;
   box-shadow: inset 0 0.1em 0.3em
-    hsla(0, 0%, 0%, calc(var(--stork-input-shadow) * 0.25));
+    hsla(0, 0%, 0%, calc(var(--stork-input-shadow) * 0.1));
   border: 1px solid var(--stork-border-color);
   border-radius: var(--stork-input-border-radius);
   background-color: var(--stork-background-color);
@@ -83,13 +83,13 @@
 
 .stork-output-visible {
   border: 1px solid var(--stork-border-color);
-  box-shadow: 0px 0px 2.2px
-      rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.02)),
-    0px 0px 5.3px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.028)),
-    0px 0px 10px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.035)),
-    0px 0px 17.9px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.042)),
-    0px 0px 33.4px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.05)),
-    0px 0px 80px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.07));
+  box-shadow: 0px 0.4px 2.2px
+      rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.011)),
+    0px 1px 5.3px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.016)),
+    0px 1.9px 10px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.02)),
+    0px 3.4px 17.9px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.024)),
+    0px 6.2px 33.4px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.029)),
+    0px 15px 80px rgba(0, 0, 0, calc(var(--stork-results-shadow) * 0.04));
   background: var(--stork-background-color);
 }
 
@@ -108,18 +108,16 @@
 
 .stork-results {
   margin: 0;
-  padding: 0.25em 0;
+  padding: 0;
   width: 100%;
   list-style-type: none;
   max-height: 25em;
   overflow-y: scroll;
   border-top: 1px solid var(--stork-border-color);
   border-bottom: 1px solid var(--stork-border-color);
-  box-shadow: inset 0em 0.7em 0.7em -0.7em hsla(0, 0%, 0%, calc(var(
-              --stork-results-shadow
-            ) * 0.34)),
-    inset 0em -0.7em 0.7em -0.7em
-      hsl(0, 0%, 0%, calc(var(--stork-results-shadow) * 0.34));
+  /* prettier-ignore */
+  box-shadow: inset 0em 0.7em 0.2em -0.5em hsla(0, 0%, 0%, calc(var(--stork-results-shadow) * 0.08))
+    inset 0em -0.7em 0.2em -0.5em hsla(0, 0%, 0%, calc(var(--stork-results-shadow) * 0.08));
 }
 
 .stork-result:not(:last-child) {
@@ -173,25 +171,25 @@
 }
 
 .stork-error {
-  outline: 2px solid hsl(0, 89%, 46%);
+  outline: 2px solid #c92a2a;
 }
 
 .stork-close-button {
   position: absolute;
-  bottom: 0;
+  /* bottom: 0; */
   right: 0;
-  margin: 0.3em 0.4em;
-  height: 1.5em;
-  width: 1.5em;
+  margin: 0.7em 0.6em;
+  height: 1.2em;
+  width: 1.2em;
   padding: 0px;
   background: linear-gradient(
     to bottom,
     hsl(0, 0%, 85%) 0%,
-    hsl(0, 0%, 75%) 100%
+    hsl(0, 0%, 83%) 100%
   );
-  border: 1px solid hsla(0, 0%, 50%, 0.8);
-  font-size: 1.1em;
-  color: hsl(0, 0%, 45%);
+  border: 1px solid hsla(0, 0%, 50%, 0.3);
+  font-size: 1em;
+  color: hsl(0, 0%, 50%);
   border-radius: 15%;
   line-height: 1;
 }
@@ -203,7 +201,7 @@
 }
 
 .stork-close-button:hover {
-  background: hsla(0, 0%, 70%);
+  background: hsla(0, 0%, 78%);
   cursor: pointer;
 }
 

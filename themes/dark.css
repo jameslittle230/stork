@@ -2,17 +2,17 @@
 
 body:not(.stork-multitheme),
 .stork-wrapper-dark {
-  --stork-border-color: hsl(0, 0%, 36%);
-  --stork-background-color: hsl(0, 0%, 22%);
-  --stork-accent-color: hsl(194, 90%, 53%);
+  --stork-border-color: #495057;
+  --stork-background-color: #343a40;
+  --stork-accent-color: #be4bdb;
 
-  --stork-input-text-color: white;
+  --stork-input-text-color: #f1f3f5;
 
-  --stork-results-hover-color: hsl(210, 83%, 16%);
-  --stork-results-title-color: white;
-  --stork-results-excerpt-color: hsla(0, 0%, 80%, 1);
-  --stork-results-highlight-color: rgb(94, 201, 186);
-  --stork-results-border-color: hsl(0, 0%, 30%);
+  --stork-results-hover-color: #862e9c;
+  --stork-results-title-color: #f8f9fa;
+  --stork-results-excerpt-color: #dee2e6;
+  --stork-results-highlight-color: #a9e34b;
+  --stork-results-border-color: #495057;
 }
 
 body:not(.stork-multitheme) .stork-close-button,
@@ -20,7 +20,7 @@ body:not(.stork-multitheme) .stork-close-button,
   background: linear-gradient(
     to bottom,
     hsl(0, 0%, 60%) 0%,
-    hsl(0, 0%, 50%) 100%
+    hsl(0, 0%, 55%) 100%
   );
   border: 1px solid hsla(0, 0%, 50%, 0.8);
   color: hsl(0, 0%, 25%);
@@ -28,7 +28,7 @@ body:not(.stork-multitheme) .stork-close-button,
 
 body:not(.stork-multitheme) .stork-close-button:hover,
 .stork-wrapper-dark .stork-close-button:hover {
-  background: hsla(0, 0%, 45%);
+  background: hsla(0, 0%, 50%);
   cursor: pointer;
 }
 

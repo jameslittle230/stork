@@ -28,9 +28,9 @@ fn main() {
     let app_matches = app().get_matches();
 
     let result = match app_matches.subcommand() {
-        ("build", Some(submatches)) => build_handler(submatches, &app_matches),
-        ("search", Some(submatches)) => search_handler(submatches, &app_matches),
-        ("test", Some(submatches)) => test_handler(submatches, &app_matches),
+        ("build", Some(submatches)) => build_handler(submatches),
+        ("search", Some(submatches)) => search_handler(submatches),
+        ("test", Some(submatches)) => test_handler(submatches),
 
         // Delete when releasing 2.0.0
         (_, _) => {
@@ -53,7 +53,7 @@ fn main() {
                     let itr = vec!["stork", "build", "--input", config_path, "--output", &output_path];
                     let global_matches = app().get_matches_from(itr);
                     let submatches = global_matches.subcommand_matches("build").unwrap();
-                    build_handler(submatches, &global_matches)
+                    build_handler(submatches)
                 };
                 wrapper()
             } else if let Some(values_iter) = app_matches.values_of("search") {
@@ -63,13 +63,13 @@ fn main() {
                     "stork", "search", "--input", values[0], "--query", values[1],
                 ]);
                 let submatches = global_matches.subcommand_matches("search").unwrap();
-                search_handler(submatches, &global_matches)
+                search_handler(submatches)
             } else if let Some(input_file) = app_matches.value_of("test") {
                 print_nudging_string("test");
                 let global_matches =
                     app().get_matches_from(vec!["stork", "test", "--input", input_file]);
                 let submatches = global_matches.subcommand_matches("search").unwrap();
-                test_handler(submatches, &global_matches)
+                test_handler(submatches)
             } else {
                 let _ = app().print_help();
                 Ok(())
@@ -83,7 +83,7 @@ fn main() {
     }
 }
 
-fn build_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdResult {
+fn build_handler(submatches: &ArgMatches) -> CmdResult {
     let start_time = Instant::now();
 
     let config_path = submatches.value_of("config").unwrap();
@@ -119,7 +119,7 @@ fn build_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdRes
     Ok(())
 }
 
-fn search_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdResult {
+fn search_handler(submatches: &ArgMatches) -> CmdResult {
     let start_time = Instant::now();
 
     let path = submatches.value_of("index").unwrap();
@@ -164,7 +164,7 @@ fn search_handler(submatches: &ArgMatches, global_matches: &ArgMatches) -> CmdRe
     Ok(())
 }
 
-fn test_handler(submatches: &ArgMatches, _global_matches: &ArgMatches) -> CmdResult {
+fn test_handler(submatches: &ArgMatches) -> CmdResult {
     let port_string = submatches.value_of("port").unwrap();
     let port = port_string
         .parse()
