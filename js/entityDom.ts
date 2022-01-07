@@ -231,6 +231,14 @@ export class EntityDom {
           }
         });
 
+        listItem.addEventListener("mouseleave", () => {
+          if (this.hoverSelectEnabled) {
+            if (i === this.highlightedResult) {
+              this.changeHighlightedResult({ to: -1, shouldScrollTo: false });
+            }
+          }
+        });
+
         listItem.addEventListener("click", e => {
           e.preventDefault();
           this.selectResult();
@@ -267,7 +275,7 @@ export class EntityDom {
     const previousValue = this.highlightedResult;
 
     const resolvedIdx = Math.max(
-      0,
+      -1, // `to` will be -1 if we want to clear the highlight
       Math.min(this.entity.results.length - 1, options.to)
     );
 
@@ -293,7 +301,6 @@ export class EntityDom {
       }
     }
 
-    // using options.by as a proxy for keyboard selection
     if (options.shouldScrollTo) {
       this.hoverSelectEnabled = false;
       if (targetForScrollTo) {
