@@ -156,13 +156,32 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                 TitleBoost::Ridiculous => 5000,
             };
 
-        let score = excerpts.first().map_or(0, |first| first.score) + title_boost_modifier;
+        // Sort each result by a sum of an exponental backoff of its excerpts' scores.
+        // This more evenly weights a single high score excerpt vs multiple low score excerpts.
+        let result_score = {
+            let mut sorted_excerpt_scores: Vec<usize> = excerpts.iter().map(|e| e.score).collect();
+            sorted_excerpt_scores.sort();
+
+            let sum = sorted_excerpt_scores
+                .into_iter()
+                .enumerate()
+                .map(|(index, score)| {
+                    let excerpt_score = score as f32 * 2f32.powf(1f32 / (index + 1) as f32);
+                    dbg!(index, score as f32, excerpt_score);
+                    excerpt_score.round() as usize
+                })
+                .sum::<usize>();
+
+            sum + title_boost_modifier
+        };
+
+        // let score = excerpts.first().map_or(0, |first| first.score) + title_boost_modifier;
 
         Result {
             entry: BoundaryEntry::from(entry),
             excerpts,
             title_highlight_ranges,
-            score,
+            score: result_score,
         }
     }
 }
