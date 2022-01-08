@@ -162,20 +162,19 @@ impl From<EntryAndIntermediateExcerpts> for Result {
             let mut sorted_excerpt_scores: Vec<usize> = excerpts.iter().map(|e| e.score).collect();
             sorted_excerpt_scores.sort();
 
-            let sum = sorted_excerpt_scores
+            let sum: usize = sorted_excerpt_scores
                 .into_iter()
                 .enumerate()
                 .map(|(index, score)| {
-                    let excerpt_score = score as f32 * 2f32.powf(1f32 / (index + 1) as f32);
-                    dbg!(index, score as f32, excerpt_score);
-                    excerpt_score.round() as usize
+                    let score = score as f32;
+                    let index = index as f32;
+                    let excerpt_score = score * 2f32.powf(1f32 / (index + 1f32)); // index + 1 to avoid ÷0 errors
+                    excerpt_score as usize
                 })
-                .sum::<usize>();
+                .sum();
 
             sum + title_boost_modifier
         };
-
-        // let score = excerpts.first().map_or(0, |first| first.score) + title_boost_modifier;
 
         Result {
             entry: BoundaryEntry::from(entry),
@@ -189,6 +188,65 @@ impl From<EntryAndIntermediateExcerpts> for Result {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn result_with_multiple_excerpts_sorts_higher_than_result_with_single() {
+        let multiple_excerpts = EntryAndIntermediateExcerpts {
+            entry: Entry {
+                contents: "".to_string(),
+                title: "The quick brown fox jumps over the lazy dog".to_string(),
+                url: String::default(),
+                fields: HashMap::default(),
+            },
+            config: PassthroughConfig::default(),
+            intermediate_excerpts: vec![
+                IntermediateExcerpt {
+                    query: "over".to_string(),
+                    entry_index: 0,
+                    score: 128,
+                    source: WordListSource::Title,
+                    word_index: 3,
+                    internal_annotations: Vec::default(),
+                    fields: HashMap::default(),
+                },
+                IntermediateExcerpt {
+                    query: "brown".to_string(),
+                    entry_index: 0,
+                    score: 128,
+                    source: WordListSource::Title,
+                    word_index: 2,
+                    internal_annotations: Vec::default(),
+                    fields: HashMap::default(),
+                },
+            ],
+        };
+
+        let single_excerpt = EntryAndIntermediateExcerpts {
+            entry: Entry {
+                contents: "".to_string(),
+                title: "The quick brown fox jumps over the lazy dog".to_string(),
+                url: String::default(),
+                fields: HashMap::default(),
+            },
+            config: PassthroughConfig::default(),
+            intermediate_excerpts: vec![IntermediateExcerpt {
+                query: "over".to_string(),
+                entry_index: 0,
+                score: 128,
+                source: WordListSource::Title,
+                word_index: 3,
+                internal_annotations: Vec::default(),
+                fields: HashMap::default(),
+            }],
+        };
+
+        let result_multiple_excerpts = Result::from(multiple_excerpts);
+        assert_eq!(result_multiple_excerpts.score, 150);
+
+        let result_single_excerpt = Result::from(single_excerpt);
+        assert_eq!(result_single_excerpt.score, 75);
+    }
 
     #[test]
     fn title_highlight_ranges_are_sorted() {
