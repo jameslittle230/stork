@@ -7,6 +7,7 @@
 ### New Features
 
 - Configuration files can now be in JSON format, in addition to TOML format
+- The web library now takes the number of occurrences in each file into account when ordering search results.
 - CLI: The `--json` flag for the `search` subcommand is now deprecated, as it did nothing in previous versions of Stork.
 - CLI: A new command line option for the `search` subcommand, `--format <VALUE>`, now determines how search results will be displayed in the terminal. The default value is `json`, which will display the search results in the JSON format understood by the browser module. A new value, `pretty`, will format the search results in a readable, understandable way. In the 2.0.0 Stork release, `pretty` will be the default value for this flag.
 
