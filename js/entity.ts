@@ -37,6 +37,18 @@ export class Entity {
 
   public set state(value: EntityState) {
     this._state = value;
+
+    // The user can enter a query while the index is being registered
+    if (this._state == "ready") {
+      const query = this.domManager?.getQuery();
+      if (query && query != "") {
+        this.performSearch(query);
+      } else {
+        this.render();
+      }
+      return
+    }
+
     this.render();
   }
 

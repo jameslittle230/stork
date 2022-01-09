@@ -72,3 +72,16 @@ test("Errored download calls render with an error", () => {
   expect(lastCall.state).toEqual("error");
   expect(lastCall.message.toLowerCase()).toContain("error");
 });
+
+test("Changing entity state to ready with a prefilled input performs a search", () => {
+  const entity = new Entity("test", "https://google.com", defaultConfig);
+  jest.spyOn(entity, "performSearch");
+
+  const entityDomWithPrefilledQuery = {
+    getQuery: () => "not empty"
+  };
+
+  entity.domManager = entityDomWithPrefilledQuery as any;
+  entity.state = "ready";
+  expect(entity.performSearch as jest.Mock).toHaveBeenCalledTimes(1);
+});
