@@ -43,10 +43,8 @@ export class Entity {
       const query = this.domManager?.getQuery();
       if (query && query != "") {
         this.performSearch(query);
-      } else {
-        this.render();
+        return
       }
-      return
     }
 
     this.render();
