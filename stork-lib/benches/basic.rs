@@ -9,7 +9,7 @@ fn config_from_path(path: &str) -> Config {
 }
 
 fn build_federalist(c: &mut Criterion) {
-    let config = config_from_path("./test-assets/federalist.toml");
+    let config = config_from_path("./benches/federalist.toml");
 
     let mut group = c.benchmark_group("build");
     group.measurement_time(Duration::from_secs(12));
@@ -20,7 +20,7 @@ fn build_federalist(c: &mut Criterion) {
 }
 
 fn search_federalist_for_liberty(c: &mut Criterion) {
-    let config = config_from_path("./test-assets/federalist.toml");
+    let config = config_from_path("./benches/federalist.toml");
     let index = stork_lib::V3Build(&config).unwrap().index;
 
     let mut group = c.benchmark_group("search/federalist");

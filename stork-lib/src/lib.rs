@@ -62,6 +62,9 @@ pub enum ParsedIndex {
 
     #[cfg(feature = "read-v3")]
     V3(V3Index),
+
+    #[cfg(not(any(feature = "read-v2", feature = "read-v3")))]
+    Unknown,
 }
 
 impl ParsedIndex {
@@ -75,6 +78,11 @@ impl ParsedIndex {
             #[cfg(feature = "read-v3")]
             ParsedIndex::V3(_) => IndexMetadata {
                 index_version: "stork-3".to_string(),
+            },
+
+            #[cfg(not(any(feature = "read-v2", feature = "read-v3")))]
+            ParsedIndex::Unknown => IndexMetadata {
+                index_version: "unknown".to_string(),
             },
         }
     }
@@ -111,6 +119,7 @@ pub enum BuildError {
     IndexGenerationError(#[from] IndexGenerationError),
 }
 
+#[cfg(feature = "read-v3")]
 #[derive(Debug)]
 pub struct IndexDescription {
     pub entries_count: usize,
@@ -153,13 +162,14 @@ impl Display for IndexDescription {
     }
 }
 
+#[cfg(feature = "build-v3")]
 pub struct BuildOutput {
     pub bytes: Bytes,
     pub description: IndexDescription,
 }
 
 #[cfg(not(feature = "build-v3"))]
-pub fn build_index(_config: &str) -> Result<(IndexDescription, Bytes), BuildError> {
+pub fn build_index(_config: &str) -> Result<(), BuildError> {
     Err(BuildError::BinaryNotBuiltWithFeature)
 }
 

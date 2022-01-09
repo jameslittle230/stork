@@ -24,6 +24,13 @@ pub const EXIT_FAILURE: ExitCode = 1;
 
 type CmdResult = Result<(), StorkCommandLineError>;
 
+#[cfg(not(feature = "build-v3"))]
+fn main() {
+    eprintln!("This binary requires the `build-v3` feature to be enabled.");
+    exit(EXIT_FAILURE);
+}
+
+#[cfg(feature = "build-v3")]
 fn main() {
     let app_matches = app().get_matches();
 

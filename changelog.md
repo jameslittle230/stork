@@ -2,7 +2,7 @@
 
 ## v1.4.0
 
-[DATE TBD](https://github.com/jameslittle230/stork/releases/tag/v1.4.0)
+[Jan 9, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.0)
 
 ### New Features
 
