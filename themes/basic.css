@@ -71,11 +71,6 @@
   border-right-width: calc(var(--stork-input-border-radius) + 0.5rem);
 }
 
-.stork-wrapper-dark .stork-progress {
-  mix-blend-mode: hard-light;
-  filter: brightness(0.75);
-}
-
 .stork-output {
   position: absolute;
   width: var(--stork-results-width);
