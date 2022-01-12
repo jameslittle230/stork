@@ -1,0 +1,40 @@
+[package]
+name = "stork-lib"
+version = "1.2.1"
+authors = ["James Little <littleguy23@gmail.com>"]
+edition = "2021"
+documentation = "https://stork-search.net/docs"
+homepage = "https://stork-search.net"
+description = "Impossibly fast web search, made for static sites."
+repository = "https://github.com/jameslittle230/stork"
+license = "Apache-2.0"
+keywords = ["wasm", "webassembly", "search", "javascript"]
+categories = ["wasm"]
+exclude = ['/dist/', 'node_modules/', '/test/', '/test-assets/']
+
+[features]
+default = ["build-v3"]
+read-v2 = ["stork-index-v2"]
+read-v3 = ["stork-index-v3"]
+build-v3 = ["read-v3", "stork-index-v3/build-local"]
+build-v3-web-scraping = ["build-v3", "stork-index-v3/build-web-scraping"]
+
+[dependencies]
+bytes = "1.1.0"
+colored = { version = "2.0.0" } # colored console output
+console_error_panic_hook = { version = "0.1.6", optional = true }
+num-format = "0.4.0"
+serde = { version = "1.0", features = ["derive"] }
+stork-boundary = { path = "../stork-boundary" }
+stork-config = { path = "../stork-config" }
+stork-index-v2 = { path = "../stork-index-v2", optional = true, default-features = false }
+stork-index-v3 = { path = "../stork-index-v3", optional = true, default-features = false }
+stork-shared = { path = "../stork-shared" }
+thiserror = "1.0.29"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "basic"
+harness = false

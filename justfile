@@ -7,11 +7,13 @@ _yarn:
 
 
 
+_js-test: build-wasm _yarn
+    yarn jest --coverage
 
-
-test: _yarn
+_rust-test:
     cargo test
-    yarn jest
+
+test: _js-test _rust-test
 
 format: _yarn
     cargo fmt
@@ -36,25 +38,19 @@ super-clean: clean
 
 
 
-
-
-fetch-federalist-corpus:
-    rm -rf local-dev/test-corpora/federalist
-    git clone git@github.com:jameslittle230/federalist.git local-dev/test-corpora/federalist
-
-fetch-3b1b-corpus:
-    @echo "fetch-3b1b-corpus WIP"
+fetch-test-corpora:
+    git submodule init
+    git submodule update
 
 solo-build-federalist-index:
-    cargo run --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
+    cargo run -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
 
-build-federalist-index: build-indexer-dev fetch-federalist-corpus solo-build-federalist-index
+build-federalist-index: build-indexer-dev fetch-test-corpora solo-build-federalist-index
 
-build-all-indexes: build-federalist-index fetch-3b1b-corpus
+build-all-indexes: build-federalist-index
     -cargo run -q --all-features -- build --input local-dev/test-configs/3b1b.toml           --output local-dev/test-indexes/3b1b.st
     -cargo run -q --all-features -- build --input local-dev/test-configs/beepboop.toml       --output local-dev/test-indexes/beepboop.st
     -cargo run -q --all-features -- build --input local-dev/test-configs/bowdoin-orient.toml --output local-dev/test-indexes/bowdoin-orient.st
-    -cargo run -q --all-features -- build --input local-dev/test-configs/web-pages.toml      --output local-dev/test-indexes/web-pages.st
 
 
 
@@ -67,7 +63,12 @@ build-indexer:
     cargo build --release --all-features
 
 build-wasm:
-    wasm-pack build --target web --out-name stork -- --no-default-features
+    cd stork-wasm && wasm-pack build --target web --out-name stork -- --no-default-features --features="v3"
+    wc -c < ./stork-wasm/pkg/stork_bg.wasm
+
+build-wasm-all-features:
+    cd stork-wasm && wasm-pack build --target web --out-name stork -- --features="v2, v3"
+    wc -c < ./stork-wasm/pkg/stork_bg.wasm
 
 solo-build-js:
     yarn webpack --config webpack.prod.js
@@ -86,7 +87,7 @@ build-indexer-dev:
     cargo build --all-features
 
 build-wasm-dev:
-    wasm-pack build --target web --out-name stork --dev -- --no-default-features
+    cd stork-wasm && wasm-pack build --target web --out-name stork --dev -- --no-default-features --features="v3"
 
 solo-build-js-dev:
     yarn webpack --config webpack.dev.js

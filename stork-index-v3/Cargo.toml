@@ -1,0 +1,31 @@
+[package]
+name = "stork-index-v3"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+build-local = []
+build-web-scraping = ['reqwest']
+
+[dependencies]
+bytes = "1.1.0"
+frontmatter = "0.4.0"
+indicatif = "0.16.2"
+kuchiki = "0.8.1"
+markdown = "0.3.0"
+mime = "0.3.16"
+reqwest = { version = "0.11", features = ["blocking", "json"], optional = true }
+rmp-serde = "0.15.5"
+rust-stemmers = "1.2.0"
+serde = { version = "1.0.130", features = ["derive"] }
+smart-default = "0.6.0"
+srtparse = "0.2.0"
+stork-boundary = { path = "../stork-boundary" }
+stork-config = { path = "../stork-config" }
+stork-shared = { path = "../stork-shared" }
+thiserror = "1.0.29"
+unicode-segmentation = "1.8.0"
+
+[dev-dependencies]
+serde_json = "1.0.68"
+pretty_assertions = "1.0.0"

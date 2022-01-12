@@ -136,7 +136,7 @@ export class EntityDom {
       'Powered by <a href="https://stork-search.net">Stork</a>';
 
     this.elements.closeButton.innerHTML = `
-<svg width="18px" height="18px" viewBox="0 0 23 24" xmlns="http://www.w3.org/2000/svg">
+<svg height="0.8em" viewBox="0 0 23 24" xmlns="http://www.w3.org/2000/svg">
 <g fill="none" fill-rule="evenodd" stroke-linecap="round">
 <g transform="translate(-700 -149)" stroke="currentcolor" stroke-width="4">
 <line id="a" x1="702.5" x2="720" y1="152.5" y2="170"/>
@@ -231,6 +231,14 @@ export class EntityDom {
           }
         });
 
+        listItem.addEventListener("mouseleave", () => {
+          if (this.hoverSelectEnabled) {
+            if (i === this.highlightedResult) {
+              this.changeHighlightedResult({ to: -1, shouldScrollTo: false });
+            }
+          }
+        });
+
         listItem.addEventListener("click", e => {
           e.preventDefault();
           this.selectResult();
@@ -267,7 +275,7 @@ export class EntityDom {
     const previousValue = this.highlightedResult;
 
     const resolvedIdx = Math.max(
-      0,
+      -1, // `to` will be -1 if we want to clear the highlight
       Math.min(this.entity.results.length - 1, options.to)
     );
 
@@ -293,7 +301,6 @@ export class EntityDom {
       }
     }
 
-    // using options.by as a proxy for keyboard selection
     if (options.shouldScrollTo) {
       this.hoverSelectEnabled = false;
       if (targetForScrollTo) {

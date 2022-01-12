@@ -29,7 +29,7 @@ module.exports = {
       [
         path.resolve(__dirname, "dist"),
         {
-          from: path.resolve(__dirname, "pkg", "stork_bg.wasm"),
+          from: path.resolve(__dirname, "stork-wasm", "pkg", "stork_bg.wasm"),
           to: "stork.wasm"
         }
       ],

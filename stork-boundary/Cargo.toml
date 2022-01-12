@@ -1,0 +1,14 @@
+[package]
+name = "stork-boundary"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bytes = "1.1.0"
+serde = { version = "1.0.130", features = ["derive"] }
+stork-shared = { path = "../stork-shared" }
+thiserror = "1.0.29"
+
+[dev-dependencies]
+hex-literal = "0.3.3"
+pretty_assertions = "1.0.0"
