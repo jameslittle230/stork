@@ -36,3 +36,9 @@ body:not(.stork-multitheme) .stork-close-button:active,
 .stork-wrapper-dark .stork-close-button:active {
   background: hsla(0, 0%, 40%);
 }
+
+body:not(.stork-multitheme) .stork-progress,
+.stork-wrapper-dark .stork-progress {
+  mix-blend-mode: hard-light;
+  filter: brightness(0.75);
+}
