@@ -1,0 +1,44 @@
+@import url(https://files.stork-search.net/basic.css);
+
+body:not(.stork-multitheme),
+.stork-wrapper-dark {
+  --stork-border-color: hsl(0, 0%, 36%);
+  --stork-background-color: hsl(0, 0%, 22%);
+  --stork-accent-color: hsl(194, 90%, 53%);
+
+  --stork-input-text-color: white;
+
+  --stork-results-hover-color: hsl(210, 83%, 16%);
+  --stork-results-title-color: white;
+  --stork-results-excerpt-color: hsla(0, 0%, 80%, 1);
+  --stork-results-highlight-color: rgb(94, 201, 186);
+  --stork-results-border-color: hsl(0, 0%, 30%);
+}
+
+body:not(.stork-multitheme) .stork-close-button,
+.stork-wrapper-dark .stork-close-button {
+  background: linear-gradient(
+    to bottom,
+    hsl(0, 0%, 60%) 0%,
+    hsl(0, 0%, 50%) 100%
+  );
+  border: 1px solid hsla(0, 0%, 50%, 0.8);
+  color: hsl(0, 0%, 25%);
+}
+
+body:not(.stork-multitheme) .stork-close-button:hover,
+.stork-wrapper-dark .stork-close-button:hover {
+  background: hsla(0, 0%, 45%);
+  cursor: pointer;
+}
+
+body:not(.stork-multitheme) .stork-close-button:active,
+.stork-wrapper-dark .stork-close-button:active {
+  background: hsla(0, 0%, 40%);
+}
+
+body:not(.stork-multitheme) .stork-progress,
+.stork-wrapper-dark .stork-progress {
+  mix-blend-mode: hard-light;
+  filter: brightness(0.75);
+}
