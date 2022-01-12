@@ -1,7 +1,7 @@
 @import url(https://files.stork-search.net/basic.css);
 
 body:not(.stork-multitheme),
-.stork-wrapper-dark {
+.stork-wrapper-edible-dark {
   --stork-border-color: hsl(0, 0%, 36%);
   --stork-background-color: hsl(0, 0%, 22%);
   --stork-accent-color: hsl(194, 90%, 53%);
@@ -16,7 +16,7 @@ body:not(.stork-multitheme),
 }
 
 body:not(.stork-multitheme) .stork-close-button,
-.stork-wrapper-dark .stork-close-button {
+.stork-wrapper-edible-dark .stork-close-button {
   background: linear-gradient(
     to bottom,
     hsl(0, 0%, 60%) 0%,
@@ -27,18 +27,18 @@ body:not(.stork-multitheme) .stork-close-button,
 }
 
 body:not(.stork-multitheme) .stork-close-button:hover,
-.stork-wrapper-dark .stork-close-button:hover {
+.stork-wrapper-edible-dark .stork-close-button:hover {
   background: hsla(0, 0%, 45%);
   cursor: pointer;
 }
 
 body:not(.stork-multitheme) .stork-close-button:active,
-.stork-wrapper-dark .stork-close-button:active {
+.stork-wrapper-edible-dark .stork-close-button:active {
   background: hsla(0, 0%, 40%);
 }
 
 body:not(.stork-multitheme) .stork-progress,
-.stork-wrapper-dark .stork-progress {
+.stork-wrapper-edible-dark .stork-progress {
   mix-blend-mode: hard-light;
   filter: brightness(0.75);
 }
