@@ -1,33 +1,183 @@
-@import url(https://files.stork-search.net/basic.css);
-
-body:not(.stork-multitheme),
 .stork-wrapper-flat {
-  --stork-input-shadow: 0;
-  --stork-results-shadow: 0;
-  --stork-results-border-color: hsl(0, 0%, 80%);
-  --stork-input-border-radius: 2em;
+  position: relative;
+  font-family: inherit;
+  box-sizing: border-box;
+  font-size: 1em;
+
+  --stork-blue-2: #a5d8ff;
+  --stork-blue-3: #74c0fc;
+  --stork-blue-4: #4dabf7;
+  --stork-blue-5: #339af0;
+  --stork-blue-7: #1c7ed6;
+  --stork-gray-8: #343a40;
+  --stork-gray-9: #212529;
+  --stork-yellow-2: #ffec99;
+
+  --stork-border-color: hsl(0, 0%, 80%);
+  --stork-background-color: hsla(0, 0%, 97%);
+  --stork-text-color: var(--stork-gray-9);
 }
 
-body:not(.stork-multitheme) .stork-close-button,
+.stork-wrapper-flat *,
+.stork-wrapper-flat *:before,
+.stork-wrapper-flat *:after {
+  box-sizing: border-box;
+}
+
+.stork-wrapper-flat .stork-input {
+  width: 100%;
+  height: 2.4em;
+  font-size: 1em;
+  padding: 0.4em 0.8em;
+  position: relative;
+  border: 2px solid var(--stork-border-color);
+  border-radius: 2.4em;
+  background-color: var(--stork-background-color);
+  color: var(--stork-text-color);
+  font-family: inherit;
+}
+
+.stork-wrapper-flat .stork-input:focus {
+  outline: none;
+}
+
+.stork-wrapper-flat .stork-progress {
+  position: absolute;
+  display: block;
+  content: "";
+  bottom: 1px;
+  background-color: var(--stork-blue-5);
+  box-shadow: 0 0 8px var(--stork-blue-4);
+  height: 1px;
+  transition: width 0.25s ease, opacity 0.4s ease 0.4s;
+}
+
+.stork-wrapper-flat .stork-output {
+  position: absolute;
+  width: 100%;
+  margin-top: 0.5em;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  color: var(--stork-text-color);
+  font-weight: 400;
+  font-family: inherit;
+}
+
+.stork-wrapper-flat .stork-attribution a:link,
+.stork-wrapper-flat .stork-attribution a:visited {
+  color: var(--stork-blue-7);
+}
+
+.stork-wrapper-flat .stork-output-visible {
+  border: 2px solid var(--stork-border-color);
+  background: var(--stork-background-color);
+}
+
+.stork-wrapper-flat .stork-message {
+  width: 100%;
+  padding: 0.5em 1em;
+  color: var(--stork-text-color);
+}
+
+.stork-wrapper-flat .stork-attribution {
+  width: 100%;
+  padding: 0.5em 1em;
+  font-size: 0.8em;
+  color: var(--stork-text-color);
+}
+
+.stork-wrapper-flat .stork-results {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  list-style-type: none;
+  max-height: 25em;
+  overflow-y: scroll;
+  border-top: 1px solid var(--stork-border-color);
+  border-bottom: 1px solid var(--stork-border-color);
+}
+
+.stork-wrapper-flat .stork-result:not(:last-child) {
+  border-bottom: 1px solid var(--stork-border-color);
+}
+
+.stork-wrapper-flat .stork-result.selected {
+  background: var(--stork-blue-2);
+}
+
+.stork-wrapper-flat .stork-result a:link {
+  padding: 1em;
+  display: block;
+  color: currentcolor;
+  text-decoration: none;
+}
+
+.stork-wrapper-flat .stork-result p {
+  margin: 0;
+}
+
+.stork-wrapper-flat .stork-title {
+  font-weight: bold;
+  font-size: 0.95em;
+  margin: 0 0 0.75em 0;
+  color: var(--stork-text-color);
+
+  /* Flexbox container for the title and the score, when debugging */
+  display: flex;
+  justify-content: space-between;
+}
+
+.stork-wrapper-flat .stork-excerpt {
+  font-size: 0.8em;
+  line-height: 1;
+  margin: 0;
+  color: var(--stork-gray-8);
+
+  /* Flexbox container for the title and the score, when debugging */
+  display: flex;
+  justify-content: space-between;
+}
+
+.stork-wrapper-flat .stork-excerpt:not(:last-of-type) {
+  margin-bottom: 0.6em;
+}
+
+.stork-wrapper-flat .stork-highlight {
+  background-color: var(--stork-yellow-2);
+  padding: 0 0.1em;
+}
+
+.stork-wrapper-flat .stork-error {
+  outline: 2px solid #c92a2a;
+}
+
 .stork-wrapper-flat .stork-close-button {
-  margin: 0.6em;
+  position: absolute;
+  right: 0;
+  margin: 0.5em 0.5em;
+  height: 1.4em;
+  width: 1.4em;
+  padding: 0px;
+  background: hsl(0, 0%, 85%);
+  border: 1px solid hsla(0, 0%, 70%);
+  font-size: 1em;
+  color: hsl(0, 0%, 50%);
   border-radius: 50%;
-  background: hsla(0, 0%, 80%, 1);
-  border: none;
-  color: hsl(0, 0%, 40%);
+  line-height: 1;
 }
 
-body:not(.stork-multitheme) .stork-close-button svg,
 .stork-wrapper-flat .stork-close-button svg {
-  width: 0.6em;
+  width: 11px;
+  height: 11px;
 }
 
-body:not(.stork-multitheme) .stork-close-button:hover,
 .stork-wrapper-flat .stork-close-button:hover {
-  background: hsla(0, 0%, 70%, 1);
+  background: hsla(0, 0%, 78%);
+  cursor: pointer;
 }
 
-body:not(.stork-multitheme) .stork-close-button:active,
 .stork-wrapper-flat .stork-close-button:active {
-  background: hsla(0, 0%, 60%, 1);
+  background: hsla(0, 0%, 65%);
 }
