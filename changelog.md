@@ -6,7 +6,7 @@
 
 ### Important Changes
 
-- Starting with 1.4.0, no files will be uploaded to the root of the `files.stork-search.net` CDN. You will need to upgrade your `<script>` tags and `<link rel="stylesheet">` tags.
+- Starting with 1.4.0, the JS, CSS, and WASM files at the root of the `files.stork-search.net` CDN will no longer be updated. From this release going forward, you will need to change your `<script>` tags and `<link rel="stylesheet">` tags to upgrade to a new version of Stork. See [this Github announcement](https://github.com/jameslittle230/stork/discussions/238) for more details.
 
 ### New Features
 
