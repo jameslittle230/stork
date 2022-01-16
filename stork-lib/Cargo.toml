@@ -1,6 +1,6 @@
 [package]
 name = "stork-lib"
-version = "1.2.1"
+version = "1.4.0"
 authors = ["James Little <littleguy23@gmail.com>"]
 edition = "2021"
 documentation = "https://stork-search.net/docs"
@@ -13,11 +13,14 @@ categories = ["wasm"]
 exclude = ['/dist/', 'node_modules/', '/test/', '/test-assets/']
 
 [features]
-default = ["build-v3"]
-read-v2 = ["stork-index-v2"]
-read-v3 = ["stork-index-v3"]
-build-v3 = ["read-v3", "stork-index-v3/build-local"]
-build-v3-web-scraping = ["build-v3", "stork-index-v3/build-web-scraping"]
+default = ["build-index-v3"]
+read-index-v2 = ["stork-index-v2"]
+read-index-v3 = ["stork-index-v3"]
+build-index-v3 = ["read-index-v3", "stork-index-v3/build-local"]
+build-index-v3-web-scraping = [
+    "build-index-v3",
+    "stork-index-v3/build-web-scraping"
+]
 
 [dependencies]
 bytes = "1.1.0"

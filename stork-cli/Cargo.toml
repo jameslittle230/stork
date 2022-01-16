@@ -4,12 +4,20 @@ version = "1.4.0"
 edition = "2021"
 
 [features]
-default = ["v1-compat", "read-v2", "read-v3", "build-v3-web-scraping"]
+default = [
+    "v1-compat",
+    "read-index-v2",
+    "read-index-v3",
+    "build-index-v3-web-scraping"
+]
 v1-compat = []
-read-v2 = ["stork-lib/read-v2"]
-read-v3 = ["stork-lib/read-v3"]
-build-v3 = ["stork-lib/build-v3"]
-build-v3-web-scraping = ["stork-lib/build-v3-web-scraping"]
+read-index-v2 = ["stork-lib/read-index-v2"]
+read-index-v3 = ["stork-lib/read-index-v3"]
+build-index-v3 = ["read-index-v3", "stork-lib/build-index-v3"]
+build-index-v3-web-scraping = [
+    "build-index-v3",
+    "stork-lib/build-index-v3-web-scraping"
+]
 
 [dependencies]
 atty = "0.2.14"

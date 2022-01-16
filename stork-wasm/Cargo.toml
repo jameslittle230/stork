@@ -8,8 +8,8 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["v3"]
-v2 = ["stork-lib/read-v2"]
-v3 = ["stork-lib/read-v3"]
+v2 = ["stork-lib/read-index-v2"]
+v3 = ["stork-lib/read-index-v3"]
 
 [dependencies]
 console_error_panic_hook = "0.1.6"

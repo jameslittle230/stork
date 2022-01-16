@@ -1,10 +1,10 @@
 use bytes::Bytes;
 use std::convert::TryFrom;
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 use std::fmt::Display;
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 use num_format::{Locale, ToFormattedString};
 
 pub use stork_boundary::{
@@ -14,28 +14,28 @@ pub use stork_boundary::{
 use stork_config::Config;
 use stork_config::ConfigReadError;
 
-#[cfg(feature = "read-v2")]
+#[cfg(feature = "read-index-v2")]
 pub use stork_index_v2::search as V2Search;
 
-#[cfg(feature = "read-v2")]
+#[cfg(feature = "read-index-v2")]
 pub use stork_index_v2::Index as V2Index;
 
-#[cfg(feature = "read-v3")]
+#[cfg(feature = "read-index-v3")]
 pub use stork_index_v3::search as V3Search;
 
-#[cfg(feature = "read-v3")]
+#[cfg(feature = "read-index-v3")]
 pub use stork_index_v3::Index as V3Index;
 
-#[cfg(feature = "read-v3")]
+#[cfg(feature = "read-index-v3")]
 pub use stork_index_v3::DocumentError;
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 pub use stork_index_v3::build as V3Build;
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 pub use stork_index_v3::BuildResult as V3BuildResult;
 
-#[cfg(feature = "read-v3")]
+#[cfg(feature = "read-index-v3")]
 pub use stork_index_v3::IndexGenerationError;
 
 use thiserror::Error;
@@ -57,30 +57,30 @@ pub enum IndexParseError {
 
 #[derive(Debug)]
 pub enum ParsedIndex {
-    #[cfg(feature = "read-v2")]
+    #[cfg(feature = "read-index-v2")]
     V2(V2Index),
 
-    #[cfg(feature = "read-v3")]
+    #[cfg(feature = "read-index-v3")]
     V3(V3Index),
 
-    #[cfg(not(any(feature = "read-v2", feature = "read-v3")))]
+    #[cfg(not(any(feature = "read-index-v2", feature = "read-index-v3")))]
     Unknown,
 }
 
 impl ParsedIndex {
     pub fn get_metadata(&self) -> IndexMetadata {
         match self {
-            #[cfg(feature = "read-v2")]
+            #[cfg(feature = "read-index-v2")]
             ParsedIndex::V2(_) => IndexMetadata {
                 index_version: "stork-2".to_string(),
             },
 
-            #[cfg(feature = "read-v3")]
+            #[cfg(feature = "read-index-v3")]
             ParsedIndex::V3(_) => IndexMetadata {
                 index_version: "stork-3".to_string(),
             },
 
-            #[cfg(not(any(feature = "read-v2", feature = "read-v3")))]
+            #[cfg(not(any(feature = "read-index-v2", feature = "read-index-v3")))]
             ParsedIndex::Unknown => IndexMetadata {
                 index_version: "unknown".to_string(),
             },
@@ -93,12 +93,12 @@ pub fn index_from_bytes(bytes: Bytes) -> Result<ParsedIndex, IndexParseError> {
     let versioned = VersionedIndex::try_from(bytes)?;
 
     match versioned {
-        #[cfg(feature = "read-v2")]
+        #[cfg(feature = "read-index-v2")]
         VersionedIndex::V2(bytes) => V2Index::try_from(bytes)
             .map_err(|e| IndexParseError::V2Error(e.to_string()))
             .map(ParsedIndex::V2),
 
-        #[cfg(feature = "read-v3")]
+        #[cfg(feature = "read-index-v3")]
         VersionedIndex::V3(bytes) => V3Index::try_from(bytes)
             .map_err(|e| IndexParseError::V3Error(e.to_string()))
             .map(ParsedIndex::V3),
@@ -115,11 +115,11 @@ pub enum BuildError {
     BinaryNotBuiltWithFeature,
 
     #[error("{0}")]
-    #[cfg(feature = "build-v3")]
+    #[cfg(feature = "build-index-v3")]
     IndexGenerationError(#[from] IndexGenerationError),
 }
 
-#[cfg(feature = "read-v3")]
+#[cfg(feature = "read-index-v3")]
 #[derive(Debug)]
 pub struct IndexDescription {
     pub entries_count: usize,
@@ -128,7 +128,7 @@ pub struct IndexDescription {
     pub warnings: Vec<DocumentError>,
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 impl From<&V3BuildResult> for IndexDescription {
     fn from(build_result: &V3BuildResult) -> Self {
         Self {
@@ -140,7 +140,7 @@ impl From<&V3BuildResult> for IndexDescription {
     }
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 impl Display for IndexDescription {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
@@ -162,18 +162,18 @@ impl Display for IndexDescription {
     }
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 pub struct BuildOutput {
     pub bytes: Bytes,
     pub description: IndexDescription,
 }
 
-#[cfg(not(feature = "build-v3"))]
+#[cfg(not(feature = "build-index-v3"))]
 pub fn build_index(_config: &str) -> Result<(), BuildError> {
     Err(BuildError::BinaryNotBuiltWithFeature)
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build-index-v3")]
 pub fn build_index(config: &str) -> Result<BuildOutput, BuildError> {
     let config = Config::try_from(config)?;
     let result = V3Build(&config)?;
@@ -197,10 +197,10 @@ pub fn search(index: Bytes, query: &str) -> Result<Output, SearchError> {
 
     #[allow(unreachable_patterns)]
     match index {
-        #[cfg(feature = "read-v3")]
+        #[cfg(feature = "read-index-v3")]
         ParsedIndex::V3(index) => Ok(V3Search(&index, query)),
 
-        #[cfg(feature = "read-v2")]
+        #[cfg(feature = "read-index-v2")]
         ParsedIndex::V2(index) => Ok(V2Search(&index, query)),
 
         _ => Err(SearchError::IndexVersionNotSupported),

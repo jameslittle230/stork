@@ -1697,7 +1697,7 @@ dependencies = [
 
 [[package]]
 name = "stork-lib"
-version = "1.2.1"
+version = "1.4.0"
 dependencies = [
  "bytes",
  "colored",
