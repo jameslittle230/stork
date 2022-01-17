@@ -117,7 +117,7 @@ jobs:
           use-tool-cache: true
 
       - name: Build WASM
-        run: wasm-pack build --target web --out-name stork  -- --no-default-features # just build-wasm
+        run: cd stork-wasm && wasm-pack build --target web --out-name stork -- --no-default-features --features="v3" # just build-wasm
 
       - run: yarn install
 
