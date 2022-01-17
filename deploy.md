@@ -26,10 +26,11 @@
 - [ ] Check that the demo the site's Netlify preview works. If not, abort the release and debug.
 - [ ] Add the changelog to the Github release, and publish it
 - [ ] Create an Amazon Linux binary. Upload it to the CDN and to the Github release.
+  - [ ] Run `cargo build --release --no-default-features --features=build-index-v3` from the amazon-linux build machine
 - [ ] Merge the PR you made on [the documentation site](https://github.com/stork-search/site)
 - [ ] Update Homebrew
   - [ ] Generate a new brewfile based on the Github-generated tarball:
-    - [ ] `$ rm /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula/stork.rb`
+    - [ ] `$ rm /opt/homebrew/Library/Taps/homebrew/homebrew-core/Formula/stork.rb` on my computer
     - [ ] `$ brew create https://github.com/jameslittle230/stork/archive/vX.Y.Z.tar.gz`
   - [ ] Manually update the URL and SHA in the [Homebrew formula file](https://github.com/jameslittle230/homebrew-stork-tap/blob/master/Formula/stork.rb)
 - [ ] Run `$ cargo publish`
