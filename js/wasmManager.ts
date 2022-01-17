@@ -1,8 +1,8 @@
 import init from "stork-search";
 
-const version = null; // process.env.VERSION
+const version = process.env.VERSION;
 const DEFAULT_WASM_URL = version
-  ? `https://files.stork-search.net/stork-${version}.wasm`
+  ? `https://files.stork-search.net/releases/v${version}/stork.wasm`
   : `https://files.stork-search.net/stork.wasm`;
 
 let wasmSourceUrl: string | null = null; // only for debug output
