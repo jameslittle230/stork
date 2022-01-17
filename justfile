@@ -40,7 +40,7 @@ super-clean: clean
 
 fetch-test-corpora:
     git submodule init
-    git submodule update
+    git submodule update -f
 
 solo-build-federalist-index:
     cargo run -q --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
@@ -124,6 +124,6 @@ upload ref="":
 bench bench_name="":
     cargo criterion --package stork-lib --plotting-backend=disabled --message-format=json {{bench_name}}
 
-generate-stats: build-js solo-build-federalist-index
+generate-stats: build-js build-federalist-index
     python3 scripts/generate_stats.py
     

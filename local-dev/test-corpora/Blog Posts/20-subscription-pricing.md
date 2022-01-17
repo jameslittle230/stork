@@ -1,0 +1,17 @@
+---
+title:  "The Sneaky Ubiquitousness of Subscription Pricing"
+date:   2021-05-25
+layout: post
+tags: post
+blurb: "Every purchase is subscription pricing if you squint hard enough. This isn't a bad thing."
+---
+
+Apple released subscription plans for in-app purchases a few years ago, which opened the door for a lot of new and existing apps to move their payment plan to a subscription model. This happened to be roughly the same time in my life as when I started wanting to (and being able to) pay for more of the software I used, and, over a relatively short timespan, the subscription dam burst. A few bucks per year for 1Password. A lot of bucks per year for Adobe's stuff. All the streaming services have their own subscription. Then came Patreon. Online courses. According to my spreadsheet, I spend lots of money each month!
+
+I am young enough (and my parents shielded me enough) to have not thought about subscriptions in everyday life, like the cable plan or the cellphone plan my family subscribed to. I grew up thinking about spending money as a finite set of one-off transactions. Buy a thing, get a thing. But the subscription dam burst for me with App Store in-app subscriptions, and I started thinking about what it means to spend money on a recurring basis to get (and then, eventually, maintain) access to something, or to support people who build things, or both. It seems like a lot!
+
+But is it? Context is important, and if you're comparing subscriptions to one-off purchases, then the subscription will always be more expensive. But my theory is that _more things in life fit under the subscription model than the one-time purchase model than we'd care to admit._ When I buy a car, I'm required to also buy an $XX/month subscription for gas and insurance if I want to use the thing. If I decide to lease a car, I've effectively turned it into a subscription model. I spend a good amount of money each week on groceries. Every utilities bill is a subscription payment. 
+
+But the car purchase itself is a subscription, since that car isn't going to last forever. If you get a new one, you've effectively signed yourself up for a different kind of subscription: one with longer periodicity, higher per-period costs, and sometimes less predictability. If you've ever bought something to replace something else, the amount you spent back in the day can be amortized over the life of the thing you're replacing, and you've modeled your spending as a subscription payment (and the clock starts over for the new thing you just bought). If you replace your car every 10 years, you're effectively signing up for a $208/mo subscription service, assuming you buy a $25k car each time. The only way you get out of it is if you don't replace the things you buy, you either stay content with the things you have for the rest of your life, you barter really well, or you don't replace the things you own. Suddenly, spending $5 each month to make sure the Technology Connections guy can keep doing his thing doesn't seem so ridiculous anymore. The sticker shock just isn't there when it's compared against the car thing.
+
+I guess this came up because I saw someone on the internet railing against subscription software. I've watched subscriptions bring out pettiness in people on the internet for the past ten-plus years, and as I've realized that I can blur my vision and see _everything_ as a subscription, I'm less and less empathetic to people who declare that they "have a fundamental aversion to subscription pricing."

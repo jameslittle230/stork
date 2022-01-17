@@ -4,3 +4,4 @@
 [submodule "local-dev/test-corpora/3b1b"]
 	path = local-dev/test-corpora/3b1b
 	url = https://github.com/stork-search/3b1b
+	branch = main

@@ -1,0 +1,58 @@
+---
+title:  "Stork Turns One: Building a search tool for static sites with Rust and WebAssembly"
+date:   2020-12-27
+layout: post
+tags: post
+blurb: "Stork, my web search side project, is launching publicly after one year of development. This post describes the goals I took on while building it and how I got from idea to release."
+---
+
+Just before the holidays, I launched version 1.0.0 of [Stork](https://stork-search.net/), the web search library I’ve been building for just over a year. Stork is a tool for building dynamic, responsive, and native full-text search interfaces—usually only possible with a SaaS product or a web server—that can be added to static, serverless web pages. It’s free, open-source, and build-system-agnostic. It’s one of the tools I wish I had when I was starting to build websites.
+
+<div class="note">
+    <p>If you want to try a demo or read the documentation, visit Stork’s website: <a href="https://stork-search.net">https://stork-search.net</a>.</p>
+</div>
+
+Working on Stork has changed how I’ve interacted with the web development community. Stork is only successful if the people who use it find it useful and delightful. Over the past few months, I’ve pushed myself outside my comfort zone and connected with other web developers to ensure that that’s the case. For the first time, I’ve gotten to talk with people from across the internet who seemed excited about the tool I’ve built, and I’ve been able to contribute back to the web development community, an online community of creatives that has shaped how I use technology.
+
+I built Stork because I thought it should exist, but in fact, **Stork was a project I didn’t know I was capable of building until I had already built it.** A year ago, I had no experience with full-text search, with Rust or Webassembly—the two technologies that power Stork—or with open-source contribution. In this essay, I want to describe how I approached the first year of building Stork. First, I’ll describe why I built it; then, I’ll expound on full-text search and what a serverless search plugin brings to the web; finally, I’ll tell you why I’m excited for the next few years of Stork.
+
+## The Web is an Organism that We All Built Together.
+
+It’s hard to remember which came first: the idea for Stork, or my desire to build something (anything!) for the web development community. Web development is the corner of programming where I feel most comfortable, since it seems to foster an environment of unbounded creativity—inherent to the internet, it seems, is the idea of giving something to others. **The languages that power the web are powerful, but verbose, and this verbosity means that developers are strongly encouraged to use community-built tools to speed up their development.** Therefore, the creativity sparked by the web platform is not just first-order creativity—in the content that gets published—but also second-order creativity—in the [open source](https://www.arp242.net/open-source.html) tools that are used to publish and enhance that content. The presence, ubiquity, and power of these tools makes the web development experience a communal one instead of a solo endeavor.
+
+Without the web, I wouldn’t be a programmer, and without the tools and resources that the web development community has built, I wouldn’t have started building websites. Regrettably, I’ve found it easy to forget about the community members who have built the tools that got me into web development. It’s only recently (mostly by following folks on Twitter) that I’ve discovered the humanity and individuality of the people who build the tools I use. That discovery fueled me to create something, and eventually, that something became Stork. When I started building Stork, I wanted to create something useful to give back to the web development community, from whom I had taken so much.
+
+## Finding an Unfilled Niche
+
+Working on a college newspaper and watching the editors struggle to dig old articles out of the digital archives turned me onto the idea of a search experience optimized for specific domains. The web technologies available to replace the newspaper’s custom Google search were either too expensive or too finicky, and I realized I had stumbled across a niche that seemingly didn’t have anything filling it: easy-configuration full-text web search. I theorized that sticking to client-side technologies would simplify the integration experience drastically—I didn’t want to set up another search server, so I assumed other people wouldn’t either. I then theorized that client-side full-text search didn’t exist because the technology that could power it was very new.
+
+Around that time, Rust’s WebAssembly support had been drastically improved and increasingly publicized. I had recently listened to [Marco Arment discuss his implementation of full-text search on an episode of Under the Radar](https://www.relay.fm/radar/141), and Chris Coyier had recently published his [Serverless](https://serverless.css-tricks.com/) microsite. I was lost in wondering what a Jamstack search experience would entail. I realized that with the right algorithm, I could build a tool in Rust that generated a heavily-compressed search index where the results were precomputed for any valid query, and where I could use the speed of WebAssembly to parse and search through that index on the client. It was around this time that I started talking about the idea (not yet named Stork) at work and online, and met some friends—[Suz Hinton](https://twitter.com/noopkat), [Matthias Endler](https://twitter.com/matthiasendler), and [Andrew Healey](https://twitter.com/healeycodes)—who were excited about the project, graciously let me bounce ideas off of them, and encouraged me to share my work more widely (to them and to others I’ve talked to: I’m incredibly grateful for your feedback, support, and friendship).
+
+## Search is a Hard Problem to Solve
+
+The first few months of Stork, I spent time proving out the idea, but in transitioning Stork from a tech demo into a product, I had to find a suitable balance between building algorithmic excellency and building an intuitive experience. **I strongly believe that in this stage of Stork’s development the product must be polished before the algorithm is.** The speed and the search results can be “good enough” in the first years of the product, but if Stork gives off a bad first impression, then nobody will use it. This is the philosophy I brought to the first year of Stork’s development.
+
+The early versions of Stork used [Readme-driven development](https://tom.preston-werner.com/2010/08/23/readme-driven-development.html) almost religiously. Before the search algorithm worked, I was building a Javascript API, building server infrastructure, and building the first search interface theme. **I wrote Stork’s user-facing documentation, then made sure I wasn’t building a tool more complicated than the documentation allowed.** I became obsessed with concisely describing the two steps of working with Stork: first building an index from a corpus, then loading that index into a webpage using the Stork Javascript library.
+
+Splitting up those two steps into user-visible actions is endemic to Stork’s operation. Stork tries to front-load as much of the work as possible, precomputing search results so that the client only performs a few lookups to build its results. Today, Stork’s indexer parses documents and builds a hash-table that maps words and prefixes to their character offsets within a document. The client—the WebAssembly executable—looks up each word in the user’s query, combines the results, and uses those offsets to display excerpts from the document, giving users context for each of their search results (by necessity, each Stork index must carry the full text of every document in the index). This strategy creates search indexes that are unfortunately large, but I maintain that the resulting experience makes the tradeoff worth it.
+
+Any full-text search algorithm involves two main pieces of functionality. First, the entire set of entries must be filtered to only those that match the search query. Second, the remaining entries must be sorted so that the most “relevant” entries are listed first. Stork’s prefix map handles the filtering, and I’ve built a rudimentary sorting algorithm that takes word-closeness, presence of queries in titles, and exact-vs-partial-match details into account—it works well in the inputs I’ve tried. Improving this ordering algorithm has taken a significant portion of Stork’s development, and most of the code I’ve deleted and rewritten has come in the form of overarching improvements to the relevance ordering. I’ve learned about [stop words](https://en.wikipedia.org/wiki/Stop_word)—words like “the,” “it,” and “and” which must be indexed but heavily devalued, about how to correctly normalize both corpus input and search input so that Power⎵ matches power, about [stemming](https://en.wikipedia.org/wiki/Stemming) algorithms that let me match tries in an index to try in a query, and I’ve watched search results improve as I incorporate each of these enhancements into Stork’s search algorithm.
+
+## Stork’s Next Steps
+
+As I said before, I released the latest version of Stork as version 1.0.0. With this, I hope to signal Stork’s prime-time readiness and present Stork as a feature-rich project that’s ready for wider scrutiny. This is a Stork that I’m proud of and that I want to contribute to the web development community.
+
+In encountering different open-source projects, I’ve tried to pluck the features I feel have helped me the most. The landing page contains a demo, the current version number, and working sample code (three things that an unfortunate number of landing pages seem to omit). I’ve published the project’s roadmap, and I encourage feature requests and bug reports on Github. Most importantly, though, I’m writing about Stork with a human touch, with the hope that the people who interact with the project can better recognize that there’s a coder behind the code.
+
+I’m actively looking for people to try Stork in their own site and give me feedback. It might not be there yet (though it might be for you!), but I believe that Stork can be an easy, flexible solution to anyone who wants to implement web search, and I’m excited to put in the work to make it so. That said, Stork is far from complete. My scratchpad is pages long[^2], and I plan to continue building features and enhancements for a while. As I see it, Stork will be useful until it’s irrelevant, and will be relevant until people stop building Jamstack-based sites. I’m also banking on the community to help me: feature requests, bug reports, and other communication has already helped Stork become a better tool, and I’m excited to see what further contributions the community will add to Stork.
+
+If you’re interested in learning more about Stork, here are some links:
+
+*   The project’s page, including a demo: <https://stork-search.net>
+*   The project on Github: <https://github.com/jameslittle230/stork>
+
+---
+
+*Thanks to [Julian Lehr](https://twitter.com/lehrjulian) and [Ben Guo](https://twitter.com/bgdotjpg) for reviewing early versions of this post.*
+
+[^2]: Features I’m excited to build include: 1) mutating index files from the command line instead of creating a new one, 2) fetching documents from the web, and 3) using web workers so that the WASM computation doesn’t crush the main thread.

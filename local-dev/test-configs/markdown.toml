@@ -1,0 +1,28 @@
+[input]
+base_directory = "local-dev/test-corpora/Blog Posts"
+url_prefix = "https://www.gutenberg.org/files/1404/1404-h/1404-h.htm#link2H_4_"
+files = [
+    { path = "1-rss-decentralized-web.md", url = "1-rss-decentralized-web.md", title = "1-rss-decentralized-web.md" },
+    { path = "2-learning-making.md", url = "2-learning-making.md", title = "2-learning-making.md" },
+    { path = "3-developing-deploying-orient.md", url = "3-developing-deploying-orient.md", title = "3-developing-deploying-orient.md" },
+    { path = "4-tensorflow-object-detection.md", url = "4-tensorflow-object-detection.md", title = "4-tensorflow-object-detection.md" },
+    { path = "5-bowdoin-article.md", url = "5-bowdoin-article.md", title = "5-bowdoin-article.md" },
+    { path = "6-next.md", url = "6-next.md", title = "6-next.md" },
+    { path = "7-cors-1.md", url = "7-cors-1.md", title = "7-cors-1.md" },
+    { path = "8-cors-debug.md", url = "8-cors-debug.md", title = "8-cors-debug.md" },
+    { path = "9-nas.md", url = "9-nas.md", title = "9-nas.md" },
+    { path = "10-splitt-postmortem.md", url = "10-splitt-postmortem.md", title = "10-splitt-postmortem.md" },
+    { path = "11-money-stuff.md", url = "11-money-stuff.md", title = "11-money-stuff.md" },
+    { path = "12-css-grid-wish.md", url = "12-css-grid-wish.md", title = "12-css-grid-wish.md" },
+    { path = "13-about-the-guestbook.md", url = "13-about-the-guestbook.md", title = "13-about-the-guestbook.md" },
+    { path = "14-cmd-line-applications-appkit.md", url = "14-cmd-line-applications-appkit.md", title = "14-cmd-line-applications-appkit.md" },
+    { path = "15-len-laster.md", url = "15-len-laster.md", title = "15-len-laster.md" },
+    { path = "17-github-keys.md", url = "17-github-keys.md", title = "17-github-keys.md" },
+    { path = "18-one-year-of-stork.md", url = "18-one-year-of-stork.md", title = "18-one-year-of-stork.md" },
+    { path = "19-stork-in-the-news.md", url = "19-stork-in-the-news.md", title = "19-stork-in-the-news.md" },
+    { path = "20-subscription-pricing.md", url = "20-subscription-pricing.md", title = "20-subscription-pricing.md" },
+    { path = "21-stork-analytics.md", url = "21-stork-analytics.md", title = "21-stork-analytics.md" },
+    { path = "22-stork-and-modularity.md", url = "22-stork-and-modularity.md", title = "22-stork-and-modularity.md" },
+    { path = "23-25-at-25.md", url = "23-25-at-25.md", title = "23-25-at-25.md" },
+    { path = "24-2021-work-setup.md", url = "24-2021-work-setup.md", title = "24-2021-work-setup.md" },
+]
