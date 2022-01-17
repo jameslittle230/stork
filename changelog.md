@@ -22,6 +22,7 @@
 - Fixes a Javascript runtime bug where registered indexes weren't always reporting as ready
 - Fixes a crash when the indexed contents contained words longer than 128 characters
 - The `--timings` flag previously did nothing. Now, when included with the `build` or `search` subcommands, timing information will be displayed at the end of the terminal output via stderr.
+- Document titles that were comprised of several words separated by hyphens would crash the search interface. This has been fixed.
 
 ## v1.3.0
 
