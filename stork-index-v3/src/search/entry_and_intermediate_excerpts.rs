@@ -348,4 +348,30 @@ mod tests {
             computed_first_word
         );
     }
+
+    #[test]
+    fn title_highlighting_works_when_title_has_no_spaces() {
+        let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
+            entry: Entry {
+                contents: "".to_string(),
+                title: "api-methods-animate".to_string(),
+                url: String::default(),
+                fields: HashMap::default(),
+            },
+            config: PassthroughConfig::default(),
+            intermediate_excerpts: vec![IntermediateExcerpt {
+                query: "anim".to_string(),
+                entry_index: 0,
+                score: 128,
+                source: WordListSource::Title,
+                word_index: 2,
+                internal_annotations: Vec::default(),
+                fields: HashMap::default(),
+            }],
+        };
+
+        let output_result = Result::from(entry_and_intermediate_excerpts);
+
+        dbg!(output_result);
+    }
 }
