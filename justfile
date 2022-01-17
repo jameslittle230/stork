@@ -111,4 +111,19 @@ serve-dev-site:
     @echo "Open http://127.0.0.1:8025"
     python3 -m http.server --directory ./local-dev-dist 8025
 
+
+
+
+
+#############################################
+# CI
+
+upload ref="":
+    python3 scripts/upload_build_artifacts.py
+
+bench bench_name="":
+    cargo criterion --package stork-lib --plotting-backend=disabled --message-format=json {{bench_name}}
+
+generate-stats: build-js solo-build-federalist-index
+    python3 scripts/generate_stats.py
     

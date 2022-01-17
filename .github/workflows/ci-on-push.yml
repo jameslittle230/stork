@@ -83,7 +83,7 @@ jobs:
       - run: cargo fmt -- --check
 
   benchmark:
-    name: Run Benchmarks
+    name: Generate benchmark statistics
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -117,6 +117,4 @@ jobs:
         with:
           crate: cargo-criterion
       
-      - run: just build-js
-      - run: just solo-build-federalist-index # Don't do the submodule dance since we did it already in the checkout action 
-      - run: python3 scripts/generate_stats.py
+      - run: just generate-stats

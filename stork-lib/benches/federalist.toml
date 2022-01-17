@@ -1,7 +1,6 @@
-# The main Federalist index configuration file. This produces the Federalist
-# search index seen on the home page of stork-search.net.
+# To be used with `cargo criterion`
 [input]
-base_directory = "../local-dev/test-corpora/federalist"
+base_directory = "./local-dev/test-corpora/federalist"
 url_prefix = "https://www.gutenberg.org/files/1404/1404-h/1404-h.htm#link2H_4_"
 files = [
     { path = "federalist-1.txt", url = "0001", title = "General Introduction" },

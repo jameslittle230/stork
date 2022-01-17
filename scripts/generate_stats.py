@@ -3,7 +3,9 @@ import sys
 import json
 import subprocess
 
-# Step 0: run `just build-js`
+# REQUIREMENTS:
+# Run `just build-js` and `just solo-build-federalist-index`
+# before running this script.
 
 # Step 1: get file sizes for various distributed files
 files = [
@@ -24,8 +26,7 @@ benchmarks = [
 for bench_name in benchmarks:
     print(f"Running benchmark for {bench_name}", file=sys.stderr)
     run_bench_cmd = subprocess.run(
-        ["cargo", "criterion", "--all-features",
-            "--message-format=json", bench_name],
+        ["just", "bench", bench_name],
         stdout=subprocess.PIPE,
         text=True
     )
