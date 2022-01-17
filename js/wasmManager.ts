@@ -1,18 +1,21 @@
 import init from "stork-search";
+import StorkError from "./storkError";
 
-const version = null; // process.env.VERSION
+const version = process.env.VERSION;
 const DEFAULT_WASM_URL = version
-  ? `https://files.stork-search.net/stork-${version}.wasm`
+  ? `https://files.stork-search.net/releases/v${version}/stork.wasm`
   : `https://files.stork-search.net/stork.wasm`;
 
 let wasmSourceUrl: string | null = null; // only for debug output
 let wasmLoadPromise: Promise<string | void> | null = null;
 
 let queue: { (): void }[] = [];
+let errorQueue: { (): void }[] = [];
 
 const loadWasm = (
   overrideUrl: string | null = null
 ): Promise<string | void> => {
+  // If there's a WASM load in flight or complete, don't try to call init again
   if (wasmLoadPromise) {
     return wasmLoadPromise;
   }
@@ -25,8 +28,9 @@ const loadWasm = (
       flush();
       return url;
     })
-    .catch(e => {
-      console.error(e);
+    .catch(() => {
+      errorFlush();
+      throw new StorkError(`Error while loading WASM at ${url}`);
     });
 
   wasmLoadPromise = p;
@@ -44,26 +48,34 @@ const loadWasm = (
  * has not been called. If loadWasm has been called, the promise will resolve
  * when the WASM has been loaded and when the function has been run.
  */
-const runAfterWasmLoaded = (fn: () => void): Promise<string | void> | null => {
+const runAfterWasmLoaded = (
+  fn: () => void,
+  err: () => void
+): Promise<string | void> | null => {
   if (!wasmLoadPromise) {
     queue.push(fn);
+    errorQueue.push(err);
     return null;
   } else {
     // We have a wasmLoadPromise, but we don't know if it's resolved.
     // Let's wait for it to resolve, then run the function.
-    wasmLoadPromise.then(() => fn());
+    wasmLoadPromise.then(() => fn()).catch(() => err());
     return wasmLoadPromise;
   }
 };
-/**
- * WASM loader should use this to signal to the queue that the WASM has been
- * loaded.
- */
+
 const flush = () => {
   queue.forEach(fn => {
     fn();
   });
   queue = [];
+};
+
+const errorFlush = () => {
+  errorQueue.forEach(fn => {
+    fn();
+  });
+  errorQueue = [];
 };
 
 const debug = (): Record<string, unknown> => ({

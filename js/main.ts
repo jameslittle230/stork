@@ -12,16 +12,9 @@ import { validateIndexParams } from "./validators/indexParamValidator";
 import { wasm_stork_version } from "stork-search";
 
 function initialize(wasmOverrideUrl: string | null = null): Promise<void> {
-  return loadWasm(wasmOverrideUrl)
-    .then(() => {
-      return;
-    })
-    .catch(() => {
-      // Send error to entity manager
-      throw new StorkError(
-        `Can't load WASM from URL ${wasmOverrideUrl || "<no url given>"}`
-      );
-    });
+  return loadWasm(wasmOverrideUrl).then(() => {
+    return;
+  });
 }
 
 function downloadIndex(name: string, url: string, config = {}): Promise<void> {
@@ -80,7 +73,7 @@ function debug(): Record<string, unknown> {
     ...wasmDebug(),
     ...entityDebug(),
     jsStorkVersion: process.env.VERSION,
-    wasmStorkVersion: wasm_stork_version()
+    wasmStorkVersion: wasm_stork_version
   };
 }
 

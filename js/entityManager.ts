@@ -35,9 +35,14 @@ const register = (
       },
 
       load: response => {
-        runAfterWasmLoaded(() => {
-          entity.registerIndex(new Uint8Array(response)).then(res).catch(rej);
-        });
+        runAfterWasmLoaded(
+          () => {
+            entity.registerIndex(new Uint8Array(response)).then(res).catch(rej);
+          },
+          () => {
+            entity.state = "error";
+          }
+        );
       },
 
       error: () => {
