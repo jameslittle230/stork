@@ -73,7 +73,7 @@ function debug(): Record<string, unknown> {
     ...wasmDebug(),
     ...entityDebug(),
     jsStorkVersion: process.env.VERSION,
-    wasmStorkVersion: wasm_stork_version()
+    wasmStorkVersion: wasm_stork_version
   };
 }
 
