@@ -131,7 +131,10 @@ impl From<EntryAndIntermediateExcerpts> for Result {
         excerpts.sort_by_key(|e| -(e.score as i16));
         excerpts.truncate(data.config.excerpts_per_result as usize);
 
-        let split_title: Vec<&str> = entry.title.split_whitespace().collect();
+        let split_title: Vec<&str> = entry
+            .title
+            .split(|c: char| c.is_ascii_whitespace() || c == '-')
+            .collect();
         let mut title_highlight_ranges: Vec<HighlightRange> = data
             .intermediate_excerpts
             .iter()
