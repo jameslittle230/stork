@@ -2,7 +2,11 @@
 
 ## v1.4.0
 
-[Jan 9, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.0)
+[Jan 16, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.0)
+
+### Important Changes
+
+- Starting with 1.4.0, the JS, CSS, and WASM files at the root of the `files.stork-search.net` CDN will no longer be updated. From this release going forward, you will need to change your `<script>` tags and `<link rel="stylesheet">` tags to upgrade to a new version of Stork. See [this Github announcement](https://github.com/jameslittle230/stork/discussions/238) for more details.
 
 ### New Features
 
@@ -10,6 +14,7 @@
 - The web library now takes the number of occurrences in each file into account when ordering search results.
 - CLI: The `--json` flag for the `search` subcommand is now deprecated, as it did nothing in previous versions of Stork.
 - CLI: A new command line option for the `search` subcommand, `--format <VALUE>`, now determines how search results will be displayed in the terminal. The default value is `json`, which will display the search results in the JSON format understood by the browser module. A new value, `pretty`, will format the search results in a readable, understandable way. In the 2.0.0 Stork release, `pretty` will be the default value for this flag.
+- Two new CSS themes, `edible` and `edible-dark`, have been added. See <https://stork-search.net/themes> for examples and instructions on how to integrate them into your project.
 
 ### Bug Fixes
 

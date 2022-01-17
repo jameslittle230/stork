@@ -1,38 +1,200 @@
-@import url(https://files.stork-search.net/basic.css);
-
-body:not(.stork-multitheme),
 .stork-wrapper-dark {
-  --stork-border-color: #495057;
-  --stork-background-color: #343a40;
-  --stork-accent-color: #be4bdb;
+  position: relative;
+  font-family: inherit;
+  box-sizing: border-box;
+  font-size: 1em;
 
-  --stork-input-text-color: #f1f3f5;
+  --stork-blue-2: #a5d8ff;
 
-  --stork-results-hover-color: #862e9c;
-  --stork-results-title-color: #f8f9fa;
-  --stork-results-excerpt-color: #dee2e6;
-  --stork-results-highlight-color: #a9e34b;
-  --stork-results-border-color: #495057;
+  --stork-violet-4: #9775fa;
+  --stork-violet-5: #845ef7;
+  --stork-violet-10: #52366d;
+
+  --stork-lime-3: #c0eb75;
+
+  --stork-gray-1: #f1f3f5;
+  --stork-gray-3: #dee2e6;
+  --stork-gray-7: #495057;
+  --stork-gray-8: #343a40;
+
+  --stork-border-color: var(--stork-gray-7);
+  --stork-background-color: var(--stork-gray-8);
+  --stork-text-color: var(--stork-gray-1);
 }
 
-body:not(.stork-multitheme) .stork-close-button,
+.stork-wrapper-dark *,
+.stork-wrapper-dark *:before,
+.stork-wrapper-dark *:after {
+  box-sizing: border-box;
+}
+
+.stork-wrapper-dark .stork-input {
+  width: 100%;
+  height: 2.4em;
+  font-size: 1em;
+  padding: 0.4em 0.8em;
+  position: relative;
+  box-shadow: inset 0 0.1em 0.3em hsla(0, 0%, 0%, 0.1);
+  border: 1px solid var(--stork-border-color);
+  border-radius: 8px;
+  background-color: var(--stork-background-color);
+  color: var(--stork-text-color);
+  font-family: inherit;
+}
+
+.stork-wrapper-dark .stork-input:focus {
+  outline: none;
+}
+
+.stork-wrapper-dark .stork-progress {
+  position: absolute;
+  display: block;
+  content: "";
+  bottom: 1px;
+  background-color: var(--stork-violet-5);
+  box-shadow: 0 0 8px var(--stork-violet-4);
+  height: 1px;
+  transition: width 0.25s ease, opacity 0.4s ease 0.4s;
+}
+
+.stork-wrapper-dark .stork-output {
+  position: absolute;
+  width: 100%;
+  margin-top: 0.5em;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  color: var(--stork-text-color);
+  font-weight: 400;
+  font-family: inherit;
+}
+
+.stork-wrapper-dark .stork-attribution a:link,
+.stork-wrapper-dark .stork-attribution a:visited {
+  color: var(--stork-blue-2);
+}
+
+.stork-wrapper-dark .stork-output-visible {
+  border: 1px solid var(--stork-border-color);
+  box-shadow: 0px 0.4px 2.2px rgba(0, 0, 0, 0.011),
+    0px 1px 5.3px rgba(0, 0, 0, 0.016), 0px 1.9px 10px rgba(0, 0, 0, 0.02),
+    0px 3.4px 17.9px rgba(0, 0, 0, 0.024), 0px 6.2px 33.4px rgba(0, 0, 0, 0.029),
+    0px 15px 80px rgba(0, 0, 0, 0.04);
+  background: var(--stork-background-color);
+}
+
+.stork-wrapper-dark .stork-message {
+  width: 100%;
+  padding: 0.5em 1em;
+  color: var(--stork-text-color);
+}
+
+.stork-wrapper-dark .stork-attribution {
+  width: 100%;
+  padding: 0.5em 1em;
+  font-size: 0.8em;
+  color: var(--stork-text-color);
+}
+
+.stork-wrapper-dark .stork-results {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  list-style-type: none;
+  max-height: 25em;
+  overflow-y: scroll;
+  border-top: 1px solid var(--stork-border-color);
+  border-bottom: 1px solid var(--stork-border-color);
+  box-shadow: inset 0em 0.7em 0.2em -0.5em hsla(0, 0%, 0%, 0.08),
+    inset 0em -0.7em 0.2em -0.5em hsla(0, 0%, 0%, 0.08);
+}
+
+.stork-wrapper-dark .stork-result:not(:last-child) {
+  border-bottom: 1px solid var(--stork-border-color);
+}
+
+.stork-wrapper-dark .stork-result.selected {
+  background: var(--stork-violet-10);
+}
+
+.stork-wrapper-dark .stork-result a:link {
+  padding: 1em;
+  display: block;
+  color: currentcolor;
+  text-decoration: none;
+}
+
+.stork-wrapper-dark .stork-result p {
+  margin: 0;
+}
+
+.stork-wrapper-dark .stork-title {
+  font-weight: bold;
+  font-size: 0.95em;
+  margin: 0 0 0.75em 0;
+  color: var(--stork-text-color);
+
+  /* Flexbox container for the title and the score, when debugging */
+  display: flex;
+  justify-content: space-between;
+}
+
+.stork-wrapper-dark .stork-excerpt {
+  font-size: 0.8em;
+  line-height: 1;
+  margin: 0;
+  color: var(--stork-gray-3);
+
+  /* Flexbox container for the title and the score, when debugging */
+  display: flex;
+  justify-content: space-between;
+}
+
+.stork-wrapper-dark .stork-excerpt:not(:last-of-type) {
+  margin-bottom: 0.6em;
+}
+
+.stork-wrapper-dark .stork-highlight {
+  background-color: var(--stork-lime-3);
+  padding: 0 0.1em;
+}
+
+.stork-wrapper-dark .stork-error {
+  outline: 2px solid #c92a2a;
+}
+
 .stork-wrapper-dark .stork-close-button {
+  position: absolute;
+  /* bottom: 0; */
+  right: 0;
+  margin: 0.7em 0.6em;
+  height: 1.2em;
+  width: 1.2em;
+  padding: 0px;
   background: linear-gradient(
     to bottom,
-    hsl(0, 0%, 60%) 0%,
-    hsl(0, 0%, 55%) 100%
+    hsl(0, 0%, 85%) 0%,
+    hsl(0, 0%, 83%) 100%
   );
-  border: 1px solid hsla(0, 0%, 50%, 0.8);
-  color: hsl(0, 0%, 25%);
+  border: 1px solid hsla(0, 0%, 50%, 0.3);
+  font-size: 1em;
+  color: hsl(0, 0%, 50%);
+  border-radius: 15%;
+  line-height: 1;
 }
 
-body:not(.stork-multitheme) .stork-close-button:hover,
+.stork-wrapper-dark .stork-close-button svg {
+  width: 0.8em;
+  position: relative;
+  top: 1px;
+}
+
 .stork-wrapper-dark .stork-close-button:hover {
-  background: hsla(0, 0%, 50%);
+  background: hsla(0, 0%, 78%);
   cursor: pointer;
 }
 
-body:not(.stork-multitheme) .stork-close-button:active,
 .stork-wrapper-dark .stork-close-button:active {
-  background: hsla(0, 0%, 40%);
+  background: hsla(0, 0%, 65%);
 }

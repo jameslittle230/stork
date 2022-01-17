@@ -43,7 +43,7 @@ fetch-test-corpora:
     git submodule update
 
 solo-build-federalist-index:
-    cargo run -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
+    cargo run -q --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
 
 build-federalist-index: build-indexer-dev fetch-test-corpora solo-build-federalist-index
 
@@ -101,9 +101,29 @@ solo-build-dev-site:
     cp local-dev/index.html local-dev-dist/
     cp dist/* local-dev-dist/
     cp local-dev/test-indexes/*.st local-dev-dist/
-    @echo "You should run ./scripts/serve.sh in another tab!"
+    @echo "You should run \`just serve-dev-site\` in another tab!"
 
 build-dev-site: build-js-dev build-all-indexes solo-build-dev-site
 
 build-dev-site-prod: build-js build-all-indexes solo-build-dev-site
+
+serve-dev-site:
+    @echo "Open http://127.0.0.1:8025"
+    python3 -m http.server --directory ./local-dev-dist 8025
+
+
+
+
+
+#############################################
+# CI
+
+upload ref="":
+    python3 scripts/upload_build_artifacts.py
+
+bench bench_name="":
+    cargo criterion --package stork-lib --plotting-backend=disabled --message-format=json {{bench_name}}
+
+generate-stats: build-js solo-build-federalist-index
+    python3 scripts/generate_stats.py
     

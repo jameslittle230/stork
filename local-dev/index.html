@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="/dark.css" />
     <link rel="stylesheet" href="/basic.css" />
     <link rel="stylesheet" href="/flat.css" />
+    <link rel="stylesheet" href="/edible.css" />
+    <link rel="stylesheet" href="/edible-dark.css" />
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>"
@@ -17,30 +19,32 @@
         flex-direction: column;
       }
 
-      .stork-wrapper {
-        margin-bottom: 3rem;
-      }
-
       .stork-output-visible {
         z-index: 200;
       }
 
+      .color-wash {
+        padding: 1em 2em 13em;
+        margin-top: 3rem;
+      }
+
       .subtitle {
         margin: 0.8em;
+        margin-top: 3rem;
         font-weight: bold;
         text-transform: uppercase;
         font-size: 0.8em;
       }
       body {
         background-color: lightgray;
-        font-family: "Inter UI", --apple-system, sans-serif;
+        font-family: --apple-system, sans-serif;
       }
     </style>
   </head>
-  <body class="stork-multitheme">
+  <body>
     <h1>Stork Test Page</h1>
     <div class="search-wrap">
-      <div class="stork-wrapper stork-wrapper-basic">
+      <div class="stork-wrapper">
         <p class="subtitle">Local index</p>
         <input
           data-stork="federalist"
@@ -50,7 +54,7 @@
         <div data-stork="federalist-output" class="stork-output"></div>
       </div>
 
-      <div class="stork-wrapper stork-wrapper-basic">
+      <div class="stork-wrapper">
         <p class="subtitle">beepboop</p>
         <input
           data-stork="beepboop"
@@ -60,7 +64,7 @@
         <div data-stork="beepboop-output" class="stork-output"></div>
       </div>
 
-      <div class="stork-wrapper stork-wrapper-basic">
+      <div class="stork-wrapper">
         <p class="subtitle">Published Index</p>
         <input
           data-stork="federalist-prod"
@@ -70,9 +74,9 @@
         <div data-stork="federalist-prod-output" class="stork-output"></div>
       </div>
 
-      <div style="background-color: #222; color: white; padding: 1em 5em 9em;">
-        <div class="stork-wrapper stork-wrapper-dark">
-          <p class="subtitle">Dark Mode!</p>
+      <div class="color-wash" style="background-color: #222; color: white;">
+        <div class="stork-wrapper-dark">
+          <p class="subtitle">Dark Theme</p>
           <input
             data-stork="federalist-dark"
             placeholder="liberty"
@@ -80,9 +84,23 @@
           />
           <div data-stork="federalist-dark-output" class="stork-output"></div>
         </div>
+
+        <div class="stork-wrapper-edible-dark">
+          <p class="subtitle">Edible Dark Theme</p>
+          <input
+            data-stork="federalist-edible-dark"
+            placeholder="liberty"
+            class="stork-input"
+          />
+          <div
+            data-stork="federalist-edible-dark-output"
+            class="stork-output"
+          ></div>
+        </div>
       </div>
-      <div class="stork-wrapper stork-wrapper-flat">
-        <p class="subtitle">Flat Mode!</p>
+
+      <div class="stork-wrapper-flat">
+        <p class="subtitle">Flat Theme</p>
         <input
           data-stork="federalist-flat"
           placeholder="liberty"
@@ -91,7 +109,17 @@
         <div data-stork="federalist-flat-output" class="stork-output"></div>
       </div>
 
-      <div class="stork-wrapper stork-wrapper">
+      <div class="stork-wrapper-edible">
+        <p class="subtitle">Edible Theme</p>
+        <input
+          data-stork="federalist-edible"
+          placeholder="liberty"
+          class="stork-input"
+        />
+        <div data-stork="federalist-edible-output" class="stork-output"></div>
+      </div>
+
+      <div class="stork-wrapper">
         <p class="subtitle">3Blue1Brown</p>
         <input
           data-stork="threeblue"
@@ -101,7 +129,7 @@
         <div data-stork="threeblue-output" class="stork-output"></div>
       </div>
 
-      <div class="stork-wrapper stork-wrapper">
+      <div class="stork-wrapper">
         <p class="subtitle">Index File Does Not Exist</p>
         <input
           data-stork="doesnotexist"
@@ -111,7 +139,7 @@
         <div data-stork="doesnotexist-output" class="stork-output"></div>
       </div>
 
-      <div class="stork-wrapper stork-wrapper">
+      <div class="stork-wrapper">
         <p class="subtitle">Output Element Doesn't Exist</p>
         <input data-stork="bad" placeholder="derivative" class="stork-input" />
         <div class="stork-output"></div>
@@ -167,6 +195,7 @@
         });
 
       stork.attach("federalist"); // hook into HTML on page
+
       window.setTimeout(() => {
         console.log("Attaching a second time...");
         stork.attach("federalist"); // hook into HTML on page
@@ -174,14 +203,19 @@
 
       stork.register("federalist-dark", "/federalist.st");
       stork.register("federalist-flat", "/federalist.st");
+      stork.register("federalist-edible", "/federalist.st");
+      stork.register("federalist-edible-dark", "/federalist.st");
+
       stork.register(
         "federalist-prod",
         "https://files.stork-search.net/federalist.st",
         { showCloseButton: false }
       );
+
       stork.register("beepboop", "/beepboop.st", {
         resultNoun: { singular: "boop", plural: "boops" }
       });
+
       stork.register("doesnotexist", "/doesNotExist.st");
       stork.register("bad", "/federalist.st");
     </script>
