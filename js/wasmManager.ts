@@ -1,4 +1,5 @@
 import init from "stork-search";
+import StorkError from "./storkError";
 
 const version = process.env.VERSION;
 const DEFAULT_WASM_URL = version
@@ -13,6 +14,7 @@ let queue: { (): void }[] = [];
 const loadWasm = (
   overrideUrl: string | null = null
 ): Promise<string | void> => {
+  // If there's a WASM load in flight or complete, don't try to call init again
   if (wasmLoadPromise) {
     return wasmLoadPromise;
   }
@@ -25,8 +27,8 @@ const loadWasm = (
       flush();
       return url;
     })
-    .catch(e => {
-      console.error(e);
+    .catch(() => {
+      throw new StorkError(`Error while loading WASM at ${url}`);
     });
 
   wasmLoadPromise = p;
