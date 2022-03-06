@@ -1,14 +1,5 @@
 [workspace]
-members = [
-    "stork-shared",
-    "stork-config",
-    "stork-boundary",
-    "stork-index-v2",
-    "stork-index-v3",
-    "stork-lib",
-    "stork-cli",
-    "stork-wasm"
-]
+members = ["stork-lib", "stork-cli", "stork-wasm"]
 
 [profile.release]
 lto = true
