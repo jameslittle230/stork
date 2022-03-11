@@ -13,7 +13,7 @@ pub fn read_stdin_bytes() -> Option<Bytes> {
 
     if atty::isnt(Stream::Stdin) {
         let mut stdin_buffer = Vec::<u8>::new();
-        let _ = io::stdin().read(&mut stdin_buffer);
+        let _ = io::stdin().read_to_end(&mut stdin_buffer);
         return Some(Bytes::from(stdin_buffer));
     }
 
@@ -21,17 +21,18 @@ pub fn read_stdin_bytes() -> Option<Bytes> {
 }
 
 pub fn read_bytes_from_path(path: &str) -> Result<Bytes, StorkCommandLineError> {
-    match (path, read_stdin_bytes()) {
-        ("-", Some(stdin)) => Ok(stdin),
-        ("-", None) => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
-        // handle ("", Some) or ("", None), perhaps
-        _ => {
-            let pathbuf = std::path::PathBuf::from(path);
-            std::fs::read(&pathbuf)
-                .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
-                .map(Bytes::from)
-        }
+    if path == "-" {
+        return match read_stdin_bytes() {
+            Some(stdin) => Ok(stdin),
+            None => Err(StorkCommandLineError::InteractiveStdinNotAllowed),
+        };
     }
+
+    // TODO: Handle path == "" case
+    let pathbuf = std::path::PathBuf::from(path);
+    std::fs::read(&pathbuf)
+        .map(Bytes::from)
+        .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
 }
 
 pub fn read_stdin() -> Option<String> {
