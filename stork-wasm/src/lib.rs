@@ -1,21 +1,7 @@
 use bytes::Bytes;
-use once_cell::sync::OnceCell;
 use serde::Serialize;
-use std::{collections::HashMap, convert::From, fmt::Display, sync::Mutex};
-use stork_boundary::{IndexMetadata, Output};
-use stork_lib::{index_from_bytes, IndexParseError, ParsedIndex, SearchError};
-
-#[cfg(feature = "v3")]
-use stork_lib::V3Search;
-
-#[cfg(feature = "v2")]
-use stork_lib::V2Search;
-
-use thiserror::Error;
+use std::{convert::From, fmt::Display};
 use wasm_bindgen::prelude::*;
-
-// We can't pass a parsed index over the WASM boundary so we store the parsed indices here
-static INDEX_CACHE: OnceCell<Mutex<HashMap<String, ParsedIndex>>> = OnceCell::new();
 
 struct JsonSerializationError {}
 
@@ -47,60 +33,17 @@ impl<T: Sized + Serialize, E: Display> From<Result<T, E>> for WasmOutput {
 
 #[wasm_bindgen]
 pub fn wasm_register_index(name: &str, data: &[u8]) -> String {
-    let data = Bytes::from(Vec::from(data)); // TODO: This seems questionable
     console_error_panic_hook::set_once();
-
-    let result_wrap = || -> Result<IndexMetadata, IndexParseError> {
-        let index = index_from_bytes(data)?;
-        let mut hashmap = INDEX_CACHE
-            .get_or_init(|| Mutex::new(HashMap::new()))
-            .lock()
-            .unwrap();
-        let metadata = index.get_metadata();
-        hashmap.insert(name.to_string(), index);
-        Ok(metadata)
-    };
-
-    WasmOutput::from(result_wrap()).0
-}
-
-#[derive(Debug, Error)]
-pub enum WasmSearchError {
-    #[error("{0}")]
-    SearchError(#[from] SearchError),
-
-    #[error("Index `{0}` has not been registered. You need to register the index before performing searches with it.")]
-    NamedIndexNotInCache(String),
+    let data = Bytes::from(Vec::from(data)); // TODO: This seems questionable
+    let result = stork_lib::register_index(name, data);
+    WasmOutput::from(result).0
 }
 
 #[wasm_bindgen]
 pub fn wasm_search(name: &str, query: &str) -> String {
     console_error_panic_hook::set_once();
-
-    let result_wrap = || -> Result<Output, WasmSearchError> {
-        let hashmap = INDEX_CACHE
-            .get_or_init(|| Mutex::new(HashMap::new()))
-            .lock()
-            .unwrap();
-
-        let index = hashmap
-            .get(name)
-            .ok_or_else(|| WasmSearchError::NamedIndexNotInCache(name.to_string()))?;
-
-        #[allow(unreachable_patterns)]
-        #[allow(clippy::match_wildcard_for_single_variants)]
-        match index {
-            #[cfg(feature = "v3")]
-            ParsedIndex::V3(index) => Ok(V3Search(index, query)),
-
-            #[cfg(feature = "v2")]
-            ParsedIndex::V2(index) => Ok(V2Search(&index, query)),
-
-            _ => Err(WasmSearchError::from(SearchError::IndexVersionNotSupported)),
-        }
-    };
-
-    WasmOutput::from(result_wrap()).0
+    let result = stork_lib::search_from_cache(name, query);
+    WasmOutput::from(result).0
 }
 
 #[wasm_bindgen]

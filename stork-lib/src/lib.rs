@@ -1,9 +1,11 @@
 use bytes::Bytes;
-use config::Config;
-use std::collections::HashMap;
+use lazy_static::lazy_static;
+use num_format::{Locale, ToFormattedString};
 use std::convert::TryFrom;
+use std::sync::Mutex;
+use std::{collections::HashMap, fmt::Display};
+use thiserror::Error;
 
-trait StorkIndex {}
 pub type Fields = HashMap<String, String>;
 
 mod output;
@@ -18,47 +20,32 @@ mod stopwords;
 use stopwords::STOPWORDS as stopwords;
 
 mod config;
+pub use config::{Config, ConfigReadError};
+
 #[cfg(feature = "search-v2")]
 mod index_v2;
 #[cfg(feature = "search-v3")]
 mod index_v3;
 
-// #[cfg(feature = "build-v3")]
-// use std::fmt::Display;
-
-// #[cfg(feature = "build-v3")]
-// use num_format::{Locale, ToFormattedString};
-
-use config::ConfigReadError;
-
 #[cfg(feature = "search-v2")]
-use index_v2::Index as IndexV2;
-
-#[cfg(feature = "search-v2")]
-use index_v2::search as V2Search;
-
-#[cfg(feature = "search-v2")]
-use index_v2::Index as V2Index;
+use {index_v2::search as V2Search, index_v2::Index as V2Index};
 
 #[cfg(feature = "search-v3")]
-use index_v3::search as V3Search;
-
-#[cfg(feature = "search-v3")]
-use index_v3::Index as V3Index;
+use {index_v3::search as V3Search, index_v3::Index as V3Index};
 
 #[cfg(feature = "search-v3")]
 pub use index_v3::DocumentError;
 
-#[cfg(feature = "build-index-v3")]
-use index_v3::build as V3Build;
+#[cfg(feature = "build-v3")]
+use {
+    index_v3::build as V3Build, index_v3::BuildResult as V3BuildResult,
+    index_v3::IndexGenerationError,
+};
 
-#[cfg(feature = "build-index-v3")]
-use index_v3::BuildResult as V3BuildResult;
-
-#[cfg(feature = "search-v3")]
-pub use index_v3::IndexGenerationError;
-
-use thiserror::Error;
+// We can't pass a parsed index over the WASM boundary so we store the parsed indices here
+lazy_static! {
+    static ref INDEX_CACHE: Mutex<HashMap<String, ParsedIndex>> = Mutex::new(HashMap::new());
+}
 
 /**
  * An error that may occur when trying to parse an index file.
@@ -138,7 +125,7 @@ pub enum BuildError {
     BinaryNotBuiltWithFeature,
 
     #[error("{0}")]
-    #[cfg(feature = "build-index-v3")]
+    #[cfg(feature = "build-v3")]
     IndexGenerationError(#[from] IndexGenerationError),
 }
 
@@ -151,7 +138,7 @@ pub struct IndexDescription {
     pub warnings: Vec<DocumentError>,
 }
 
-#[cfg(feature = "build-index-v3")]
+#[cfg(feature = "build-v3")]
 impl From<&V3BuildResult> for IndexDescription {
     fn from(build_result: &V3BuildResult) -> Self {
         Self {
@@ -163,7 +150,7 @@ impl From<&V3BuildResult> for IndexDescription {
     }
 }
 
-#[cfg(feature = "build-index-v3")]
+#[cfg(feature = "build-v3")]
 impl Display for IndexDescription {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
@@ -185,24 +172,32 @@ impl Display for IndexDescription {
     }
 }
 
-#[cfg(feature = "build-index-v3")]
+#[cfg(feature = "build-v3")]
 pub struct BuildOutput {
     pub bytes: Bytes,
     pub description: IndexDescription,
 }
 
-#[cfg(not(feature = "build-index-v3"))]
-pub fn build_index(_config: &str) -> core::result::Result<(), BuildError> {
-    Err(BuildError::BinaryNotBuiltWithFeature)
+pub fn build_index(config: &Config) -> core::result::Result<BuildOutput, BuildError> {
+    if cfg!(feature = "build-v3") {
+        let result = V3Build(config)?;
+        let description = IndexDescription::from(&result);
+        let bytes = Bytes::from(&result.index);
+        Ok(BuildOutput { bytes, description })
+    } else {
+        Err(BuildError::BinaryNotBuiltWithFeature)
+    }
 }
 
-#[cfg(feature = "build-index-v3")]
-pub fn build_index(config: &str) -> Result<BuildOutput, BuildError> {
-    let config = Config::try_from(config)?;
-    let result = V3Build(&config)?;
-    let description = IndexDescription::from(&result);
-    let bytes = Bytes::from(&result.index);
-    Ok(BuildOutput { bytes, description })
+pub fn register_index(
+    name: &str,
+    bytes: Bytes,
+) -> core::result::Result<IndexMetadata, IndexParseError> {
+    let parsed = index_from_bytes(bytes)?;
+    // todo: save deserialized index to cache
+    let metadata = parsed.get_metadata();
+    INDEX_CACHE.lock().unwrap().insert(name.to_string(), parsed);
+    Ok(metadata)
 }
 
 #[derive(Debug, Error)]
@@ -212,6 +207,30 @@ pub enum SearchError {
 
     #[error("The index is not supported. You might need to recompile Stork with a different set of features enabled.")]
     IndexVersionNotSupported,
+
+    #[error(
+        "Index `{0}` has not been registered. You need to register the index before performing searches with it."
+    )]
+    IndexNotInCache(String),
+}
+
+pub fn search_from_cache(key: &str, query: &str) -> core::result::Result<Output, SearchError> {
+    let cache = INDEX_CACHE.lock().unwrap();
+    let parsed = match cache.get(key) {
+        Some(parsed) => parsed,
+        None => return Err(SearchError::IndexNotInCache(key.to_string())),
+    };
+
+    match parsed {
+        #[cfg(feature = "search-v2")]
+        ParsedIndex::V2(index) => Ok(V2Search(index, query)),
+
+        #[cfg(feature = "search-v3")]
+        ParsedIndex::V3(index) => Ok(V3Search(index, query)),
+
+        #[cfg(not(any(feature = "search-v2", feature = "search-v3")))]
+        ParsedIndex::Unknown => Err(SearchError::IndexVersionNotSupported),
+    }
 }
 
 #[allow(unused_variables)]
@@ -228,9 +247,4 @@ pub fn search(index: Bytes, query: &str) -> core::result::Result<Output, SearchE
 
         _ => Err(SearchError::IndexVersionNotSupported),
     }
-}
-
-fn get_output_filename_from_old_style_config(config: &str) -> Option<String> {
-    let config = Config::try_from(config).ok()?;
-    config.output.UNUSED_filename
 }

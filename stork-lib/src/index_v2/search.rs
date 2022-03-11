@@ -1,10 +1,10 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-use crate::{stopwords, Excerpt, HighlightRange, IndexV2 as Index, Output, Result};
+use crate::{stopwords, Excerpt, HighlightRange, Output, Result};
 
 use super::{
-    scores::STOPWORD_SCORE, AliasTarget, Container, Entry, EntryIndex, Score, SearchResult,
+    scores::STOPWORD_SCORE, AliasTarget, Container, Entry, EntryIndex, Index, Score, SearchResult,
 };
 
 const EXCERPT_BUFFER: usize = 8;

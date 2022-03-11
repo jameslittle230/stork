@@ -1,5 +1,4 @@
 use super::Index;
-use crate::StorkIndex;
 use bytes::Bytes;
 use std::convert::{TryFrom, TryInto};
 
@@ -27,5 +26,3 @@ impl TryFrom<Bytes> for Index {
         rmp_serde::from_read_ref(value.as_ref())
     }
 }
-
-impl StorkIndex for Index {}

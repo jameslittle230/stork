@@ -14,8 +14,6 @@ type Fields = Option<HashMap<String, String>>;
 
 pub use search::search;
 
-use crate::StorkIndex;
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Entry {
     contents: String,
@@ -116,8 +114,6 @@ impl TryFrom<Bytes> for Index {
         Ok(Index { entries, queries })
     }
 }
-
-impl StorkIndex for Index {}
 
 #[cfg(test)]
 mod tests {
