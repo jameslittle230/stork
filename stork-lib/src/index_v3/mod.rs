@@ -7,22 +7,23 @@ type EntryIndex = usize;
 type AliasTarget = String;
 type Score = u8;
 
+mod read;
+mod scores;
+mod search;
+
 #[cfg(feature = "build-v3")]
 mod build;
 
 #[cfg(feature = "build-v3")]
-pub use build::{
-    build,
-    errors::{DocumentError, IndexGenerationError},
-    BuildResult,
+pub use {
+    build::{
+        build,
+        errors::{DocumentError, IndexGenerationError},
+        BuildResult,
+    },
+    scores::MATCHED_WORD_SCORE,
 };
 
-mod read;
-
-mod scores;
-use scores::MATCHED_WORD_SCORE;
-
-mod search;
 pub use search::search;
 
 use crate::config::{OutputConfig, TitleBoost};
@@ -95,6 +96,7 @@ pub struct Container {
 }
 
 impl Container {
+    #[cfg(feature = "build-v3")]
     fn new() -> Self {
         Self::default()
     }
@@ -107,6 +109,7 @@ struct SearchResult {
 }
 
 impl SearchResult {
+    #[cfg(feature = "build-v3")]
     fn new() -> SearchResult {
         SearchResult {
             excerpts: vec![],
@@ -149,6 +152,7 @@ pub struct AnnotatedWordList {
     word_list: Vec<AnnotatedWord>,
 }
 
+#[cfg(feature = "build-v3")]
 impl AnnotatedWordList {
     fn get_full_text(&self) -> String {
         self.word_list
