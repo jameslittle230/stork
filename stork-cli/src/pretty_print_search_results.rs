@@ -61,7 +61,7 @@ mod tests {
     #[test]
     fn display_pretty_search_results_given_output() {
         let results = Output {
-            results: vec![stork_lib::StorkResult {
+            results: vec![stork_lib::Result {
                 entry: stork_lib::Entry {
                     title: "Some Document Title".to_string(),
                     url: "https://example.com".to_string(),

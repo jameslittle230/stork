@@ -1,9 +1,12 @@
 use std::{io, num::ParseIntError};
-use stork_lib::{BuildError, IndexParseError, SearchError};
+use stork_lib::{BuildError, ConfigReadError, IndexParseError, SearchError};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum StorkCommandLineError {
+    #[error("Couldn't read the configuration file: {0}")]
+    ConfigReadError(#[from] ConfigReadError),
+
     #[error("Couldn't read file `{0}`. Got error `{1}`")]
     FileReadError(String, io::Error),
 

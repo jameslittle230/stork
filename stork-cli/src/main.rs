@@ -16,7 +16,7 @@ use ::clap::ArgMatches;
 use errors::StorkCommandLineError;
 use num_format::{Locale, ToFormattedString};
 use pretty_print_search_results::pretty_print_search_results;
-use stork_lib::{build_index, get_output_filename_from_old_style_config, search};
+use stork_lib::{build_index, search, Config};
 
 pub type ExitCode = i32;
 pub const EXIT_SUCCESS: ExitCode = 0;
@@ -24,13 +24,13 @@ pub const EXIT_FAILURE: ExitCode = 1;
 
 type CmdResult = Result<(), StorkCommandLineError>;
 
-#[cfg(not(feature = "build-index-v3"))]
+#[cfg(not(feature = "build-v3"))]
 fn main() {
     eprintln!("This binary requires the `build-index-v3` feature to be enabled.");
     exit(EXIT_FAILURE);
 }
 
-#[cfg(feature = "build-index-v3")]
+#[cfg(feature = "build-v3")]
 fn main() {
     let app_matches = app().get_matches();
 
@@ -49,8 +49,9 @@ fn main() {
                 // gotta wrap it in a closure so our question marks work
                 let wrapper = || -> CmdResult {
                     print_nudging_string("build");
-                    let config = read_from_path(config_path)?;
-                    let output_path = get_output_filename_from_old_style_config(&config)
+                    let config_string = read_from_path(config_path)?;
+                    let config = Config::try_from(config_string.as_str())?;
+                    let output_path = config.output.UNUSED_filename
                         .ok_or_else(|| {
                             let msg = "You've used the old-style command line interface (`stork --build`) with an index file that is missing an output filename, so Stork can't figure out where to write your index.";
                             StorkCommandLineError::InvalidCommandLineArguments(msg)
@@ -96,7 +97,8 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
     let config_path = submatches.value_of("config").unwrap();
     let output_path = submatches.value_of("output").unwrap();
 
-    let config = read_from_path(config_path)?;
+    let config_string = read_from_path(config_path)?;
+    let config = Config::try_from(config_string.as_str())?;
     let build_output = build_index(&config)?;
 
     let build_time = Instant::now();
@@ -178,7 +180,8 @@ fn test_handler(submatches: &ArgMatches) -> CmdResult {
         .map_err(|e| StorkCommandLineError::InvalidPort(port_string.to_string(), e))?;
 
     if let Some(config_path) = submatches.value_of("config") {
-        let config = read_from_path(config_path)?;
+        let config_string = read_from_path(config_path)?;
+        let config = Config::try_from(config_string.as_str())?;
         let output = build_index(&config)?;
         test_server::serve(&output.bytes, port).map_err(|_| StorkCommandLineError::ServerError)
     } else if let Some(index_path) = submatches.value_of("index") {

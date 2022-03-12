@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::{convert::TryFrom, path::PathBuf, process::exit, time::Duration};
-use stork_config::Config;
+use stork_lib::Config;
 
 fn config_from_path(path: &str) -> Config {
     if !std::path::Path::join(&std::env::current_dir().unwrap(), ".stork-project-root").exists() {
@@ -20,13 +20,14 @@ fn build_federalist(c: &mut Criterion) {
     group.measurement_time(Duration::from_secs(12));
 
     group.bench_function("federalist", |b| {
-        b.iter(|| stork_lib::V3Build(&config).unwrap())
+        b.iter(|| stork_lib::build_index(&config).unwrap())
     });
 }
 
 fn search_federalist_for_liberty(c: &mut Criterion) {
     let config = config_from_path("./stork-lib/benches/federalist.toml");
-    let index = stork_lib::V3Build(&config).unwrap().index;
+    let bytes = stork_lib::build_index(&config).unwrap().bytes;
+    let _ = stork_lib::register_index("liberty", bytes);
 
     let mut group = c.benchmark_group("search/federalist");
     group.measurement_time(Duration::from_secs(10));
@@ -40,7 +41,7 @@ fn search_federalist_for_liberty(c: &mut Criterion) {
 
     for query in &queries {
         group.bench_function(query.to_owned(), |b| {
-            b.iter(|| stork_lib::V3Search(&index, query.to_owned()))
+            b.iter(|| stork_lib::search_from_cache("liberty", query.to_owned()))
         });
     }
 }
