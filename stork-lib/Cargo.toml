@@ -24,6 +24,7 @@ build-v3 = [
     "srtparse",
     "kuchiki",
     "frontmatter",
+    "indicatif",
 ]
 build-v3-web-scraping = ["build-v3", "reqwest"]
 

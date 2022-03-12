@@ -1625,7 +1625,6 @@ version = "1.4.0"
 dependencies = [
  "bytes",
  "console_error_panic_hook",
- "once_cell",
  "serde",
  "serde_json",
  "stork-lib",
