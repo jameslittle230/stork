@@ -39,7 +39,7 @@ use {index_v2::search as V2Search, index_v2::Index as V2Index};
 #[cfg(feature = "search-v3")]
 use {index_v3::search as V3Search, index_v3::Index as V3Index};
 
-#[cfg(feature = "search-v3")]
+#[cfg(feature = "build-v3")]
 pub use index_v3::DocumentError;
 
 #[cfg(feature = "build-v3")]
@@ -135,7 +135,7 @@ pub enum BuildError {
     IndexGenerationError(#[from] IndexGenerationError),
 }
 
-#[cfg(feature = "search-v3")]
+#[cfg(feature = "build-v3")]
 #[derive(Debug)]
 pub struct IndexDescription {
     pub entries_count: usize,
@@ -178,6 +178,7 @@ impl Display for IndexDescription {
     }
 }
 
+#[cfg(feature = "build-v3")]
 pub struct BuildOutput {
     pub bytes: Bytes,
     pub description: IndexDescription,

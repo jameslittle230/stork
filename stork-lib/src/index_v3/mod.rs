@@ -7,10 +7,15 @@ type EntryIndex = usize;
 type AliasTarget = String;
 type Score = u8;
 
+#[cfg(feature = "build-v3")]
 mod build;
-pub use build::build;
-pub use build::errors::{DocumentError, IndexGenerationError};
-pub use build::BuildResult;
+
+#[cfg(feature = "build-v3")]
+pub use build::{
+    build,
+    errors::{DocumentError, IndexGenerationError},
+    BuildResult,
+};
 
 mod read;
 
