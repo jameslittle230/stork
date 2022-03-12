@@ -1,10 +1,16 @@
 use bytes::Bytes;
 use lazy_static::lazy_static;
-use num_format::{Locale, ToFormattedString};
+
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Mutex;
-use std::{collections::HashMap, fmt::Display};
 use thiserror::Error;
+
+#[cfg(feature = "build-v3")]
+use {
+    num_format::{Locale, ToFormattedString},
+    std::fmt::Display,
+};
 
 pub type Fields = HashMap<String, String>;
 
@@ -172,21 +178,22 @@ impl Display for IndexDescription {
     }
 }
 
-#[cfg(feature = "build-v3")]
 pub struct BuildOutput {
     pub bytes: Bytes,
     pub description: IndexDescription,
 }
 
+#[cfg(not(feature = "build-v3"))]
+pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
+    Err(BuildError::BinaryNotBuiltWithFeature)
+}
+
+#[cfg(feature = "build-v3")]
 pub fn build_index(config: &Config) -> core::result::Result<BuildOutput, BuildError> {
-    if cfg!(feature = "build-v3") {
-        let result = V3Build(config)?;
-        let description = IndexDescription::from(&result);
-        let bytes = Bytes::from(&result.index);
-        Ok(BuildOutput { bytes, description })
-    } else {
-        Err(BuildError::BinaryNotBuiltWithFeature)
-    }
+    let result = V3Build(config)?;
+    let description = IndexDescription::from(&result);
+    let bytes = Bytes::from(&result.index);
+    Ok(BuildOutput { bytes, description })
 }
 
 pub fn register_index(
