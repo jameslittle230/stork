@@ -47,7 +47,9 @@ if __name__ == "__main__":
         exit(1)
 
     projroot = os.getcwd()
-    ref = sys.argv[1]  # Script takes one command line argument
+    ref = sys.argv[1]  # Script takes one command line argument. 
+
+    ref = ref.split("refs/tags/")[-1]  # Strip off the "refs/tags/" part. Get the last element of the list, so if you call it without "refs/tags/" it will still work.
 
     if not ref or len(ref) < 1:
         print("No argument passed to this script. You must pass an argument which will become the directory to which files are uploaded on the CDN.")
