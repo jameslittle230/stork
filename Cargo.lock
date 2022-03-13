@@ -1573,23 +1573,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
-name = "stork-cli"
-version = "1.4.1"
-dependencies = [
- "atty",
- "bytes",
- "clap",
- "colored",
- "num-format",
- "pretty_assertions",
- "serde",
- "serde_json",
- "stork-lib",
- "textwrap 0.14.2",
- "thiserror",
-]
-
-[[package]]
 name = "stork-lib"
 version = "1.4.1"
 dependencies = [
@@ -1617,6 +1600,23 @@ dependencies = [
  "thiserror",
  "toml",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "stork-search"
+version = "1.4.1"
+dependencies = [
+ "atty",
+ "bytes",
+ "clap",
+ "colored",
+ "num-format",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "stork-lib",
+ "textwrap 0.14.2",
+ "thiserror",
 ]
 
 [[package]]
