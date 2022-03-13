@@ -243,6 +243,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
@@ -271,7 +273,7 @@ jobs:
 
       - name: Run Upload Script
         run: |
-          python3 ./scripts/upload_build_artifacts.py ${{ github.ref }}
+          python ./scripts/upload_build_artifacts.py ${{ github.ref }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
