@@ -48,7 +48,6 @@ if __name__ == "__main__":
 
     projroot = os.getcwd()
     ref = sys.argv[1]  # Script takes one command line argument. 
-
     ref = ref.split("refs/tags/")[-1]  # Strip off the "refs/tags/" part. Get the last element of the list, so if you call it without "refs/tags/" it will still work.
 
     if not ref or len(ref) < 1:
@@ -84,8 +83,6 @@ if __name__ == "__main__":
     other_files = [
         "federalist.st",
     ]
-
-    ref = sys.argv[1]  # We'll upload to /releases/${ref}/*
 
     print(f"Uploading {len(web_artifacts) + len(binaries) + len(other_files)} files to files.stork-search.net/releases/{ref} ...")
 
