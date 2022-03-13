@@ -271,7 +271,7 @@ jobs:
 
       - name: Run Upload Script
         run: |
-          python3 ./scripts/upload_federalist.py ${{ github.ref }}
+          python3 ./scripts/upload_build_artifacts.py ${{ github.ref }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
