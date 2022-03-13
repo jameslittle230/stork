@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.4.1
+
+[Mar 12, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.1)
+
+### Bug Fixes
+
+- Fixes a regression that prevented the Stork CLI from reading index configuration from stdin
+- Fixes an architectural decision that prevented Stork from being published to crates.io
+
 ## v1.4.0
 
 [Jan 17, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.0)
