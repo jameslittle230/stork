@@ -2,96 +2,95 @@ on: push
 name: "Run CI on Pushes"
 
 jobs:
-  rust_tests:
-    name: "Run Rust Tests"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+  # rust_tests:
+  #   name: "Run Rust Tests"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: cache  
-        with:
-          path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-rust_tests-${{ hashFiles('**/Cargo.lock') }}  
+  #     - uses: actions/cache@v2
+  #       id: cache  
+  #       with:
+  #         path: ~/.cargo/bin/
+  #         key: ${{ runner.os }}-cargo-rust_tests-${{ hashFiles('**/Cargo.lock') }}  
 
-      - name: Set up wasm-pack
-        if: steps.cache.outputs.cache-hit != 'true'  
-        uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-pack
+  #     - name: Set up wasm-pack
+  #       if: steps.cache.outputs.cache-hit != 'true'  
+  #       uses: actions-rs/install@v0.1
+  #       with:
+  #         crate: wasm-pack
 
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.15.0'
-          args: '-- --test-threads 1'
+  #     - name: Run cargo-tarpaulin
+  #       uses: actions-rs/tarpaulin@v0.1
+  #       with:
+  #         version: '0.15.0'
+  #         args: '-- --test-threads 1'
 
-      - run: |
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-          chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN}
+  #     - run: |
+  #         curl -Os https://uploader.codecov.io/latest/linux/codecov
+  #         chmod +x codecov
+  #         ./codecov -t ${CODECOV_TOKEN}
 
-  js_tests:
-    name: "Run JS Tests"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+  # js_tests:
+  #   name: "Run JS Tests"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
       
-      - uses: actions/cache@v2
-        id: cache
-        with:
-          path: ~/.cargo/bin/
-          key: ${{ runner.os }}-cargo-js_tests-${{ hashFiles('**/Cargo.lock') }}  
+  #     - uses: actions/cache@v2
+  #       id: cache
+  #       with:
+  #         path: ~/.cargo/bin/
+  #         key: ${{ runner.os }}-cargo-js_tests-${{ hashFiles('**/Cargo.lock') }}  
      
-      - name: Set up wasm-pack
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions-rs/install@v0.1
-        with:
-          crate: wasm-pack
+  #     - name: Set up wasm-pack
+  #       if: steps.cache.outputs.cache-hit != 'true'
+  #       uses: actions-rs/install@v0.1
+  #       with:
+  #         crate: wasm-pack
       
-      - name: Set up just
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions-rs/install@v0.1
-        with:
-          crate: just
+  #     - name: Set up just
+  #       if: steps.cache.outputs.cache-hit != 'true'
+  #       uses: actions-rs/install@v0.1
+  #       with:
+  #         crate: just
 
-      - run: just _js-test
+  #     - run: just _js-test
         
-      - run: |
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-          chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN}
+  #     - run: |
+  #         curl -Os https://uploader.codecov.io/latest/linux/codecov
+  #         chmod +x codecov
+  #         ./codecov -t ${CODECOV_TOKEN}
 
-  clippy_check:
-    name: "Run Clippy Check"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
-        with:
-            components: clippy
-            toolchain: stable
-            override: true
+  # clippy_check:
+  #   name: "Run Clippy Check"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #           components: clippy
+  #           toolchain: stable
+  #           override: true
       
-      - run: ./scripts/clippy.sh
+  #     - run: ./scripts/clippy.sh
 
-  cargo_fmt:
-    name: "Run Cargo Format Check"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - run: cargo fmt -- --check
+  # cargo_fmt:
+  #   name: "Run Cargo Format Check"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #     - run: cargo fmt -- --check
 
   benchmark:
-    name: Generate benchmark statistics
+    name: Perform Relative Benchmark
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.GH_API_PAT }}
           submodules: recursive
-
-      - uses: actions/setup-python@v2
+          fetch-depth: 50 # this is to make sure we obtain the target base commit
         
       - uses: actions/cache@v2
         id: cache
@@ -116,5 +115,23 @@ jobs:
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-criterion
+
+      - name: Setup benchmarks
+        run: |
+          echo "BASE_SHA=$(echo ${{ github.event.pull_request.base.sha }} | cut -c1-8)" >> $GITHUB_ENV
+          echo "HEAD_SHA=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-8)" >> $GITHUB_ENV
+          echo "BASELINE_JSON=$(mktemp)" >> $GITHUB_ENV
+          echo "CONTENDER_JSON=$(mktemp)" >> $GITHUB_ENV
+          echo "PR_COMMENT=$(mktemp)" >>  $GITHUB_ENV
+
+      - name: Run benchmarks
+        run: |
+          RUN_BENCHMARK="just generate-stats"
+          git checkout ${{ github.event.pull_request.base.sha }}
+          $RUN_BENCHMARK > ${{ env.BASELINE_JSON }}
+          git checkout ${{ github.event.pull_request.head.sha }}
+          $RUN_BENCHMARK > ${{ env.CONTENDER_JSON }}
       
-      - run: just generate-stats
+      - run: |
+          cat ${{ env.BASELINE_JSON }}
+          cat ${{ env.CONTENDER_JSON }}
