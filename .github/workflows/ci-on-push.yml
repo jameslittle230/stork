@@ -86,6 +86,7 @@ jobs:
     name: Perform Relative Benchmark
     runs-on: ubuntu-latest
     steps:
+      - uses: hmarr/debug-action@v2
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.GH_API_PAT }}
