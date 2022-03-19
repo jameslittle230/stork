@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use smart_default::SmartDefault;
 
@@ -24,6 +24,9 @@ pub use {
     scores::MATCHED_WORD_SCORE,
 };
 
+#[cfg(feature = "build-v3")]
+use build::ordered_map;
+
 pub use search::search;
 
 use crate::config::{OutputConfig, TitleBoost};
@@ -35,7 +38,9 @@ mod write;
 pub struct Index {
     config: PassthroughConfig,
     entries: Vec<Entry>,
-    containers: BTreeMap<String, Container>,
+
+    #[serde(serialize_with = "ordered_map")]
+    containers: HashMap<String, Container>,
 }
 
 impl Index {
@@ -88,11 +93,11 @@ struct Entry {
  */
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Container {
-    // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    results: BTreeMap<EntryIndex, SearchResult>,
+    #[serde(serialize_with = "ordered_map")]
+    results: HashMap<EntryIndex, SearchResult>,
 
-    // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    aliases: BTreeMap<AliasTarget, Score>,
+    #[serde(serialize_with = "ordered_map")]
+    aliases: HashMap<AliasTarget, Score>,
 }
 
 impl Container {

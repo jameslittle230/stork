@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 mod fill_containers;
 mod fill_intermediate_entries;
@@ -18,6 +18,9 @@ use intermediate_entry::NormalizedEntry;
 
 pub mod nudger;
 use nudger::Nudger;
+
+mod ordered_map_serialize;
+pub(crate) use ordered_map_serialize::ordered_map;
 
 use crate::{config::Config, V3Index as Index};
 
@@ -40,10 +43,10 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
         return Err(IndexGenerationError::NoValidFiles);
     }
 
-    let mut stems: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut stems: HashMap<String, Vec<String>> = HashMap::new();
     fill_stems(&intermediate_entries, &mut stems);
 
-    let mut containers: BTreeMap<String, Container> = BTreeMap::new();
+    let mut containers: HashMap<String, Container> = HashMap::new();
     fill_containers(config, &intermediate_entries, &stems, &mut containers);
 
     let entries: Vec<Entry> = intermediate_entries
