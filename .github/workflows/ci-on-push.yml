@@ -134,6 +134,7 @@ jobs:
           RUN_BENCHMARK="just solo-generate-stats"
           
           git checkout ${{ github.event.pull_request.base.sha }}
+          git checkout ${{ github.event.pull_request.head.sha }} -- justfile
           $SETUP_REPO
           $RUN_BENCHMARK > ${{ env.BASELINE_JSON }}
           
