@@ -31,21 +31,11 @@ for bench_name in benchmarks:
         text=True
     )
 
-    grep_for_success_cmd = subprocess.run(
-        ["grep", "benchmark-complete"],
-        input=run_bench_cmd.stdout,
-        stdout=subprocess.PIPE,
-        text=True
-    )
+    success_line = next((line for line in run_bench_cmd.stdout.splitlines() if "benchmark-complete" in line))
 
-    jq_cmd = subprocess.run(
-        ["jq", ".mean.estimate / 1000000"],
-        input=grep_for_success_cmd.stdout,
-        capture_output=True,
-        text=True
-    )
+    success_line_dict = json.loads(success_line)
 
-    bench_time_ms = float(jq_cmd.stdout)
+    bench_time_ms = round(float(success_line_dict['mean']['estimate']) / 1_000_000, 4)
 
     sizes.update({
         bench_name: bench_time_ms
