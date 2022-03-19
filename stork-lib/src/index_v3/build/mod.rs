@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 mod fill_containers;
 mod fill_intermediate_entries;
@@ -40,13 +40,16 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
         return Err(IndexGenerationError::NoValidFiles);
     }
 
-    let mut stems: HashMap<String, Vec<String>> = HashMap::new();
+    let mut stems: BTreeMap<String, Vec<String>> = BTreeMap::new();
     fill_stems(&intermediate_entries, &mut stems);
 
-    let mut containers: HashMap<String, Container> = HashMap::new();
+    let mut containers: BTreeMap<String, Container> = BTreeMap::new();
     fill_containers(config, &intermediate_entries, &stems, &mut containers);
 
-    let entries: Vec<Entry> = intermediate_entries.iter().map(Entry::from).collect();
+    let entries: Vec<Entry> = intermediate_entries
+        .iter()
+        .map(Entry::from)
+        .collect::<Vec<Entry>>();
 
     let passthrough_config = PassthroughConfig {
         url_prefix: config.input.url_prefix.clone(),

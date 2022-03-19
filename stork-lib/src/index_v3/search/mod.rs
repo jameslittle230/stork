@@ -1,5 +1,5 @@
 pub mod intermediate_excerpt;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use intermediate_excerpt::IntermediateExcerpt;
 
@@ -41,7 +41,7 @@ pub fn search(index: &Index, query: &str) -> Output {
         }
     }
 
-    let mut excerpts_by_index: HashMap<EntryIndex, Vec<IntermediateExcerpt>> = HashMap::new();
+    let mut excerpts_by_index: BTreeMap<EntryIndex, Vec<IntermediateExcerpt>> = BTreeMap::new();
     for ie in intermediate_excerpts {
         excerpts_by_index
             .entry(ie.entry_index)
@@ -74,8 +74,8 @@ pub fn search(index: &Index, query: &str) -> Output {
 }
 
 struct ContainerWithQuery {
-    results: HashMap<EntryIndex, SearchResult>,
-    aliases: HashMap<AliasTarget, Score>,
+    results: BTreeMap<EntryIndex, SearchResult>,
+    aliases: BTreeMap<AliasTarget, Score>,
     query: String,
 }
 

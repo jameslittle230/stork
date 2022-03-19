@@ -1,5 +1,5 @@
 use rust_stemmers::Stemmer;
-use std::{collections::HashMap, convert::TryInto, ops::Range};
+use std::{collections::BTreeMap, convert::TryInto, ops::Range};
 
 use crate::{
     config::Config,
@@ -17,8 +17,8 @@ use super::{
 pub fn fill_containers(
     config: &Config,
     intermediate_entries: &[NormalizedEntry],
-    stems: &HashMap<String, Vec<String>>,
-    containers: &mut HashMap<String, Container>,
+    stems: &BTreeMap<String, Vec<String>>,
+    containers: &mut BTreeMap<String, Container>,
 ) {
     for (entry_index, entry) in intermediate_entries.iter().enumerate() {
         let words_in_title: Vec<AnnotatedWord> = entry.title.make_annotated_words();
@@ -70,7 +70,7 @@ pub fn fill_containers(
 }
 
 fn fill_container_results_map(
-    containers: &mut HashMap<String, Container>,
+    containers: &mut BTreeMap<String, Container>,
     normalized_word: &str,
     word_index: usize,
     entry_index: usize,
@@ -97,7 +97,7 @@ fn fill_container_results_map(
 fn fill_other_containers_alias_maps_with_prefixes(
     prefix_length: u8,
     ideograph_prefix_length: u8,
-    containers: &mut HashMap<String, Container>,
+    containers: &mut BTreeMap<String, Container>,
     normalized_word: &str,
 ) {
     let chars: Vec<char> = normalized_word.chars().collect();
@@ -125,8 +125,8 @@ fn fill_other_containers_alias_maps_with_prefixes(
 
 fn fill_other_containers_alias_maps_with_reverse_stems(
     entry: &NormalizedEntry,
-    stems: &HashMap<String, Vec<String>>,
-    containers: &mut HashMap<String, Container>,
+    stems: &BTreeMap<String, Vec<String>>,
+    containers: &mut BTreeMap<String, Container>,
     normalized_word: &str,
 ) {
     if let Some(stem_algorithm) = entry.stem_algorithm {
@@ -194,7 +194,7 @@ mod tests {
         config::Config,
         index_v3::{build::intermediate_entry::NormalizedEntry, AnnotatedWordList},
     };
-    use std::collections::HashMap;
+    use std::collections::{BTreeMap, HashMap};
 
     use super::fill_containers;
 
@@ -208,12 +208,12 @@ mod tests {
             stem_algorithm: None,
         };
 
-        let mut containers = HashMap::default();
+        let mut containers = BTreeMap::default();
 
         fill_containers(
             &Config::default(),
             &[intermediate_entry],
-            &HashMap::default(),
+            &BTreeMap::default(),
             &mut containers,
         );
 
