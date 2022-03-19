@@ -89,7 +89,6 @@ jobs:
     name: Perform Relative Benchmark
     runs-on: ubuntu-latest
     steps:
-      - uses: hmarr/debug-action@v2
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.GH_API_PAT }}
@@ -126,7 +125,7 @@ jobs:
           echo "HEAD_SHA=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-8)" >> $GITHUB_ENV
           echo "BASELINE_JSON=$(mktemp)" >> $GITHUB_ENV
           echo "CONTENDER_JSON=$(mktemp)" >> $GITHUB_ENV
-          echo "PR_COMMENT=$(mktemp)" >>  $GITHUB_ENV
+          echo "PR_COMMENT=$(mktemp)" >> $GITHUB_ENV
 
       - name: Run benchmarks
         run: |
@@ -141,7 +140,36 @@ jobs:
           git checkout ${{ github.event.pull_request.head.sha }}
           $SETUP_REPO
           $RUN_BENCHMARK > ${{ env.CONTENDER_JSON }}
+
+          python3 scripts/compare_stats.py ${{ env.BASELINE_JSON }} ${{ env.CONTENDER_JSON }} > ${{ env.PR_COMMENT }}
       
       - run: |
           cat ${{ env.BASELINE_JSON }}
           cat ${{ env.CONTENDER_JSON }}
+          cat ${{ env.PR_COMMENT }}
+
+      - id: get-comment-body
+        run: |
+          body="$(cat ${{ env.PR_COMMENT }})"
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}" 
+          echo "::set-output name=body::$body"
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v1
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Benchmarks
+
+      - name: Create or update comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### Benchmarks
+            ${{ steps.get-comment-body.outputs.body }}
+          edit-mode: replace
