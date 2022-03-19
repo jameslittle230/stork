@@ -143,12 +143,14 @@ jobs:
 
           python3 scripts/compare_stats.py ${{ env.BASELINE_JSON }} ${{ env.CONTENDER_JSON }} > ${{ env.PR_COMMENT }}
       
-      - run: |
+      - name: Debug tempfile contents
+        run: |
           cat ${{ env.BASELINE_JSON }}
           cat ${{ env.CONTENDER_JSON }}
           cat ${{ env.PR_COMMENT }}
 
-      - id: get-comment-body
+      - name: Set up comment body
+        id: get-comment-body
         run: |
           body="$(cat ${{ env.PR_COMMENT }})"
           body="${body//'%'/'%25'}"
@@ -172,4 +174,6 @@ jobs:
           body: |
             ### Benchmarks
             ${{ steps.get-comment-body.outputs.body }}
+
+            Baseline: **${{ github.event.pull_request.base.sha }}**; Comparison: ${{ github.event.pull_request.head.sha }}
           edit-mode: replace

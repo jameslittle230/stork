@@ -12,13 +12,26 @@ def generate_stats_dict(d1, d2):
     all_keys = list(s_keys_d1.union(s_keys_d2))
     out = dict()
 
-    # TODO: Handle if d1 or d2 doesn't contain key
     for key in all_keys:
-        out[key] = {
-            "baseline": round(d1[key], 4), 
-            "contender": round(d2[key], 4),
-            "multiplier": round(d2[key] / d1[key], 2)
-        }
+        if key in d1 and key in d2:
+            out[key] = {
+                "baseline": round(d1[key], 4), 
+                "contender": round(d2[key], 4),
+                "multiplier": round(d2[key] / d1[key], 2)
+            }
+        elif key not in d1:
+            out[key] = {
+                "baseline": 0, 
+                "contender": round(d2[key], 4),
+                "multiplier": 1
+            }
+        elif key not in d2:
+            out[key] = {
+                "baseline": round(d1[key], 4), 
+                "contender": 0,
+                "multiplier": 1
+            }
+
     return out
 
 stats = generate_stats_dict(baseline_d, contender_d)
