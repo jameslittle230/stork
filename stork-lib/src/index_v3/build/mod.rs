@@ -19,9 +19,6 @@ use intermediate_entry::NormalizedEntry;
 pub mod nudger;
 use nudger::Nudger;
 
-mod ordered_map_serialize;
-pub(crate) use ordered_map_serialize::ordered_map;
-
 use crate::{config::Config, V3Index as Index};
 
 use super::{Container, Entry, PassthroughConfig};

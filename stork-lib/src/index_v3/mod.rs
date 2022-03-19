@@ -24,8 +24,8 @@ pub use {
     scores::MATCHED_WORD_SCORE,
 };
 
-#[cfg(feature = "build-v3")]
-use build::ordered_map;
+mod ordered_map_serialize;
+use ordered_map_serialize::ordered_map;
 
 pub use search::search;
 
