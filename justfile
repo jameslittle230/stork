@@ -124,6 +124,8 @@ upload ref="":
 bench bench_name="":
     cargo criterion --package stork-lib --plotting-backend=disabled --message-format=json {{bench_name}}
 
-generate-stats: build-js solo-build-federalist-index
+solo-generate-stats:
     python3 scripts/generate_stats.py
+
+generate-stats: build-js solo-build-federalist-index solo-generate-stats
     
