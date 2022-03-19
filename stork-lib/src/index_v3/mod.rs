@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use smart_default::SmartDefault;
 
@@ -35,7 +35,7 @@ mod write;
 pub struct Index {
     config: PassthroughConfig,
     entries: Vec<Entry>,
-    containers: HashMap<String, Container>,
+    containers: BTreeMap<String, Container>,
 }
 
 impl Index {
@@ -89,10 +89,10 @@ struct Entry {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Container {
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    results: HashMap<EntryIndex, SearchResult>,
+    results: BTreeMap<EntryIndex, SearchResult>,
 
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    aliases: HashMap<AliasTarget, Score>,
+    aliases: BTreeMap<AliasTarget, Score>,
 }
 
 impl Container {
@@ -166,6 +166,7 @@ impl AnnotatedWordList {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
     use std::convert::TryFrom;
     use std::fs;
     use std::io::{BufReader, Read};

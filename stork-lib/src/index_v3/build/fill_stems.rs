@@ -1,10 +1,10 @@
 use super::{remove_surrounding_punctuation, NormalizedEntry};
 use rust_stemmers::Stemmer;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub fn fill_stems(
     intermediate_entries: &[NormalizedEntry],
-    stems: &mut HashMap<String, Vec<String>>,
+    stems: &mut BTreeMap<String, Vec<String>>,
 ) {
     for entry in intermediate_entries {
         let contents = &entry.annotated_word_list;
