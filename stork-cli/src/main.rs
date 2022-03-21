@@ -196,8 +196,6 @@ fn test_handler(submatches: &ArgMatches) -> CmdResult {
         let index = read_bytes_from_path(index_path)?;
         test_server::serve(&index, port).map_err(|_| StorkCommandLineError::ServerError)
     } else {
-        Err(StorkCommandLineError::InvalidCommandLineArguments(
-            "Test server requires either --config or --index",
-        ))
+        unreachable!()
     }
 }
