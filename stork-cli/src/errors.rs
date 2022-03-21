@@ -2,6 +2,7 @@ use std::{io, num::ParseIntError};
 use stork_lib::{BuildError, ConfigReadError, IndexParseError, SearchError};
 use thiserror::Error;
 
+#[allow(dead_code)]
 #[derive(Debug, Error)]
 pub enum StorkCommandLineError {
     #[error("Couldn't read the configuration file: {0}")]
@@ -37,6 +38,9 @@ pub enum StorkCommandLineError {
     #[error("Couldn't display search results as JSON. Got error `{0}`")]
     SearchResultJsonSerializationError(#[from] serde_json::Error),
 
-    #[error("`{0}`")]
+    #[error("{0}")]
     InvalidCommandLineArguments(&'static str),
+
+    #[error("{0}")]
+    NotCompiledWithFeature(&'static str),
 }
