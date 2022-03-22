@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 - Fixes a regression where the test server (`stork test`) was inaccessible
+- Fixes a bug where the CLI would sometimes not finish writing to its output stream
 
 ## v1.4.1
 
