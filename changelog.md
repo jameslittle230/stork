@@ -2,6 +2,8 @@
 
 ## v1.4.2
 
+[Mar 22, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.2)
+
 ### Bug Fixes
 
 - Fixes a regression where the test server (`stork test`) was inaccessible
