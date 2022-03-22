@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 - Fixes a regression where the test server (`stork test`) was inaccessible
+- Fixes a regression where error messages weren't displayed if no files could successfully be indexed
 
 ## v1.4.1
 
