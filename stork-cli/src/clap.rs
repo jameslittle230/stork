@@ -111,7 +111,7 @@ pub fn app() -> App<'static, 'static> {
                         .help("The path to your configuration file, or - for stdin")
                         .takes_value(true)
                         .value_name("CONFIG_PATH")
-                        .required(false)
+                        .required(true)
                         .conflicts_with("index_path"),
                 )
                 .arg(
@@ -130,7 +130,7 @@ pub fn app() -> App<'static, 'static> {
                         .help("The path to your index file")
                         .takes_value(true)
                         .value_name("INDEX_PATH")
-                        .required(false)
+                        .required(true)
                         .conflicts_with("config"),
                 )
         )

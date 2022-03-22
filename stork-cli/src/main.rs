@@ -7,6 +7,8 @@ mod display_timings;
 mod errors;
 mod io;
 mod pretty_print_search_results;
+
+#[cfg(feature = "test-server")]
 mod test_server;
 
 use crate::clap::app;
@@ -173,6 +175,12 @@ fn search_handler(submatches: &ArgMatches) -> CmdResult {
     Ok(())
 }
 
+#[cfg(not(feature = "test-server"))]
+fn test_handler(_: &ArgMatches) -> CmdResult {
+    Err(StorkCommandLineError::NotCompiledWithFeature("Stork was not compiled with test server support. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug"))
+}
+
+#[cfg(feature = "test-server")]
 fn test_handler(submatches: &ArgMatches) -> CmdResult {
     let port_string = submatches.value_of("port").unwrap();
     let port = port_string
@@ -184,12 +192,10 @@ fn test_handler(submatches: &ArgMatches) -> CmdResult {
         let config = Config::try_from(config_string.as_str())?;
         let output = build_index(&config)?;
         test_server::serve(&output.bytes, port).map_err(|_| StorkCommandLineError::ServerError)
-    } else if let Some(index_path) = submatches.value_of("index") {
+    } else if let Some(index_path) = submatches.value_of("index_path") {
         let index = read_bytes_from_path(index_path)?;
         test_server::serve(&index, port).map_err(|_| StorkCommandLineError::ServerError)
     } else {
-        Err(StorkCommandLineError::InvalidCommandLineArguments(
-            "Test server requires either --config or --index",
-        ))
+        unreachable!()
     }
 }

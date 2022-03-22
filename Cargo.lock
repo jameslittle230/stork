@@ -1516,6 +1516,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "signal-hook-registry"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e51e73328dc4ac0c7ccbda3a494dfa03df1de2f46018127f60c693f2648455b0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "siphasher"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1610,6 +1619,7 @@ dependencies = [
  "bytes",
  "clap",
  "colored",
+ "hyper",
  "num-format",
  "pretty_assertions",
  "serde",
@@ -1617,6 +1627,7 @@ dependencies = [
  "stork-lib",
  "textwrap 0.14.2",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]
@@ -1802,7 +1813,9 @@ dependencies = [
  "memchr",
  "mio",
  "num_cpus",
+ "once_cell",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2",
  "winapi",
 ]

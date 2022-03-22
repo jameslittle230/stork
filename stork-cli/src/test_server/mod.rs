@@ -1,20 +1,13 @@
 use bytes::Bytes;
+use hyper::server::Server;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, Request, Response, StatusCode};
+use std::convert::Infallible;
+use tokio::runtime::Runtime;
 
-#[cfg(not(feature = "test-server"))]
-pub fn serve(_index: &Bytes, _port: u16) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Stork was not compiled with test server support. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug\n");
-    panic!()
-}
-
-#[cfg(feature = "test-server")]
 pub fn serve(index: &Bytes, port: u16) -> Result<(), Box<dyn std::error::Error>> {
-    use hyper::service::{make_service_fn, service_fn};
-    use hyper::{Body, Request, Response, Server, StatusCode};
-    use std::convert::Infallible;
-    use tokio::runtime::Runtime;
-
     let rt = Runtime::new()?;
-    let index_bytes: Vec<u8> = index.to_bytes();
+    let index_bytes = index.clone();
 
     rt.block_on(async {
         // For every connection, we must make a `Service` to handle all
@@ -24,13 +17,13 @@ pub fn serve(index: &Bytes, port: u16) -> Result<(), Box<dyn std::error::Error>>
             // `service_fn` is a helper to convert a function that
             // returns a Response into a `Service`.
             let bytes = index_bytes.clone();
-            async {
+            async move {
                 Ok::<_, Infallible>(service_fn(move |request: Request<Body>| {
                     let bytes_2 = bytes.clone();
                     async move {
                         Ok::<_, Infallible>(match request.uri().to_string().as_str() {
                             "/" => {
-                                let index_html = include_str!("index.html");
+                                let index_html = format!(include_str!("index.html"), env!("CARGO_PKG_VERSION"));
                                 Response::new(Body::from(index_html))
                             }
 

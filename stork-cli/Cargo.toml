@@ -13,6 +13,7 @@ categories = ["wasm"]
 
 [features]
 default = ["v1-compat", "search-v2", "search-v3", "build-v3-web-scraping"]
+test-server = ["hyper", "tokio"]
 v1-compat = []
 search-v2 = ["stork-lib/search-v2"]
 search-v3 = ["stork-lib/search-v3"]
@@ -24,12 +25,14 @@ atty = "0.2.14"
 bytes = "1.1.0"
 clap = { version = "2.33.3", features = ["color"] }
 colored = "2.0.0"
+hyper = { version = "0.14.17", optional = true, features = ["server"] }
 num-format = "0.4.0"
 serde = "1.0.130"
 serde_json = "1.0.68"
 stork-lib = { path = "../stork-lib", version = "1.4.1", default-features = false }
 textwrap = { version = "0.14.2", features = ["terminal_size"] }
 thiserror = "1.0.29"
+tokio = { version = "1.17.0", optional = true, features = ["signal"] }
 
 [dev-dependencies]
 pretty_assertions = "1.0.0"
