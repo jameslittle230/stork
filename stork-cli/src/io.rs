@@ -61,7 +61,10 @@ pub fn write_bytes(path: &str, bytes: &Bytes) -> Result<usize, StorkCommandLineE
         Box::new(BufWriter::new(file))
     };
 
-    writer
+    let content_len = writer
         .write(bytes.as_ref())
-        .map_err(StorkCommandLineError::WriteError)
+        .map_err(StorkCommandLineError::WriteError)?;
+
+    let _ = writer.flush();
+    Ok(content_len)
 }
