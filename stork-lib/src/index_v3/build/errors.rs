@@ -42,8 +42,8 @@ pub enum IndexGenerationError {
     #[error("No files specified in config file")]
     NoFilesSpecified,
 
-    #[error("No files could be indexed")]
-    NoValidFiles,
+    #[error("All files failed to be indexed.\n{}", DocumentError::display_list(.0))]
+    AllDocumentErrors(Vec<DocumentError>),
 
     #[allow(clippy::all)]
     #[error(
@@ -51,13 +51,14 @@ pub enum IndexGenerationError {
         pluralize_with_count(.0.len(), "error", "errors"),
         DocumentError::display_list(.0)
     )]
-    DocumentErrors(Vec<DocumentError>),
+    PartialDocumentErrors(Vec<DocumentError>),
 }
 
 impl PartialEq for IndexGenerationError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::DocumentErrors(_), Self::DocumentErrors(_)) => true,
+            (Self::AllDocumentErrors(_), Self::AllDocumentErrors(_)) => true,
+            (Self::PartialDocumentErrors(_), Self::PartialDocumentErrors(_)) => true,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }
