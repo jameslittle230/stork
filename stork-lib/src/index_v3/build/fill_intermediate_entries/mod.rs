@@ -127,7 +127,9 @@ pub(super) fn fill_intermediate_entries(
                 };
 
                 if config.input.break_on_file_error {
-                    return Err(IndexGenerationError::DocumentErrors(vec![document_error]));
+                    return Err(IndexGenerationError::PartialDocumentErrors(vec![
+                        document_error,
+                    ]));
                 }
 
                 document_errors.push(document_error)
@@ -136,7 +138,7 @@ pub(super) fn fill_intermediate_entries(
     }
 
     if config.input.break_on_file_error && !document_errors.is_empty() {
-        return Err(IndexGenerationError::DocumentErrors(
+        return Err(IndexGenerationError::PartialDocumentErrors(
             document_errors.clone(),
         ));
     }
@@ -227,7 +229,7 @@ mod tests {
         let r = fill_intermediate_entries(&config, &mut intermediate_entries, &mut document_errors)
             .err()
             .unwrap();
-        if let IndexGenerationError::DocumentErrors(vec) = r {
+        if let IndexGenerationError::PartialDocumentErrors(vec) = r {
             let word_list_generation_error = &vec[0].word_list_generation_error;
             assert_eq!(
                 word_list_generation_error,
