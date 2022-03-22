@@ -13,6 +13,7 @@ export interface Configuration {
   onResultSelected?: (query: string, result: unknown) => unknown;
   onResultsHidden?: () => unknown;
   onInputCleared?: () => unknown;
+  transformResultUrl: (url: string) => string;
 }
 
 export const defaultConfig: Readonly<Configuration> = {
@@ -26,7 +27,8 @@ export const defaultConfig: Readonly<Configuration> = {
   onQueryUpdate: undefined,
   onResultSelected: undefined,
   onResultsHidden: undefined,
-  onInputCleared: undefined
+  onInputCleared: undefined,
+  transformResultUrl: url => url,
 };
 
 export function calculateOverriddenConfig(
