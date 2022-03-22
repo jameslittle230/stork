@@ -1,6 +1,6 @@
 [package]
 name = "stork-lib"
-version = "1.4.1"
+version = "1.4.2"
 authors = ["James Little <littleguy23@gmail.com>"]
 edition = "2021"
 documentation = "https://stork-search.net/docs"
