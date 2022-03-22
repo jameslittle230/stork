@@ -37,7 +37,13 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
     fill_intermediate_entries(config, &mut intermediate_entries, &mut document_errors)?;
 
     if intermediate_entries.is_empty() {
-        return Err(IndexGenerationError::NoValidFiles);
+        if !document_errors.is_empty() {
+            return Err(IndexGenerationError::AllDocumentErrors(dbg!(
+                document_errors
+            )));
+        } else {
+            return Err(IndexGenerationError::NoFilesSpecified);
+        }
     }
 
     let mut stems: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -91,6 +97,8 @@ mod tests {
     use crate::config::*;
 
     use super::*;
+
+    use pretty_assertions::assert_eq;
 
     fn generate_invalid_file_missing_selector() -> File {
         File {
@@ -187,7 +195,38 @@ mod tests {
 
         let build_error = build(&config).unwrap_err();
 
-        assert_eq!(build_error, IndexGenerationError::NoValidFiles);
+        // partial equality, this doesn't check that the inner vecs are equal :(
+        assert_eq!(build_error, IndexGenerationError::AllDocumentErrors(vec![]));
+
+        if let IndexGenerationError::AllDocumentErrors(document_errors) = build_error {
+            let word_list_generation_errors: Vec<WordListGenerationError> = document_errors
+                .iter()
+                .map(|d| d.word_list_generation_error.clone())
+                .collect();
+            assert_eq!(
+                word_list_generation_errors,
+                vec![
+                    WordListGenerationError::EmptyWordList,
+                    WordListGenerationError::SelectorNotPresent(".article".to_string())
+                ]
+            )
+        } else {
+            panic!()
+        }
+    }
+
+    #[test]
+    fn test_no_files_returns_error() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let build_error = build(&config).unwrap_err();
+
+        assert_eq!(build_error, IndexGenerationError::NoFilesSpecified);
     }
 
     #[test]
