@@ -132,7 +132,7 @@ export class Entity {
       ) {
         urlSuffix = r.excerpts[0].internal_annotations[0]["a"];
       }
-      r.entry.url = `${urlPrefix}${r.entry.url}${urlSuffix}`;
+      r.entry.url = this.config.transformResultUrl(`${urlPrefix}${r.entry.url}${urlSuffix}`);
     });
 
     this.render();
