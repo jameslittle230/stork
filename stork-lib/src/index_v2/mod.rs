@@ -14,6 +14,8 @@ type Fields = Option<HashMap<String, String>>;
 
 pub use search::search;
 
+use crate::{IndexMetadata, IndexParseError, StorkIndex};
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Entry {
     contents: String,
@@ -72,6 +74,16 @@ pub struct Index {
     queries: HashMap<String, Container>,
 }
 
+impl StorkIndex for Index {
+    fn metadata(&self) -> IndexMetadata {
+        IndexMetadata {
+            index_version: "stork-2".to_string(),
+            entries_count: self.entries.len(),
+            tokens_count: self.queries.len(),
+        }
+    }
+}
+
 #[cfg(test)]
 impl Index {
     pub fn from_file(file: &[u8]) -> Index {
@@ -94,7 +106,7 @@ impl Index {
 }
 
 impl TryFrom<Bytes> for Index {
-    type Error = &'static str;
+    type Error = IndexParseError;
 
     fn try_from(value: Bytes) -> Result<Self, Self::Error> {
         let mut value = value;

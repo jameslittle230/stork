@@ -26,7 +26,10 @@ pub use {
 
 pub use search::search;
 
-use crate::config::{OutputConfig, TitleBoost};
+use crate::{
+    config::{OutputConfig, TitleBoost},
+    IndexMetadata, StorkIndex,
+};
 use crate::{Fields, InternalWordAnnotation};
 
 mod write;
@@ -51,8 +54,18 @@ impl Index {
         self.word_count() / self.entries_len()
     }
 
-    pub fn search_term_count(&self) -> usize {
+    pub fn tokens_count(&self) -> usize {
         self.containers.keys().count()
+    }
+}
+
+impl StorkIndex for Index {
+    fn metadata(&self) -> IndexMetadata {
+        IndexMetadata {
+            index_version: "stork-3".to_string(),
+            entries_count: self.entries_len(),
+            tokens_count: self.tokens_count(),
+        }
     }
 }
 

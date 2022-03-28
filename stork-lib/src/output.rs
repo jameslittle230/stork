@@ -75,4 +75,8 @@ pub struct HighlightRange {
 pub struct IndexMetadata {
     #[serde(rename = "indexVersion")]
     pub index_version: String,
+    #[serde(rename = "entriesCount")]
+    pub entries_count: usize,
+    #[serde(rename = "tokensCount")]
+    pub tokens_count: usize,
 }

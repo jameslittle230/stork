@@ -1,3 +1,5 @@
+use crate::IndexParseError;
+
 use super::Index;
 use bytes::Bytes;
 use std::convert::{TryFrom, TryInto};
@@ -20,9 +22,10 @@ impl TryFrom<&[u8]> for Index {
 }
 
 impl TryFrom<Bytes> for Index {
-    type Error = rmp_serde::decode::Error;
+    type Error = IndexParseError;
 
     fn try_from(value: Bytes) -> Result<Self, Self::Error> {
         rmp_serde::from_read_ref(value.as_ref())
+            .map_err(|rmp_error| IndexParseError::V3SerdeError(rmp_error.to_string()))
     }
 }
