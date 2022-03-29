@@ -71,7 +71,7 @@ pub struct HighlightRange {
 /**
  * Contains metadata about an index, to be displayed to the user, often for debugging.
  */
-#[derive(Serialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct IndexMetadata {
     #[serde(rename = "indexVersion")]
     pub index_version: String,

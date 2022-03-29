@@ -38,9 +38,7 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
 
     if intermediate_entries.is_empty() {
         if !document_errors.is_empty() {
-            return Err(IndexGenerationError::AllDocumentErrors(dbg!(
-                document_errors
-            )));
+            return Err(IndexGenerationError::AllDocumentErrors(document_errors));
         } else {
             return Err(IndexGenerationError::NoFilesSpecified);
         }

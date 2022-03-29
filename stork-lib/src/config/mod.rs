@@ -157,6 +157,7 @@ mod tests {
                 excerpt_buffer: 8,
                 excerpts_per_result: 5,
                 displayed_results_count: 10,
+                compression_method: crate::index_v4::CompressionMethod::None
             },
         }
     }

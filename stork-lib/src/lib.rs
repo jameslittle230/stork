@@ -16,6 +16,7 @@ pub type Fields = HashMap<String, String>;
 
 pub trait StorkIndex: TryFrom<Bytes> {
     fn metadata(&self) -> IndexMetadata;
+    // fn into_bytes(&self) -> Bytes;
 }
 
 mod output;
@@ -54,10 +55,7 @@ use index_v4::V4Index;
 pub use index_v3::DocumentError;
 
 #[cfg(feature = "build-v3")]
-use {
-    index_v3::build as V3Build, index_v3::BuildResult as V3BuildResult,
-    index_v3::IndexGenerationError,
-};
+use {index_v3::BuildResult as V3BuildResult, index_v3::IndexGenerationError};
 
 #[cfg(feature = "build-v3")] // TODO: Change to v4
 use {
@@ -115,6 +113,7 @@ pub enum BuildError {
     IndexGenerationError(#[from] IndexGenerationError),
 
     #[error("{0}")]
+    #[cfg(feature = "build-v3")]
     V4BuildError(#[from] V4BuildError),
 }
 
@@ -174,11 +173,8 @@ pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
 
 #[cfg(feature = "build-v3")] // TODO: Change to v4
 pub fn build_index(config: &Config) -> core::result::Result<BuildOutput, BuildError> {
-    use index_v4::CompressionMethod;
-
     let build_output = V4Build(config)?;
-    let compression_method = CompressionMethod::BZip2;
-    let bytes = build_output.index.into_bytes(compression_method);
+    let bytes = build_output.index.into_bytes();
     let metadata = build_output.metadata;
     Ok(BuildOutput { bytes, metadata })
 }

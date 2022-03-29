@@ -27,4 +27,4 @@ files = [
 ]
 
 [output]
-debug = false
+compression_method = "BZip2"

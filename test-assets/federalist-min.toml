@@ -1,0 +1,5 @@
+[input]
+base_directory = "./local-dev/test-corpora/federalist"
+files = [
+    { path = "federalist-1.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1", title = "Introduction" },
+]

@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
+use crate::index_v4::CompressionMethod;
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, SmartDefault)]
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
@@ -23,4 +25,7 @@ pub struct OutputConfig {
 
     #[default = 10]
     pub displayed_results_count: u8,
+
+    #[default(CompressionMethod::None)]
+    pub compression_method: CompressionMethod,
 }

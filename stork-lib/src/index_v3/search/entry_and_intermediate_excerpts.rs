@@ -378,7 +378,5 @@ mod tests {
         };
 
         let output_result = Result::from(entry_and_intermediate_excerpts);
-
-        dbg!(output_result);
     }
 }

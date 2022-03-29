@@ -114,7 +114,7 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
         "Success:".green().to_string(),
         bytes_written.to_formatted_string(&Locale::en)
     );
-    eprintln!("{}", build_output.description);
+    eprintln!("{:?}", build_output.metadata);
 
     if submatches.is_present("timing") {
         eprintln!(
