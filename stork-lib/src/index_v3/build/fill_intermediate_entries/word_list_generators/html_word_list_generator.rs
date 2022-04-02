@@ -47,9 +47,15 @@ pub fn generate(
             let as_node = css_match.as_node();
 
             if let Some(exclude_selector) = exclude_selector {
-                if let Ok(excluded_elements) = as_node.select(exclude_selector) {
-                    for excluded_element in excluded_elements {
-                        excluded_element.as_node().detach();
+                if let Ok(exclusion_selection) = as_node.select(exclude_selector) {
+                    // Kuchiki doesn't like it if you mutate the tree while iterating over it,
+                    // so instead of iterating over the .select() result, let's first collect
+                    // all nodes in our iterator, then remove them after the fact.
+                    let excluded_nodes: Vec<NodeDataRef<_>> =
+                        exclusion_selection.into_iter().collect();
+
+                    for node in excluded_nodes {
+                        node.as_node().detach();
                     }
                 }
             }
@@ -121,6 +127,7 @@ pub fn generate(
 #[cfg(test)]
 mod tests {
     use crate::config::{File, Filetype, InputConfig, OutputConfig};
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
