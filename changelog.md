@@ -8,6 +8,11 @@
   set, transforms search result URLs from what's described in the search index
   to what gets output in the DOM.
 
+### Bug Fixes
+
+- Fixes a bug where multiple instances of the element described in the
+  `exclude_html_selector` configuration option were not being correctly excluded.
+
 ## v1.4.2
 
 [Mar 22, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.2)
