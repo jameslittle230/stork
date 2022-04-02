@@ -234,6 +234,30 @@ mod tests {
     }
 
     #[test]
+    fn test_html_content_extraction_with_multiple_excluded_selectors() {
+        run_html_parse_test(
+            "This content should be indexed This content should also be indexed",
+            Some(".yes"),
+            Some(".no"),
+            r#"
+    <html>
+        <head></head>
+        <body>
+            <h1>This is a title</h1>
+            <main>
+                <section class="yes" id="first">
+                    <p>This content should be indexed</p>
+                    <p id="second">This content should also be indexed</p>
+                    <p class="no">This content should not be indexed</p>
+                    <p class="no">This content should also not be indexed</p>
+                </section>
+            </main>
+        </body>
+    </html>"#,
+        )
+    }
+
+    #[test]
     fn test_selector_not_present() {
         let computed = generate(
             &reader_config_from_html_selectors(Some(".yes"), Some(".no")),
