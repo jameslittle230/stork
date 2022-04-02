@@ -4,7 +4,7 @@ use crate::{
 };
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
-use kuchiki::{traits::TendrilSink, ElementData, NodeDataRef};
+use kuchiki::{traits::TendrilSink, ElementData, NodeDataRef, Selectors};
 use std::collections::HashMap;
 
 pub fn generate(
@@ -31,11 +31,18 @@ pub fn generate(
             .map(std::string::String::as_str)
     };
 
-    if let Ok(css_matches) = document.select(selector) {
+    if let Ok(document_matches) = document.select(selector) {
         let mut word_list: Vec<AnnotatedWord> = vec![];
         let mut latest_id: Option<String> = None;
 
-        let matches_vec: Vec<NodeDataRef<ElementData>> = css_matches.into_iter().collect();
+        let compiled_exclude_selector = exclude_selector.map(Selectors::compile);
+        let matches_vec: Vec<NodeDataRef<ElementData>> = document_matches
+            .into_iter()
+            .filter(|n| match &compiled_exclude_selector {
+                Some(Ok(exclude_selector)) => !exclude_selector.matches(n),
+                _ => true,
+            })
+            .collect();
 
         if matches_vec.is_empty() {
             return Err(WordListGenerationError::SelectorNotPresent(
@@ -265,6 +272,80 @@ mod tests {
     }
 
     #[test]
+    fn test_html_content_extraction_with_multiple_excluded_selectors_in_nested_form() {
+        run_html_parse_test(
+            "This content should be indexed This content should also be indexed",
+            Some(".yes"),
+            Some(".no"),
+            r#"
+    <html>
+        <head></head>
+        <body>
+            <h1>This is a title</h1>
+            <main>
+                <section class="yes" id="first">
+                    <p>This content should be indexed</p>
+                    <p id="second">This content should also be indexed</p>
+                    <p class="no">This content should not be indexed</p>
+                    <div class="something">
+                        <p class="no">This content is nested and shouldn't be indexed</p>
+                    </div>
+                    <p class="no and other classes">This content has multiple classes and shouldn't be indexed</p>
+                </section>
+            </main>
+        </body>
+    </html>"#,
+        )
+    }
+
+    #[test]
+    fn test_exclusion_selector_overrides_inclusion_selector() {
+        run_html_parse_test(
+            "This content should be indexed",
+            Some(".yes"),
+            Some(".no"),
+            r#"
+    <html>
+        <head></head>
+        <body>
+            <h1>This is a title</h1>
+            <main>
+                <section class="yes" id="first">
+                    <p>This content should be indexed</p>
+                    <p class="no">This content should not be indexed</p>
+                </section>
+                <p class="yes no">The exclusion selector should override the inclusion selector</p>
+            </main>
+        </body>
+    </html>"#,
+        )
+    }
+
+    #[test]
+    #[ignore = "This definitely won't pass if test_html_content_extraction_with_multiple_nested_selector_matches doesn't pass"]
+    fn test_exclusion_selector_overrides_nested_inclusion_selector() {
+        run_html_parse_test(
+            "This content should be indexed This content should also be indexed",
+            Some(".yes"),
+            Some(".no"),
+            r#"
+    <html>
+        <head></head>
+        <body>
+            <h1>This is a title</h1>
+            <main>
+                <section class="yes" id="first">
+                    <p>This content should be indexed</p>
+                    <p class="no">This content should not be indexed</p>
+                    <p class="no yes">The exclusion selector should override the inclusion selector when the inclusion selector is nested inside another inclusion selector</p>
+                </section>
+            </main>
+        </body>
+    </html>"#,
+        )
+    }
+
+    #[test]
     fn test_selector_not_present() {
         let computed = generate(
             &reader_config_from_html_selectors(Some(".yes"), Some(".no")),
@@ -324,6 +405,31 @@ mod tests {
                         <section class="yes">
                             <p>This content is in a duplicate selector.</p>
                             <p>It should also be indexed.</p>
+                        </section>
+                    </main>
+                </body>
+            </html>"#)
+    }
+
+    #[test]
+    #[ignore = "The text that should only show up once currently shows up twice"]
+    fn test_html_content_extraction_with_multiple_nested_selector_matches() {
+        run_html_parse_test(
+            "This content should be indexed. This content is in a duplicate selector. It should also be indexed. This text should only show up once.",
+            Some(".yes"),
+            None,
+            r#"
+            <html>
+                <head></head>
+                <body>
+                    <h1>This is a title</h1>
+                    <main>
+                        <section class="no"><p>Stork should not recognize this text</p></section>
+                        <section class="yes"><p>This content should be indexed.</p></section>
+                        <section class="yes">
+                            <p>This content is in a duplicate selector.</p>
+                            <p>It should also be indexed.</p>
+                            <p class="yes">This text should only show up once.</p>
                         </section>
                     </main>
                 </body>
