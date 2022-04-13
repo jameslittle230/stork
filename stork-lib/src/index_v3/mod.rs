@@ -165,7 +165,11 @@ impl AnnotatedWordList {
 
 #[cfg(test)]
 mod tests {
+    use crate::Config;
+
     use super::*;
+    use pretty_assertions::assert_eq;
+
     use std::collections::HashMap;
     use std::convert::TryFrom;
     use std::fs;
@@ -213,5 +217,34 @@ mod tests {
         .get_full_text();
 
         assert_eq!(intended, generated);
+    }
+
+    #[test]
+    fn index_with_zero_excerpts_per_result_is_smaller() {
+        // File path relative to source code
+        let mut config = Config::try_from(include_str!(
+            "../../../local-dev/test-configs/federalist.toml"
+        ))
+        .unwrap();
+
+        config.output.excerpts_per_result = 0;
+
+        // File path relative to where the test is being run
+        config.input.base_directory = "../local-dev/test-corpora/federalist".to_string();
+
+        let build_result = build(&config).unwrap();
+
+        assert!(build_result.index.containers.values().all(|container| {
+            container
+                .results
+                .values()
+                .all(|search_result| search_result.excerpts.is_empty())
+        }));
+
+        assert!(build_result
+            .index
+            .entries
+            .into_iter()
+            .all(|entry| entry.contents.len() == 0));
     }
 }

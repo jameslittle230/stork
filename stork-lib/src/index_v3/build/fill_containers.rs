@@ -39,6 +39,7 @@ pub fn fill_containers(
                 }
 
                 fill_container_results_map(
+                    config,
                     containers,
                     &normalized_word,
                     word_index,
@@ -70,6 +71,7 @@ pub fn fill_containers(
 }
 
 fn fill_container_results_map(
+    config: &Config,
     containers: &mut BTreeMap<String, Container>,
     normalized_word: &str,
     word_index: usize,
@@ -86,12 +88,14 @@ fn fill_container_results_map(
         .entry(entry_index)
         .or_insert_with(SearchResult::new);
 
-    entry_result.excerpts.push(Excerpt {
-        word_index,
-        source,
-        internal_annotations: annotated_word.internal_annotations.clone(),
-        fields: annotated_word.fields.clone(),
-    });
+    if config.output.excerpts_per_result > 0 {
+        entry_result.excerpts.push(Excerpt {
+            word_index,
+            source,
+            internal_annotations: annotated_word.internal_annotations.clone(),
+            fields: annotated_word.fields.clone(),
+        });
+    }
 }
 
 fn fill_other_containers_alias_maps_with_prefixes(
