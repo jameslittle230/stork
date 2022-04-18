@@ -165,6 +165,7 @@ impl AnnotatedWordList {
 
 #[cfg(test)]
 mod tests {
+    use crate::config::{DataSource, File, Filetype};
     use crate::Config;
 
     use super::*;
@@ -221,18 +222,37 @@ mod tests {
 
     #[test]
     fn index_with_zero_excerpts_per_result_is_smaller() {
-        // File path relative to source code
-        let mut config = Config::try_from(include_str!(
-            "../../../local-dev/test-configs/federalist.toml"
-        ))
-        .unwrap();
-
-        config.output.excerpts_per_result = 0;
-
-        // File path relative to where the test is being run
-        config.input.base_directory = "../local-dev/test-corpora/federalist".to_string();
+        let config = Config {
+            input: crate::config::InputConfig {
+                files: vec![
+                    File {
+                        explicit_source: Some(DataSource::Contents(
+                            "The quick brown fox jumps over the lazy dog.".to_string(),
+                        )),
+                        title: "Quick Brown Fox".to_string(),
+                        filetype: Some(Filetype::PlainText),
+                        ..Default::default()
+                    },
+                    File {
+                        explicit_source: Some(DataSource::Contents(
+                            "Sphinx of black quartz, judge my vow".to_string(),
+                        )),
+                        title: "Sphinx of Black Quartz".to_string(),
+                        filetype: Some(Filetype::PlainText),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            output: OutputConfig {
+                excerpts_per_result: 0,
+                ..Default::default()
+            },
+        };
 
         let build_result = build(&config).unwrap();
+
+        assert_eq!(build_result.index.containers.keys().len(), 33);
 
         assert!(build_result.index.containers.values().all(|container| {
             container
