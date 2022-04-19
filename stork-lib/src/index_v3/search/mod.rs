@@ -27,21 +27,14 @@ pub fn search(index: &Index, query: &str) -> Output {
         .map(ToString::to_string)
         .collect();
 
-    dbg!(index);
-
     // Get the containers for each word in the query, and separate them
     // into intermediate excerpts
     let mut intermediate_excerpts: Vec<IntermediateExcerpt> = words_in_query
         .iter()
         .filter_map(|word| index.containers.get_key_value(word))
         .map(|(word, ctr)| ContainerWithQuery::new(ctr.clone(), word))
-        .flat_map(|ctr_query| {
-            dbg!(&ctr_query);
-            return ctr_query.get_intermediate_excerpts(index);
-        })
+        .flat_map(|ctr_query| ctr_query.get_intermediate_excerpts(index))
         .collect();
-
-    dbg!(&intermediate_excerpts);
 
     for mut ie in &mut intermediate_excerpts {
         if stopwords.contains(&ie.query.as_str()) {
