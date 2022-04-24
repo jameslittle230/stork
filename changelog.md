@@ -7,6 +7,9 @@
 - Adds the Javascript registration option `transformResultUrl`, which, when
   set, transforms search result URLs from what's described in the search index
   to what gets output in the DOM.
+- Setting `output.excerpts_per_result` to 0 in your configuration file will now
+  enable index serialization optimizations that can reduce your index filesize
+  by 20-50%. Note that this will make all excerpts disappear from the search UI.
 
 ### Bug Fixes
 
