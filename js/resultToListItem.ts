@@ -21,15 +21,21 @@ export function resultToListItem(
       )}</p>
       ${options.showScores ? `<code><b>${result.score}</b></code>` : ""}
     </div>
-      ${result.excerpts
-        .map(
-          e => `<div class="stork-excerpt"><p>
+    ${
+      result.excerpts.length > 0
+        ? '<div class="stork-excerpt-container" />'
+        : ""
+    }
+    ${result.excerpts
+      .map(
+        e => `<div class="stork-excerpt"><p>
         ...${highlight(e.text, e.highlight_ranges || [])}...
         </p>
         ${options.showScores ? `<code>${e.score}</code>` : ""}
         </div>`
-        )
-        .join("")}
+      )
+      .join("")}
+        ${result.excerpts.length > 0 ? "</div>" : ""}
   </a>
 </li>`;
   return template.content.firstElementChild as ChildNode;

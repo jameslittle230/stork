@@ -1,5 +1,6 @@
 pub mod intermediate_excerpt;
 use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use intermediate_excerpt::IntermediateExcerpt;
 
@@ -73,6 +74,7 @@ pub fn search(index: &Index, query: &str) -> Output {
     }
 }
 
+#[derive(Debug)]
 struct ContainerWithQuery {
     results: BTreeMap<EntryIndex, SearchResult>,
     aliases: BTreeMap<AliasTarget, Score>,
@@ -92,15 +94,27 @@ impl ContainerWithQuery {
         let mut output = vec![];
         // Put container's results in output
         for (entry_index, result) in &self.results {
-            for excerpt in result.excerpts.clone() {
+            if result.excerpts.is_empty() {
+                output.push(IntermediateExcerpt {
+                    query: self.query.to_string(),
+                    entry_index: *entry_index,
+                    score: result.score,
+                    source: super::WordListSource::Contents,
+                    word_index: 0,
+                    internal_annotations: vec![],
+                    fields: HashMap::new(),
+                })
+            }
+
+            for excerpt in &result.excerpts {
                 output.push(IntermediateExcerpt {
                     query: self.query.to_string(),
                     entry_index: *entry_index,
                     score: result.score,
                     source: excerpt.source,
                     word_index: excerpt.word_index,
-                    internal_annotations: excerpt.internal_annotations,
-                    fields: excerpt.fields,
+                    internal_annotations: excerpt.internal_annotations.clone(),
+                    fields: excerpt.fields.clone(),
                 })
             }
         }
@@ -109,6 +123,18 @@ impl ContainerWithQuery {
         for (alias_target, alias_score) in &self.aliases {
             if let Some(target_container) = index.containers.get(alias_target) {
                 for (entry_index, result) in target_container.results.clone() {
+                    if result.excerpts.is_empty() {
+                        output.push(IntermediateExcerpt {
+                            query: self.query.to_string(),
+                            entry_index,
+                            score: result.score,
+                            source: super::WordListSource::Contents,
+                            word_index: 0,
+                            internal_annotations: vec![],
+                            fields: HashMap::new(),
+                        })
+                    }
+
                     for excerpt in result.excerpts.clone() {
                         output.push(IntermediateExcerpt {
                             query: alias_target.to_string(),

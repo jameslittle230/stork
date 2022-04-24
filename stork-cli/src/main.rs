@@ -177,7 +177,7 @@ fn search_handler(submatches: &ArgMatches) -> CmdResult {
 
 #[cfg(not(feature = "test-server"))]
 fn test_handler(_: &ArgMatches) -> CmdResult {
-    Err(StorkCommandLineError::NotCompiledWithFeature("Stork was not compiled with test server support. Rebuild the crate with default features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug"))
+    Err(StorkCommandLineError::NotCompiledWithFeature("Stork was not compiled with test server support. Rebuild the crate with all features to enable the test server.\nIf you don't expect to see this, file a bug: https://jil.im/storkbug"))
 }
 
 #[cfg(feature = "test-server")]

@@ -357,6 +357,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "No assertion in test"]
     fn title_highlighting_works_when_title_has_no_spaces() {
         let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
             entry: Entry {

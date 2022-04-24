@@ -165,7 +165,12 @@ impl AnnotatedWordList {
 
 #[cfg(test)]
 mod tests {
+    use crate::config::{DataSource, File, Filetype};
+    use crate::Config;
+
     use super::*;
+    use pretty_assertions::assert_eq;
+
     use std::collections::HashMap;
     use std::convert::TryFrom;
     use std::fs;
@@ -213,5 +218,53 @@ mod tests {
         .get_full_text();
 
         assert_eq!(intended, generated);
+    }
+
+    #[test]
+    fn index_with_zero_excerpts_per_result_is_smaller() {
+        let config = Config {
+            input: crate::config::InputConfig {
+                files: vec![
+                    File {
+                        explicit_source: Some(DataSource::Contents(
+                            "The quick brown fox jumps over the lazy dog.".to_string(),
+                        )),
+                        title: "Quick Brown Fox".to_string(),
+                        filetype: Some(Filetype::PlainText),
+                        ..Default::default()
+                    },
+                    File {
+                        explicit_source: Some(DataSource::Contents(
+                            "Sphinx of black quartz, judge my vow".to_string(),
+                        )),
+                        title: "Sphinx of Black Quartz".to_string(),
+                        filetype: Some(Filetype::PlainText),
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            },
+            output: OutputConfig {
+                excerpts_per_result: 0,
+                ..Default::default()
+            },
+        };
+
+        let build_result = build(&config).unwrap();
+
+        assert_eq!(build_result.index.containers.keys().len(), 33);
+
+        assert!(build_result.index.containers.values().all(|container| {
+            container
+                .results
+                .values()
+                .all(|search_result| search_result.excerpts.is_empty())
+        }));
+
+        assert!(build_result
+            .index
+            .entries
+            .into_iter()
+            .all(|entry| entry.contents.len() == 0));
     }
 }

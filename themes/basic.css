@@ -132,12 +132,16 @@
 .stork-wrapper .stork-title {
   font-weight: bold;
   font-size: 0.95em;
-  margin: 0 0 0.75em 0;
+  margin: 0;
   color: var(--stork-text-color);
 
   /* Flexbox container for the title and the score, when debugging */
   display: flex;
   justify-content: space-between;
+}
+
+.stork-wrapper .stork-excerpt-container {
+  margin-top: 0.75em;
 }
 
 .stork-wrapper .stork-excerpt {
