@@ -48,9 +48,10 @@ solo-build-federalist-index:
 build-federalist-index: build-indexer-dev fetch-test-corpora solo-build-federalist-index
 
 build-all-indexes: build-federalist-index
-    -cargo run -q --all-features -- build --input local-dev/test-configs/3b1b.toml           --output local-dev/test-indexes/3b1b.st
-    -cargo run -q --all-features -- build --input local-dev/test-configs/beepboop.toml       --output local-dev/test-indexes/beepboop.st
-    -cargo run -q --all-features -- build --input local-dev/test-configs/bowdoin-orient.toml --output local-dev/test-indexes/bowdoin-orient.st
+    -cargo run -q --all-features -- build --input local-dev/test-configs/3b1b.toml            --output local-dev/test-indexes/3b1b.st
+    -cargo run -q --all-features -- build --input local-dev/test-configs/beepboop.toml        --output local-dev/test-indexes/beepboop.st
+    -cargo run -q --all-features -- build --input local-dev/test-configs/bowdoin-orient.toml  --output local-dev/test-indexes/bowdoin-orient.st
+    -cargo run -q --all-features -- build --input local-dev/test-configs/federalist-zero.toml --output local-dev/test-indexes/federalist-zero.st
 
 
 

@@ -131,6 +131,16 @@
       </div>
 
       <div class="stork-wrapper">
+        <p class="subtitle">excerpts_per_result = 0</p>
+        <input
+          data-stork="federalist-zero"
+          placeholder="liberty"
+          class="stork-input"
+        />
+        <div data-stork="federalist-zero-output" class="stork-output"></div>
+      </div>
+
+      <div class="stork-wrapper">
         <p class="subtitle">Index File Does Not Exist</p>
         <input
           data-stork="doesnotexist"
@@ -206,6 +216,7 @@
       stork.register("federalist-flat", "/federalist.st");
       stork.register("federalist-edible", "/federalist.st");
       stork.register("federalist-edible-dark", "/federalist.st");
+      stork.register("federalist-zero", "/federalist-zero.st");
 
       stork.register(
         "federalist-prod",
