@@ -21,6 +21,7 @@ use unicode_segmentation::UnicodeSegmentation;
 /**
  * A `DataSourceReader` will output one of these once it's read from the data source.
  */
+#[derive(Debug, PartialEq)]
 pub struct ReadResult {
     pub(super) buffer: String,
 
