@@ -1,15 +1,16 @@
-use crate::index_v3::AnnotatedWordList;
-
 use super::{html_word_list_generator, ReadResult, ReaderConfig, WordListGenerationError};
+use crate::index_v3::AnnotatedWordList;
+use pulldown_cmark::{html, Parser};
 
 pub fn generate(
     config: &ReaderConfig,
     read_result: &ReadResult,
 ) -> Result<AnnotatedWordList, WordListGenerationError> {
-    let html_string = format!(
-        "<html><body><main>{}</main></body></html>",
-        markdown::to_html(&read_result.buffer)
-    );
+    let parser = Parser::new(&read_result.buffer);
+    let mut html_output = String::new();
+    html::push_html(&mut html_output, parser);
+
+    let html_string = format!("<html><body><main>{html_output}</main></body></html>");
 
     let html_read_result = ReadResult {
         buffer: html_string,
@@ -81,13 +82,8 @@ Goodbye!"#
         #[test]
         fn space_after_numeric_list() {
             assert_markdown_content(
-                "1. something below, there is a space immediately after the 1. above",
-                r#"---
-title: Something
-tags: test
----
-
-1. 
+                "something below, there is a space immediately after the 1. above",
+                r#"1. 
 
 something below, there is a space immediately after the 1. above  "#,
             );
@@ -96,13 +92,8 @@ something below, there is a space immediately after the 1. above  "#,
         #[test]
         fn space_after_bullet_list() {
             assert_markdown_content(
-                "This is a title Stork should recognize this text This content should be indexed. This is another paragraph with inline text formatting . This is a link. Goodbye!", 
-    r#"---
-title: Something
-tags: test
----
-
-* 
+                "something below, there is a space immediately after the star above", 
+    r#"* 
 
 something below, there is a space immediately after the star above  "#
     );
