@@ -80,6 +80,7 @@ Goodbye!"#
         use super::assert_markdown_content;
 
         #[test]
+        #[rustfmt::skip]
         fn space_after_numeric_list() {
             assert_markdown_content(
                 "something below, there is a space immediately after the 1. above",
@@ -90,13 +91,14 @@ something below, there is a space immediately after the 1. above  "#,
         }
 
         #[test]
+        #[rustfmt::skip]
         fn space_after_bullet_list() {
             assert_markdown_content(
                 "something below, there is a space immediately after the star above", 
     r#"* 
 
-something below, there is a space immediately after the star above  "#
-    );
+something below, there is a space immediately after the star above  "#,
+            );
         }
     }
 }
