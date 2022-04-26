@@ -68,7 +68,7 @@ r#"
 Stork should recognize this text
 
 - This content should be indexed.
-- This is another paragraph with **_inline text_formatting**.
+- This is another paragraph with **_inline text_ formatting**.
 - [This is a link.](https://example.com)
 
 Goodbye!"#
