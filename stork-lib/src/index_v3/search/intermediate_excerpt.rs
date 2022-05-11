@@ -5,7 +5,7 @@ use crate::{
     Fields, InternalWordAnnotation,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub(super) struct IntermediateExcerpt {
     pub(super) query: String,
     pub(super) entry_index: EntryIndex,

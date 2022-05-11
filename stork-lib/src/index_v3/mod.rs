@@ -69,7 +69,7 @@ struct PassthroughConfig {
     displayed_results_count: u8,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 struct Entry {
     contents: String,
     title: String,
