@@ -17,6 +17,10 @@
   `exclude_html_selector` configuration option were not being correctly excluded.
 - Fixes a crash when trying to parse noncompliant Markdown contents
 
+### Other
+
+- Internal dependency updates
+
 ## v1.4.2
 
 [Mar 22, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.4.2)
