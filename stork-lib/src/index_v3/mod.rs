@@ -265,6 +265,6 @@ mod tests {
             .index
             .entries
             .into_iter()
-            .all(|entry| entry.contents.len() == 0));
+            .all(|entry| entry.contents.is_empty()));
     }
 }

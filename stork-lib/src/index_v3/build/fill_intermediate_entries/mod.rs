@@ -133,7 +133,7 @@ pub(super) fn fill_intermediate_entries(
                     ]));
                 }
 
-                document_errors.push(document_error)
+                document_errors.push(document_error);
             }
         };
     }
@@ -235,7 +235,7 @@ mod tests {
             assert_eq!(
                 word_list_generation_error,
                 &WordListGenerationError::EmptyWordList
-            )
+            );
         } else {
             panic!("Result is {:?}", r);
         }

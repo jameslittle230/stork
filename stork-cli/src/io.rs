@@ -13,7 +13,7 @@ pub fn read_stdin_bytes() -> Option<Bytes> {
 
     if atty::isnt(Stream::Stdin) {
         let mut stdin_buffer = Vec::<u8>::new();
-        let _ = io::stdin().read_to_end(&mut stdin_buffer);
+        let _read_result = io::stdin().read_to_end(&mut stdin_buffer);
         return Some(Bytes::from(stdin_buffer));
     }
 

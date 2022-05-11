@@ -62,7 +62,7 @@ impl ContainerWithQuery {
                     entry_index: *entry_index,
                     score: result.score,
                     word_index: excerpt.word_index,
-                })
+                });
             }
         }
 
@@ -76,7 +76,7 @@ impl ContainerWithQuery {
                             entry_index,
                             score: *alias_score,
                             word_index: excerpt.word_index,
-                        })
+                        });
                     }
                 }
             }
@@ -130,7 +130,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                 }
             }
 
-            ies_grouped_by_word_index.push(vec![ie])
+            ies_grouped_by_word_index.push(vec![ie]);
         }
 
         let mut excerpts: Vec<Excerpt> = ies_grouped_by_word_index
@@ -231,7 +231,7 @@ pub fn search(index: &Index, query: &str) -> Output {
         excerpts_by_index
             .entry(ie.entry_index)
             .or_insert_with(Vec::new)
-            .push(ie)
+            .push(ie);
     }
 
     let total_len = &excerpts_by_index.len();

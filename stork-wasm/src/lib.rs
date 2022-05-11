@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+
 use bytes::Bytes;
 use serde::Serialize;
 use std::{convert::From, fmt::Display};

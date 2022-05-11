@@ -12,7 +12,7 @@ scripts/*_exe.sh
 /local-dev/test-corpora/federalist/*.txt
 /local-dev/test-corpora/3b1b/*.srt
 /local-dev/test-indexes/*.st
-/local-dev-dist
+/local-dev/dist
 yarn-error.log
 
 # Development Files

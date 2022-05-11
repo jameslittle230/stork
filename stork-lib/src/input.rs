@@ -95,7 +95,7 @@ mod tests {
         assert_eq!(
             versioned_index,
             VersionedIndex::V2(Bytes::try_from(hex!("00").as_ref()).unwrap())
-        )
+        );
     }
 
     #[test]
@@ -107,7 +107,7 @@ mod tests {
         assert_eq!(
             versioned_index,
             VersionedIndex::V3(Bytes::try_from(hex!("00").as_ref()).unwrap())
-        )
+        );
     }
 
     #[test]
@@ -116,7 +116,7 @@ mod tests {
         assert_eq!(
             VersionedIndex::try_from(bytes).unwrap_err(),
             IndexVersioningError::BadVersionSize(8_388_070_249_163_485_984)
-        )
+        );
     }
 
     #[test]
@@ -125,7 +125,7 @@ mod tests {
         assert_eq!(
             VersionedIndex::try_from(bytes).unwrap_err(),
             IndexVersioningError::BadVersionSize(33)
-        )
+        );
     }
 
     #[test]
@@ -134,7 +134,7 @@ mod tests {
         assert_eq!(
             VersionedIndex::try_from(bytes).unwrap_err(),
             IndexVersioningError::FileTooShort // Because the version string isn't 32 bytes long
-        )
+        );
     }
 
     #[test]
@@ -143,7 +143,7 @@ mod tests {
         assert_eq!(
             VersionedIndex::try_from(bytes).unwrap_err(),
             IndexVersioningError::UnknownVersionString("\x00".into())
-        )
+        );
     }
 
     #[test]
@@ -152,7 +152,7 @@ mod tests {
         assert_eq!(
             VersionedIndex::try_from(bytes).unwrap_err(),
             IndexVersioningError::BadVersionSize(0)
-        )
+        );
     }
 
     #[test]
@@ -161,7 +161,7 @@ mod tests {
         assert_eq!(
             VersionedIndex::try_from(bytes).unwrap_err(),
             IndexVersioningError::FileTooShort
-        )
+        );
     }
 
     #[test]

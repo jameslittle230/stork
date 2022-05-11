@@ -24,14 +24,14 @@ pub fn pretty_print_search_results(results: &Output) -> String {
         .initial_indent("    - ")
         .subsequent_indent("      ");
 
-    for result in results.results.iter() {
+    results.results.iter().for_each(|result| {
         output.push_str(&format!(
             "{}\n<{}{}>",
             result.entry.title.bold().green(),
             results.url_prefix,
             result.entry.url
         ));
-        for excerpt in result.excerpts.iter() {
+        result.excerpts.iter().for_each(|excerpt| {
             output.push_str(&format!(
                 "\n{}",
                 textwrap::fill(
@@ -39,9 +39,9 @@ pub fn pretty_print_search_results(results: &Output) -> String {
                     &textwrap_options
                 )
             ));
-        }
+        });
         output.push_str("\n\n");
-    }
+    });
 
     output.push_str(&format!(
         "{} total results available",

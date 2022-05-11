@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+
 use std::{process::exit, time::Instant};
 
 use colored::Colorize;
@@ -44,7 +46,7 @@ fn main() {
         // Delete when releasing 2.0.0
         (_, _) => {
             fn print_nudging_string(errant_command: &str) {
-                eprintln!("{} The command line interface has been updated: please use `stork {}` instead of `stork --{}`. See `stork --help` for more.", "Warning:".yellow(), errant_command, errant_command)
+                eprintln!("{} The command line interface has been updated: please use `stork {}` instead of `stork --{}`. See `stork --help` for more.", "Warning:".yellow(), errant_command, errant_command);
             }
 
             if let Some(config_path) = app_matches.value_of("build") {
@@ -81,7 +83,7 @@ fn main() {
                 let submatches = global_matches.subcommand_matches("search").unwrap();
                 test_handler(submatches)
             } else {
-                let _ = app().print_help();
+                let _clap_result = app().print_help();
                 Ok(())
             }
         }
@@ -111,7 +113,7 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
 
     eprintln!(
         "{} Index built successfully, wrote {} bytes.",
-        "Success:".green().to_string(),
+        "Success:".green(),
         bytes_written.to_formatted_string(&Locale::en)
     );
     eprintln!("{}", build_output.description);
@@ -124,7 +126,7 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
                 (end_time.duration_since(build_time), "to write file"),
                 (end_time.duration_since(start_time), "total")
             ],
-        )
+        );
     }
 
     Ok(())
@@ -157,7 +159,7 @@ fn search_handler(submatches: &ArgMatches) -> CmdResult {
             println!("{}", pretty_print_search_results(&results));
         }
         _ => {
-            let _ = app().print_help();
+            let _clap_result = app().print_help();
             return Ok(());
         }
     }
@@ -169,7 +171,7 @@ fn search_handler(submatches: &ArgMatches) -> CmdResult {
                 (end_time.duration_since(read_time), "to get search results"),
                 (end_time.duration_since(start_time), "total")
             ]
-        )
+        );
     }
 
     Ok(())

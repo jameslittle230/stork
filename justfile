@@ -21,7 +21,7 @@ format: _yarn
 
 lint: _yarn format
     cargo check
-    ./scripts/clippy.sh
+    cargo clippy --fix --all-targets --all-features -- -D warnings
     yarn eslint js/**/*.ts
 
 clean:
@@ -96,12 +96,12 @@ solo-build-js-dev:
 build-js-dev: build-wasm-dev _yarn solo-build-js-dev
 
 solo-build-dev-site:
-    rm -rf local-dev-dist
-    mkdir local-dev-dist
-    cp themes/*.css local-dev-dist/
-    cp local-dev/index.html local-dev-dist/
-    cp dist/* local-dev-dist/
-    cp local-dev/test-indexes/*.st local-dev-dist/
+    rm -rf local-dev/dist
+    mkdir local-dev/dist
+    cp themes/*.css local-dev/dist/
+    cp local-dev/index.html local-dev/dist/
+    cp dist/* local-dev/dist/
+    cp local-dev/test-indexes/*.st local-dev/dist/
     @echo "You should run \`just serve-dev-site\` in another tab!"
 
 build-dev-site: build-js-dev build-all-indexes solo-build-dev-site
@@ -110,7 +110,7 @@ build-dev-site-prod: build-js build-all-indexes solo-build-dev-site
 
 serve-dev-site:
     @echo "Open http://127.0.0.1:8025"
-    python3 -m http.server --directory ./local-dev-dist 8025
+    python3 -m http.server --directory ./local-dev/dist 8025
 
 
 

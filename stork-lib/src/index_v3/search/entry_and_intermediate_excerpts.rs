@@ -54,7 +54,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                 }
             }
 
-            ies_grouped_by_word_index.push(vec![ie])
+            ies_grouped_by_word_index.push(vec![ie]);
         }
 
         let mut excerpts: Vec<Excerpt> = ies_grouped_by_word_index

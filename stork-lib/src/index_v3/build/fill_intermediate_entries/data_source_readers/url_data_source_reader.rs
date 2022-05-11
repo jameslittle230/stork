@@ -28,13 +28,14 @@ pub(crate) fn read(
     let mut resp =
         reqwest::blocking::get(url).map_err(|_| WordListGenerationError::WebPageNotFetched)?;
 
-    let _status = resp.error_for_status_ref().map_err(|error| {
-        if let Some(status_code) = error.status().map(|s| s.as_u16()) {
-            return WordListGenerationError::WebPageErrorfulStatusCode(status_code);
-        } else {
-            return WordListGenerationError::WebPageNotFetched;
-        }
-    })?;
+    let _status =
+        resp.error_for_status_ref()
+            .map_err(|error| match error.status().map(|s| s.as_u16()) {
+                Some(status_code) => {
+                    WordListGenerationError::WebPageErrorfulStatusCode(status_code)
+                }
+                None => WordListGenerationError::WebPageNotFetched,
+            })?;
 
     let mime_type: Mime = resp
         .headers()

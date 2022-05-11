@@ -37,11 +37,10 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
     fill_intermediate_entries(config, &mut intermediate_entries, &mut document_errors)?;
 
     if intermediate_entries.is_empty() {
-        if !document_errors.is_empty() {
-            return Err(IndexGenerationError::AllDocumentErrors(document_errors));
-        } else {
+        if document_errors.is_empty() {
             return Err(IndexGenerationError::NoFilesSpecified);
         }
+        return Err(IndexGenerationError::AllDocumentErrors(document_errors));
     }
 
     let mut stems: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -58,7 +57,7 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
                 entry.contents = "".to_string();
             }
 
-            return entry;
+            entry
         })
         .collect::<Vec<Entry>>();
 
@@ -214,7 +213,7 @@ mod tests {
                     WordListGenerationError::EmptyWordList,
                     WordListGenerationError::SelectorNotPresent(".article".to_string())
                 ]
-            )
+            );
         } else {
             panic!()
         }

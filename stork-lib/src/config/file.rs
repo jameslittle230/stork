@@ -1,3 +1,5 @@
+#![allow(clippy::upper_case_acronyms)]
+
 use super::{FrontmatterConfig, StemmingConfig};
 use core::fmt;
 use serde::{Deserialize, Serialize};
@@ -70,6 +72,7 @@ pub enum DataSource {
     Contents(String),
 
     #[serde(rename = "src_url")]
+    #[allow(clippy::upper_case_acronyms)]
     URL(String),
 
     #[serde(rename = "path")]

@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use frontmatter::{parse_and_find_content, Yaml};
 use std::collections::HashMap;
 
@@ -59,7 +61,7 @@ this is not
         );
 
         let computed = (output.0, output.1.to_string());
-        assert_eq!(expected, computed)
+        assert_eq!(expected, computed);
     }
 
     #[test]
@@ -91,6 +93,6 @@ this is not
         );
 
         let computed = (output.0, output.1.to_string());
-        assert_eq!(expected, computed)
+        assert_eq!(expected, computed);
     }
 }
