@@ -86,8 +86,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                             + 1;
                         HighlightRange {
                             beginning,
-                            end: beginning
-                                + dbg!(split_contents[ie.word_index].clone()).chars().count(),
+                            end: beginning + split_contents[ie.word_index].clone().chars().count(),
                         }
                     })
                     .collect();
@@ -182,8 +181,6 @@ impl From<EntryAndIntermediateExcerpts> for Result {
 
             sum + title_boost_modifier
         };
-
-        dbg!(&excerpts);
 
         Result {
             entry: crate::Entry::from(entry),
@@ -375,7 +372,7 @@ mod tests {
             ..Default::default()
         };
 
-        let output_result = dbg!(Result::from(entry_and_intermediate_excerpts));
+        let output_result = Result::from(entry_and_intermediate_excerpts);
         let excerpt = output_result.excerpts.first().unwrap();
         let excerpt_chars = excerpt.text.chars().collect::<Vec<char>>();
         let first_highlight_range = &excerpt.highlight_ranges.first().unwrap();
@@ -411,6 +408,6 @@ mod tests {
 
         let output_result = Result::from(entry_and_intermediate_excerpts);
 
-        dbg!(output_result);
+        println!("{output_result:?}");
     }
 }
