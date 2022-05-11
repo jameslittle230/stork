@@ -25,16 +25,14 @@ module.exports = {
       "process.env.VERSION": JSON.stringify(version)
     }),
     new CleanWebpackPlugin(),
-    new CopyPlugin(
-      [
-        path.resolve(__dirname, "dist"),
+    new CopyPlugin({
+      patterns: [
         {
           from: path.resolve(__dirname, "stork-wasm", "pkg", "stork_bg.wasm"),
           to: "stork.wasm"
         }
-      ],
-      { copyUnmodified: true }
-    )
+      ]
+    })
   ],
   module: {
     rules: [
