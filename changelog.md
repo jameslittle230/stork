@@ -16,6 +16,8 @@
 - Fixes a bug where multiple instances of the element described in the
   `exclude_html_selector` configuration option were not being correctly excluded.
 - Fixes a crash when trying to parse noncompliant Markdown contents
+- Fixes a bug when highlighting search results where highlights wouldn't surround
+  an entire word.
 
 ### Other
 

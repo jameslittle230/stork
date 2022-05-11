@@ -8,7 +8,7 @@ use crate::{
 
 use super::intermediate_excerpt::IntermediateExcerpt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 pub(super) struct EntryAndIntermediateExcerpts {
     pub(super) entry: Entry,
     pub(super) config: PassthroughConfig,
@@ -86,7 +86,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                             + 1;
                         HighlightRange {
                             beginning,
-                            end: beginning + ie.query.chars().count(),
+                            end: beginning + split_contents[ie.word_index].clone().chars().count(),
                         }
                     })
                     .collect();
@@ -147,7 +147,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                 let beginning = split_title[0..ie.word_index].join(" ").len() + space_offset;
                 HighlightRange {
                     beginning,
-                    end: beginning + ie.query.len(),
+                    end: beginning + split_title[ie.word_index].len(),
                 }
             })
             .collect();
@@ -357,6 +357,34 @@ mod tests {
     }
 
     #[test]
+    fn issue_292() {
+        let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
+            entry: Entry {
+                contents: "You will need to use `neovim/nvim-lsp` to do some stuff.".to_string(),
+                ..Default::default()
+            },
+            intermediate_excerpts: vec![IntermediateExcerpt {
+                query: "123456789012345".to_string(),
+                source: WordListSource::Contents,
+                word_index: 5,
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        let output_result = Result::from(entry_and_intermediate_excerpts);
+        let excerpt = output_result.excerpts.first().unwrap();
+        let excerpt_chars = excerpt.text.chars().collect::<Vec<char>>();
+        let first_highlight_range = &excerpt.highlight_ranges.first().unwrap();
+        let computed_first_word = &excerpt_chars
+            [first_highlight_range.beginning..first_highlight_range.end]
+            .iter()
+            .collect::<String>();
+
+        assert_eq!(computed_first_word, "`neovim/nvim-lsp`");
+    }
+
+    #[test]
     #[ignore = "No assertion in test"]
     fn title_highlighting_works_when_title_has_no_spaces() {
         let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
@@ -380,6 +408,6 @@ mod tests {
 
         let output_result = Result::from(entry_and_intermediate_excerpts);
 
-        dbg!(output_result);
+        println!("{output_result:?}");
     }
 }
