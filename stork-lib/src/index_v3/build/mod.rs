@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use std::collections::BTreeMap;
 
 mod fill_containers;
@@ -98,7 +100,7 @@ fn remove_surrounding_punctuation(input: &str) -> String {
 #[cfg(test)]
 mod tests {
 
-    use crate::config::*;
+    use crate::config::{Config, DataSource, File, Filetype, InputConfig};
 
     use super::*;
 

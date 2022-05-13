@@ -575,8 +575,10 @@ mod tests {
         "#;
 
         let reader_config = {
-            let mut output = OutputConfig::default();
-            output.save_nearest_html_id = true;
+            let output = OutputConfig {
+                save_nearest_html_id: true,
+                ..OutputConfig::default()
+            };
             ReaderConfig {
                 global: InputConfig::default(),
                 file: File::default(),
@@ -637,8 +639,10 @@ mod tests {
         "#;
 
         let reader_config = {
-            let mut output = OutputConfig::default();
-            output.save_nearest_html_id = false;
+            let output = OutputConfig {
+                save_nearest_html_id: false,
+                ..OutputConfig::default()
+            };
             ReaderConfig {
                 global: InputConfig::default(),
                 file: File::default(),

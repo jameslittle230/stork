@@ -55,7 +55,7 @@ pub(crate) fn read(
             .file
             .filetype
             .clone()
-            .or(filetype_from_mime(&mime_type)),
+            .or_else(|| filetype_from_mime(&mime_type)),
         frontmatter_fields: None,
     })
 }

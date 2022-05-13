@@ -1,3 +1,8 @@
+#![allow(clippy::stable_sort_primitive)]
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+
 use std::collections::HashMap;
 
 use crate::{
