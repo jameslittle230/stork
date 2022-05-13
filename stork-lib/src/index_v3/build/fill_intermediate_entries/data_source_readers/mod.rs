@@ -43,7 +43,7 @@ mod tests {
         let read_result = read_from_data_source(&ReaderConfig {
             global: InputConfig {
                 frontmatter_handling: crate::config::FrontmatterConfig::Parse,
-                ..Default::default()
+                ..InputConfig::default()
             },
             file: File {
                 title: "Input File".to_string(),
@@ -58,7 +58,7 @@ this _is_ the text"#
                         .to_string(),
                 )),
                 filetype: Some(Filetype::Markdown),
-                ..Default::default()
+                ..File::default()
             },
             output: OutputConfig::default(),
         })

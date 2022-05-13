@@ -218,13 +218,13 @@ mod tests {
     fn break_on_file_error_breaks() {
         let invalid_file = File {
             explicit_source: Some(DataSource::Contents("".to_string())), // Empty word list error,
-            ..Default::default()
+            ..File::default()
         };
 
         let input = InputConfig {
             files: vec![invalid_file],
             break_on_file_error: true,
-            ..Default::default()
+            ..InputConfig::default()
         };
 
         let output = OutputConfig::default();

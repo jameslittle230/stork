@@ -366,15 +366,15 @@ mod tests {
         let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
             entry: Entry {
                 contents: "You will need to use `neovim/nvim-lsp` to do some stuff.".to_string(),
-                ..Default::default()
+                ..Entry::default()
             },
             intermediate_excerpts: vec![IntermediateExcerpt {
                 query: "123456789012345".to_string(),
                 source: WordListSource::Contents,
                 word_index: 5,
-                ..Default::default()
+                ..IntermediateExcerpt::default()
             }],
-            ..Default::default()
+            ..EntryAndIntermediateExcerpts::default()
         };
 
         let output_result = Result::from(entry_and_intermediate_excerpts);

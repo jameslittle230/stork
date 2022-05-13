@@ -71,7 +71,7 @@ mod tests {
         let generated = Nudger::from(&Config {
             input: InputConfig {
                 UNUSED_surrounding_word_count: Some(12),
-                ..Default::default()
+                ..InputConfig::default()
             },
             output: OutputConfig::default(),
         });

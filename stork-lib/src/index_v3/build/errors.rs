@@ -109,7 +109,7 @@ mod tests {
             file: File {
                 title: "My Test File".to_string(),
                 explicit_source: Some(DataSource::Contents("ignored".to_string())),
-                ..Default::default()
+                ..File::default()
             },
             word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
                 "/test",
@@ -128,7 +128,7 @@ mod tests {
                 file: File {
                     title: "My Test File".to_string(),
                     explicit_source: Some(DataSource::Contents("ignored".to_string())),
-                    ..Default::default()
+                    ..File::default()
                 },
                 word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
                     "/test",
@@ -138,7 +138,7 @@ mod tests {
                 file: File {
                     title: "My Test File 2".to_string(),
                     explicit_source: Some(DataSource::Contents("ignored 2".to_string())),
-                    ..Default::default()
+                    ..File::default()
                 },
                 word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
                     "/test2",
