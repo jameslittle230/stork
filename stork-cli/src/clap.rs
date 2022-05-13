@@ -1,5 +1,6 @@
 use clap::{crate_version, App, AppSettings, Arg, SubCommand};
 
+#[allow(clippy::too_many_lines)]
 pub fn app() -> App<'static, 'static> {
     App::new("Stork")
         .bin_name("stork")
@@ -198,7 +199,7 @@ mod tests {
                 app().get_matches_from_safe(input.split(' ')).is_err(),
                 "{} seemed to be a valid input",
                 input
-            )
+            );
         }
     }
 }

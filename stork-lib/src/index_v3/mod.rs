@@ -165,7 +165,7 @@ impl AnnotatedWordList {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{DataSource, File, Filetype};
+    use crate::config::{DataSource, File, Filetype, InputConfig};
     use crate::Config;
 
     use super::*;
@@ -194,7 +194,7 @@ mod tests {
             word_list: vec![
                 AnnotatedWord {
                     word: "This".to_string(),
-                    ..Default::default()
+                    ..AnnotatedWord::default()
                 },
                 AnnotatedWord {
                     word: "is-a".to_string(),
@@ -203,15 +203,15 @@ mod tests {
                 },
                 AnnotatedWord {
                     word: "set".to_string(),
-                    ..Default::default()
+                    ..AnnotatedWord::default()
                 },
                 AnnotatedWord {
                     word: "of".to_string(),
-                    ..Default::default()
+                    ..AnnotatedWord::default()
                 },
                 AnnotatedWord {
                     word: "words.".to_string(),
-                    ..Default::default()
+                    ..AnnotatedWord::default()
                 },
             ],
         }
@@ -231,7 +231,7 @@ mod tests {
                         )),
                         title: "Quick Brown Fox".to_string(),
                         filetype: Some(Filetype::PlainText),
-                        ..Default::default()
+                        ..File::default()
                     },
                     File {
                         explicit_source: Some(DataSource::Contents(
@@ -239,14 +239,14 @@ mod tests {
                         )),
                         title: "Sphinx of Black Quartz".to_string(),
                         filetype: Some(Filetype::PlainText),
-                        ..Default::default()
+                        ..File::default()
                     },
                 ],
-                ..Default::default()
+                ..InputConfig::default()
             },
             output: OutputConfig {
                 excerpts_per_result: 0,
-                ..Default::default()
+                ..OutputConfig::default()
             },
         };
 
@@ -265,6 +265,6 @@ mod tests {
             .index
             .entries
             .into_iter()
-            .all(|entry| entry.contents.len() == 0));
+            .all(|entry| entry.contents.is_empty()));
     }
 }

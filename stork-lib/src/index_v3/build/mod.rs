@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use std::collections::BTreeMap;
 
 mod fill_containers;
@@ -37,11 +39,10 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
     fill_intermediate_entries(config, &mut intermediate_entries, &mut document_errors)?;
 
     if intermediate_entries.is_empty() {
-        if !document_errors.is_empty() {
-            return Err(IndexGenerationError::AllDocumentErrors(document_errors));
-        } else {
+        if document_errors.is_empty() {
             return Err(IndexGenerationError::NoFilesSpecified);
         }
+        return Err(IndexGenerationError::AllDocumentErrors(document_errors));
     }
 
     let mut stems: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -58,7 +59,7 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
                 entry.contents = "".to_string();
             }
 
-            return entry;
+            entry
         })
         .collect::<Vec<Entry>>();
 
@@ -99,7 +100,7 @@ fn remove_surrounding_punctuation(input: &str) -> String {
 #[cfg(test)]
 mod tests {
 
-    use crate::config::*;
+    use crate::config::{Config, DataSource, File, Filetype, InputConfig};
 
     use super::*;
 
@@ -111,7 +112,7 @@ mod tests {
             title: "Missing Selector".to_string(),
             filetype: Some(Filetype::HTML),
             html_selector_override: Some(".article".to_string()),
-            ..Default::default()
+            ..File::default()
         }
     }
 
@@ -120,7 +121,7 @@ mod tests {
             explicit_source: Some(DataSource::Contents("".to_string())),
             title: "Empty Contents".to_string(),
             filetype: Some(Filetype::PlainText),
-            ..Default::default()
+            ..File::default()
         }
     }
 
@@ -129,7 +130,7 @@ mod tests {
             explicit_source: Some(DataSource::Contents("This is contents".to_string())),
             title: "Successful File".to_string(),
             filetype: Some(Filetype::PlainText),
-            ..Default::default()
+            ..File::default()
         }
     }
 
@@ -141,9 +142,9 @@ mod tests {
                     generate_invalid_file_missing_selector(),
                     generate_valid_file(),
                 ],
-                ..Default::default()
+                ..InputConfig::default()
             },
-            ..Default::default()
+            ..Config::default()
         };
 
         let build_results = build(&config).unwrap();
@@ -168,9 +169,9 @@ mod tests {
                     generate_invalid_file_empty_contents(),
                     generate_valid_file(),
                 ],
-                ..Default::default()
+                ..InputConfig::default()
             },
-            ..Default::default()
+            ..Config::default()
         };
 
         let build_results = build(&config).unwrap();
@@ -193,9 +194,9 @@ mod tests {
                     generate_invalid_file_empty_contents(),
                     generate_invalid_file_missing_selector(),
                 ],
-                ..Default::default()
+                ..InputConfig::default()
             },
-            ..Default::default()
+            ..Config::default()
         };
 
         let build_error = build(&config).unwrap_err();
@@ -214,7 +215,7 @@ mod tests {
                     WordListGenerationError::EmptyWordList,
                     WordListGenerationError::SelectorNotPresent(".article".to_string())
                 ]
-            )
+            );
         } else {
             panic!()
         }
@@ -225,9 +226,9 @@ mod tests {
         let config = Config {
             input: InputConfig {
                 files: vec![],
-                ..Default::default()
+                ..InputConfig::default()
             },
-            ..Default::default()
+            ..Config::default()
         };
         let build_error = build(&config).unwrap_err();
 
@@ -242,9 +243,9 @@ mod tests {
                     generate_invalid_file_missing_selector(),
                     generate_valid_file(),
                 ],
-                ..Default::default()
+                ..InputConfig::default()
             },
-            ..Default::default()
+            ..Config::default()
         };
 
         assert_eq!(build(&config).unwrap().errors.len(), 1);
@@ -263,12 +264,12 @@ mod tests {
                         filetype: Some(Filetype::Markdown),
                         explicit_source: Some(DataSource::Contents(
                             "https://prismjs.com/download.html#themes=prism&languages=markup+css+clike+javascript+bash+c+csharp+cpp+go+java+markdown+python+scss+sql+toml+yaml&plugins=toolbar+copy-to-clipboard".to_string())),
-                        ..Default::default()
+                        ..File::default()
                     }
                 ],
-                ..Default::default()
+                ..InputConfig::default()
             },
-            ..Default::default()
+            ..Config::default()
         };
 
         let build_results = build(&config).unwrap();
@@ -287,12 +288,12 @@ mod tests {
                         filetype: Some(Filetype::Markdown),
                         explicit_source: Some(DataSource::Contents(
                             "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg/390px-Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg".to_string())),
-                        ..Default::default()
+                        ..File::default()
                     }
                 ],
-                ..Default::default()
+                ..InputConfig::default()
             },
-            ..Default::default()
+            ..Config::default()
         };
 
         let build_results = build(&config).unwrap();

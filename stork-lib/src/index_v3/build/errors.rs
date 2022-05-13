@@ -45,7 +45,6 @@ pub enum IndexGenerationError {
     #[error("All files failed to be indexed.\n{}", DocumentError::display_list(.0))]
     AllDocumentErrors(Vec<DocumentError>),
 
-    #[allow(clippy::all)]
     #[error(
         "{} found while indexing files. If you want to fail silently and still build an index, remove `break_on_file_error` from your config.\n{}", 
         pluralize_with_count(.0.len(), "error", "errors"),
@@ -57,8 +56,8 @@ pub enum IndexGenerationError {
 impl PartialEq for IndexGenerationError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::AllDocumentErrors(_), Self::AllDocumentErrors(_)) => true,
-            (Self::PartialDocumentErrors(_), Self::PartialDocumentErrors(_)) => true,
+            (Self::PartialDocumentErrors(_), Self::PartialDocumentErrors(_))
+            | (Self::AllDocumentErrors(_), Self::AllDocumentErrors(_)) => true,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
         }
     }
@@ -78,13 +77,13 @@ impl std::fmt::Display for DocumentError {
         write!(
             f,
             "In file `{}`: {}",
-            self.file,
-            self.word_list_generation_error.to_string(),
+            self.file, self.word_list_generation_error,
         )
     }
 }
 
 impl DocumentError {
+    #[must_use]
     pub fn display_list(vec: &[DocumentError]) -> String {
         format!(
             "Warning: Stork couldn't include {} in the index because of the following errors:\n",
@@ -110,7 +109,7 @@ mod tests {
             file: File {
                 title: "My Test File".to_string(),
                 explicit_source: Some(DataSource::Contents("ignored".to_string())),
-                ..Default::default()
+                ..File::default()
             },
             word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
                 "/test",
@@ -129,7 +128,7 @@ mod tests {
                 file: File {
                     title: "My Test File".to_string(),
                     explicit_source: Some(DataSource::Contents("ignored".to_string())),
-                    ..Default::default()
+                    ..File::default()
                 },
                 word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
                     "/test",
@@ -139,7 +138,7 @@ mod tests {
                 file: File {
                     title: "My Test File 2".to_string(),
                     explicit_source: Some(DataSource::Contents("ignored 2".to_string())),
-                    ..Default::default()
+                    ..File::default()
                 },
                 word_list_generation_error: WordListGenerationError::FileNotFound(PathBuf::from(
                     "/test2",

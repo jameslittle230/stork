@@ -47,7 +47,7 @@ pub fn search(index: &Index, query: &str) -> Output {
         excerpts_by_index
             .entry(ie.entry_index)
             .or_insert_with(Vec::new)
-            .push(ie)
+            .push(ie);
     }
 
     let total_len = &excerpts_by_index.len();
@@ -103,7 +103,7 @@ impl ContainerWithQuery {
                     word_index: 0,
                     internal_annotations: vec![],
                     fields: HashMap::new(),
-                })
+                });
             }
 
             for excerpt in &result.excerpts {
@@ -115,7 +115,7 @@ impl ContainerWithQuery {
                     word_index: excerpt.word_index,
                     internal_annotations: excerpt.internal_annotations.clone(),
                     fields: excerpt.fields.clone(),
-                })
+                });
             }
         }
 
@@ -132,7 +132,7 @@ impl ContainerWithQuery {
                             word_index: 0,
                             internal_annotations: vec![],
                             fields: HashMap::new(),
-                        })
+                        });
                     }
 
                     for excerpt in result.excerpts.clone() {
@@ -144,7 +144,7 @@ impl ContainerWithQuery {
                             source: excerpt.source,
                             word_index: excerpt.word_index,
                             fields: excerpt.fields,
-                        })
+                        });
                     }
                 }
             }

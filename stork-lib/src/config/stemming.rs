@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_error() {
-        assert!(StemmingConfig::try_from(&"Blorp".to_string()).is_err())
+        assert!(StemmingConfig::try_from(&"Blorp".to_string()).is_err());
     }
 
     #[test]

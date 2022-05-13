@@ -34,11 +34,11 @@ impl From<&Config> for Nudger {
         let mut nudges: Vec<Nudge> = vec![];
 
         if config.input.UNUSED_surrounding_word_count.is_some() {
-            nudges.push(Nudge::InputSurroundingWordCount)
+            nudges.push(Nudge::InputSurroundingWordCount);
         }
 
         if config.output.UNUSED_filename.is_some() {
-            nudges.push(Nudge::OutputFile)
+            nudges.push(Nudge::OutputFile);
         }
 
         Nudger { nudges }
@@ -60,7 +60,7 @@ impl Nudger {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::*;
+    use crate::config::{Config, InputConfig, OutputConfig};
 
     #[test]
     fn create_nudge() {
@@ -71,18 +71,18 @@ mod tests {
         let generated = Nudger::from(&Config {
             input: InputConfig {
                 UNUSED_surrounding_word_count: Some(12),
-                ..Default::default()
+                ..InputConfig::default()
             },
             output: OutputConfig::default(),
         });
 
-        assert_eq!(intended, generated)
+        assert_eq!(intended, generated);
     }
 
     #[test]
     fn default_config_creates_empty_nudge() {
         let intended = Nudger { nudges: vec![] };
         let generated = Nudger::from(&Config::default());
-        assert_eq!(intended, generated)
+        assert_eq!(intended, generated);
     }
 }

@@ -45,7 +45,7 @@ impl ReadResult {
         let (frontmatter_fields, buffer) = parse_frontmatter(handling, &self.buffer);
 
         ReadResult {
-            buffer: buffer.to_string(),
+            buffer,
             filetype: self.filetype.clone(),
             frontmatter_fields: Some(frontmatter_fields),
         }
@@ -133,7 +133,7 @@ pub(super) fn fill_intermediate_entries(
                     ]));
                 }
 
-                document_errors.push(document_error)
+                document_errors.push(document_error);
             }
         };
     }
@@ -216,11 +216,17 @@ mod tests {
 
     #[test]
     fn break_on_file_error_breaks() {
-        let mut invalid_file = File::default();
-        invalid_file.explicit_source = Some(DataSource::Contents("".to_string())); // Empty word list error
-        let mut input = InputConfig::default();
-        input.files = vec![invalid_file];
-        input.break_on_file_error = true;
+        let invalid_file = File {
+            explicit_source: Some(DataSource::Contents("".to_string())), // Empty word list error,
+            ..File::default()
+        };
+
+        let input = InputConfig {
+            files: vec![invalid_file],
+            break_on_file_error: true,
+            ..InputConfig::default()
+        };
+
         let output = OutputConfig::default();
         let config = Config { input, output };
 
@@ -235,7 +241,7 @@ mod tests {
             assert_eq!(
                 word_list_generation_error,
                 &WordListGenerationError::EmptyWordList
-            )
+            );
         } else {
             panic!("Result is {:?}", r);
         }
@@ -243,11 +249,17 @@ mod tests {
 
     #[test]
     fn false_break_on_file_error_does_not_break() {
-        let mut invalid_file = File::default();
-        invalid_file.explicit_source = Some(DataSource::Contents("".to_string())); // Empty word list error
-        let mut input = InputConfig::default();
-        input.files = vec![invalid_file];
-        input.break_on_file_error = false;
+        let invalid_file = File {
+            explicit_source: Some(DataSource::Contents("".to_string())), // Empty word list error
+            ..File::default()
+        };
+
+        let input = InputConfig {
+            files: vec![invalid_file],
+            break_on_file_error: false,
+            ..InputConfig::default()
+        };
+
         let output = OutputConfig::default();
         let config = Config { input, output };
 

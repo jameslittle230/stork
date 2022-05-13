@@ -37,7 +37,7 @@ mod tests {
             &ReaderConfig {
                 global: InputConfig {
                     frontmatter_handling: crate::config::FrontmatterConfig::Omit,
-                    ..Default::default()
+                    ..InputConfig::default()
                 },
                 file: File::default(),
                 output: OutputConfig::default(),

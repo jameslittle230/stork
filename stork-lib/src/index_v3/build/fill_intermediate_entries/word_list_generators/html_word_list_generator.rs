@@ -18,7 +18,7 @@ pub fn generate(
             .file
             .html_selector_override
             .as_ref()
-            .or_else(|| config.global.html_selector.as_ref())
+            .or(config.global.html_selector.as_ref())
             .map_or("main", std::string::String::as_str)
     };
 
@@ -27,7 +27,7 @@ pub fn generate(
             .file
             .exclude_html_selector_override
             .as_ref()
-            .or_else(|| config.global.exclude_html_selector.as_ref())
+            .or(config.global.exclude_html_selector.as_ref())
             .map(std::string::String::as_str)
     };
 
@@ -187,7 +187,7 @@ mod tests {
             expected, computed,
             "expected: {}\ncomputed: {}",
             expected, computed
-        )
+        );
     }
 
     #[test]
@@ -221,7 +221,7 @@ mod tests {
                 </main>
             </body>
         </html>"#,
-        )
+        );
     }
 
     #[test]
@@ -244,7 +244,7 @@ mod tests {
                 </main>
             </body>
         </html>"#,
-        )
+        );
     }
 
     #[test]
@@ -268,7 +268,7 @@ mod tests {
             </main>
         </body>
     </html>"#,
-        )
+        );
     }
 
     #[test]
@@ -295,7 +295,7 @@ mod tests {
             </main>
         </body>
     </html>"#,
-        )
+        );
     }
 
     #[test]
@@ -318,7 +318,7 @@ mod tests {
             </main>
         </body>
     </html>"#,
-        )
+        );
     }
 
     #[test]
@@ -342,7 +342,7 @@ mod tests {
             </main>
         </body>
     </html>"#,
-        )
+        );
     }
 
     #[test]
@@ -408,7 +408,7 @@ mod tests {
                         </section>
                     </main>
                 </body>
-            </html>"#)
+            </html>"#);
     }
 
     #[test]
@@ -433,7 +433,7 @@ mod tests {
                         </section>
                     </main>
                 </body>
-            </html>"#)
+            </html>"#);
     }
 
     #[test]
@@ -459,7 +459,7 @@ mod tests {
                         <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
                     </main>
                 </body>
-            </html>"#)
+            </html>"#);
     }
 
     #[test]
@@ -482,7 +482,7 @@ mod tests {
                         </section>
                     </main>
                 </body>
-            </html>"#)
+            </html>"#);
     }
 
     #[test]
@@ -499,7 +499,7 @@ mod tests {
           <p>More article content</p>
         </section>
       </main>"#,
-        )
+        );
     }
 
     #[test]
@@ -532,7 +532,7 @@ mod tests {
                         <section class="yes"><p>This content is in a duplicate selector.</p><p>It should also be indexed.</p></section>
                     </main>
                 </body>
-            </html>"#)
+            </html>"#);
     }
 
     #[test]
@@ -575,8 +575,10 @@ mod tests {
         "#;
 
         let reader_config = {
-            let mut output = OutputConfig::default();
-            output.save_nearest_html_id = true;
+            let output = OutputConfig {
+                save_nearest_html_id: true,
+                ..OutputConfig::default()
+            };
             ReaderConfig {
                 global: InputConfig::default(),
                 file: File::default(),
@@ -619,7 +621,7 @@ mod tests {
             vec![my_content, my_aside].concat()
         };
 
-        assert_eq!(computed, expected)
+        assert_eq!(computed, expected);
     }
 
     #[test]
@@ -637,8 +639,10 @@ mod tests {
         "#;
 
         let reader_config = {
-            let mut output = OutputConfig::default();
-            output.save_nearest_html_id = false;
+            let output = OutputConfig {
+                save_nearest_html_id: false,
+                ..OutputConfig::default()
+            };
             ReaderConfig {
                 global: InputConfig::default(),
                 file: File::default(),
@@ -654,6 +658,6 @@ mod tests {
             .map(|annotated_word| annotated_word.internal_annotations.len())
             .sum();
 
-        assert_eq!(computed, 0)
+        assert_eq!(computed, 0);
     }
 }

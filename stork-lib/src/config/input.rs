@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 

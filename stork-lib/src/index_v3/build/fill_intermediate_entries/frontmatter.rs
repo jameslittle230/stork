@@ -1,15 +1,17 @@
+#![allow(clippy::module_name_repetitions)]
+
 use frontmatter::{parse_and_find_content, Yaml};
 use std::collections::HashMap;
 
 use crate::{config::FrontmatterConfig, Fields};
 
-pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields, Box<String>) {
-    let default_output = (HashMap::new(), Box::new(buffer.to_string()));
+pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields, String) {
+    let default_output = (HashMap::new(), buffer.to_string());
     match handling {
         FrontmatterConfig::Ignore => default_output,
         FrontmatterConfig::Omit => {
             if let Ok((_yaml, text)) = parse_and_find_content(buffer) {
-                (HashMap::new(), Box::new(text.trim().to_string()))
+                (HashMap::new(), text.trim().to_string())
             } else {
                 default_output
             }
@@ -27,7 +29,7 @@ pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields,
                         )
                     })
                     .collect();
-                return (fields, Box::new(text.trim().to_string()));
+                return (fields, text.trim().to_string());
             }
 
             default_output
@@ -58,8 +60,8 @@ this is not
             .to_string(),
         );
 
-        let computed = (output.0, output.1.to_string());
-        assert_eq!(expected, computed)
+        let computed = (output.0, output.1);
+        assert_eq!(expected, computed);
     }
 
     #[test]
@@ -90,7 +92,7 @@ this is not
             .to_string(),
         );
 
-        let computed = (output.0, output.1.to_string());
-        assert_eq!(expected, computed)
+        let computed = (output.0, output.1);
+        assert_eq!(expected, computed);
     }
 }

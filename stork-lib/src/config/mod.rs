@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
@@ -75,7 +77,7 @@ mod tests {
     fn empty_string_via_tryfrom_returns_error() {
         let contents = r#""#;
         let error = Config::try_from(contents).unwrap_err();
-        assert_eq!(error, ConfigReadError::EmptyString)
+        assert_eq!(error, ConfigReadError::EmptyString);
     }
 
     fn get_default_config() -> Config {
@@ -181,7 +183,7 @@ debug = true
         let computed = Config::try_from(contents).unwrap();
         let expected = get_default_config();
 
-        assert_eq!(computed, expected)
+        assert_eq!(computed, expected);
     }
 
     #[test]
@@ -217,7 +219,7 @@ debug = true
         let computed = Config::try_from(contents).unwrap();
         let expected = get_default_config();
 
-        assert_eq!(computed, expected)
+        assert_eq!(computed, expected);
     }
 
     #[test]

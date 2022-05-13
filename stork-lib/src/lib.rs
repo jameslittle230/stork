@@ -1,3 +1,8 @@
+#![warn(clippy::pedantic)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::must_use_candidate)]
+
 use bytes::Bytes;
 use lazy_static::lazy_static;
 
