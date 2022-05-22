@@ -2,12 +2,14 @@
 
 ## Prepare
 
-- [ ] Log into the benchmarking machine
-
+- [ ] Start the AWS benchmark and build instances
+- [ ] Run `just generate-stats` on my computer to make sure it works
+- [ ] Run benchmarks from benchmarking machine
+  - [ ] Log into benchmarking machine
   - [ ] Update to master
-  - [ ] Run benchmarks by running `just generate-stats`
-  - [ ] Ensure values are acceptable. If not, abort the release and debug.
-
+  - [ ] Run `just generate-stats`
+  - [ ] Ensure values are acceptable, compared to existing version. If not, abort the release and debug.
+  - [ ] If so, copy benchmark values into notes (you'll need them later!)
 - [ ] Create a release PR:
   - [ ] Add date to changelog
   - [ ] Bump versions
@@ -19,6 +21,7 @@
   - [ ] Add benchmark values
   - [ ] Update all CDN references to the updated version number
   - [ ] Add documentation, if applicable
+  - [ ] Let the Netlify preview build in the background
 
 ## Release
 
