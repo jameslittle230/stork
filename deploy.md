@@ -14,7 +14,8 @@
     - [ ] In Cargo.toml for the lib, wasm, and cli crates
     - [ ] The dependency on lib in the wasm and cli crates
   - [ ] Commit to master and push
-- [ ] Create a new PR on the site 
+- [ ] Create a new PR on the site
+  - [ ] Add benchmark values
   - [ ] Update all CDN references to the updated version number
   - [ ] Add documentation, if applicable
 
@@ -31,7 +32,8 @@
 - [ ] Add the changelog to the Github release, and publish it
 - [ ] Create an Amazon Linux binary.
   - [ ] Run the shell script from the amazon-linux build machine
-  - [ ] Upload it to the CDN and to the Github release.
+  - [ ] Upload the Amazon Linux binary to the CDN 
+  - [ ] Upload the Amazon Linux binary to the Github release.
 - [ ] Merge the PR you made on [the documentation site](https://github.com/stork-search/site)
 - [ ] Update Homebrew
   - [ ] Generate a new brewfile based on the Github-generated tarball:
