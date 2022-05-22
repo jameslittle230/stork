@@ -3,14 +3,15 @@
 ## Prepare
 
 - [ ] Log into the benchmarking machine
+
   - [ ] Update to master
   - [ ] Run benchmarks by running `just generate-stats`
   - [ ] Ensure values are acceptable. If not, abort the release and debug.
 
 - [ ] Create a release PR:
   - [ ] Add date to changelog
-  - [ ] Bump versions 
-    - [ ] In package.json 
+  - [ ] Bump versions
+    - [ ] In package.json
     - [ ] In Cargo.toml for the lib, wasm, and cli crates
     - [ ] The dependency on lib in the wasm and cli crates
   - [ ] Commit to master and push
@@ -32,7 +33,7 @@
 - [ ] Add the changelog to the Github release, and publish it
 - [ ] Create an Amazon Linux binary.
   - [ ] Run the shell script from the amazon-linux build machine
-  - [ ] Upload the Amazon Linux binary to the CDN 
+  - [ ] Upload the Amazon Linux binary to the CDN
   - [ ] Upload the Amazon Linux binary to the Github release.
 - [ ] Merge the PR you made on [the documentation site](https://github.com/stork-search/site)
 - [ ] Update Homebrew
