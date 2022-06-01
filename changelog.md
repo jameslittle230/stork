@@ -2,6 +2,8 @@
 
 ## v1.5.0
 
+[May 31, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.5.0)
+
 ### New Features
 
 - Adds the Javascript registration option `transformResultUrl`, which, when

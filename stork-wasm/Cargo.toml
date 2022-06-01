@@ -1,6 +1,6 @@
 [package]
 name = "stork-wasm"
-version = "1.4.2"
+version = "1.5.0"
 edition = "2021"
 
 [lib]
