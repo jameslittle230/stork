@@ -5,7 +5,7 @@ use smart_default::SmartDefault;
 
 use super::{File, FrontmatterConfig, SRTConfig, StemmingConfig};
 
-#[derive(Serialize, Deserialize, Clone, Debug, SmartDefault, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, SmartDefault, PartialEq, PartialOrd)]
 #[serde(deny_unknown_fields)]
 pub enum TitleBoost {
     Minimal,

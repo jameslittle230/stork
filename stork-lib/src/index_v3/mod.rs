@@ -11,19 +11,6 @@ mod read;
 mod scores;
 mod search;
 
-#[cfg(feature = "build-v3")]
-mod build;
-
-#[cfg(feature = "build-v3")]
-pub use {
-    build::{
-        build,
-        errors::{DocumentError, IndexGenerationError},
-        BuildResult,
-    },
-    scores::MATCHED_WORD_SCORE,
-};
-
 pub use search::search;
 
 use crate::config::{OutputConfig, TitleBoost};

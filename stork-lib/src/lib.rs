@@ -38,20 +38,22 @@ mod index_v2;
 #[cfg(feature = "search-v3")]
 mod index_v3;
 
+mod index_v4;
+
 #[cfg(feature = "search-v2")]
 use {index_v2::search as V2Search, index_v2::Index as V2Index};
 
 #[cfg(feature = "search-v3")]
 use {index_v3::search as V3Search, index_v3::Index as V3Index};
 
-#[cfg(feature = "build-v3")]
-pub use index_v3::DocumentError;
+#[cfg(feature = "build")]
+mod build;
 
-#[cfg(feature = "build-v3")]
-use {
-    index_v3::build as V3Build, index_v3::BuildResult as V3BuildResult,
-    index_v3::IndexGenerationError,
-};
+#[cfg(feature = "build")]
+pub use build::DocumentError;
+
+#[cfg(feature = "build")]
+use build::{build, errors::IndexGenerationError, BuildResult};
 
 // We can't pass a parsed index over the WASM boundary so we store the parsed indices here
 lazy_static! {
