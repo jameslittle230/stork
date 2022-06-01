@@ -1,9 +1,10 @@
-use crate::index_v3::{build::annotated_words_from_string::AnnotatedWordable, AnnotatedWordList};
+use crate::build::annotated_words_from_string::AnnotatedWordable;
+use crate::index_v3::AnnotatedWordList;
 
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
 #[allow(clippy::unnecessary_wraps)]
-pub fn generate(
+pub(crate) fn generate(
     _config: &ReaderConfig,
     read_result: &ReadResult,
 ) -> Result<AnnotatedWordList, WordListGenerationError> {

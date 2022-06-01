@@ -11,7 +11,7 @@ use std::convert::TryFrom;
 use std::sync::Mutex;
 use thiserror::Error;
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build")]
 use {
     num_format::{Locale, ToFormattedString},
     std::fmt::Display,
@@ -138,11 +138,11 @@ pub enum BuildError {
     BinaryNotBuiltWithFeature,
 
     #[error("{0}")]
-    #[cfg(feature = "build-v3")]
+    #[cfg(feature = "build")]
     IndexGenerationError(#[from] IndexGenerationError),
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build")]
 #[derive(Debug)]
 pub struct IndexDescription {
     pub entries_count: usize,
@@ -151,9 +151,9 @@ pub struct IndexDescription {
     pub warnings: Vec<DocumentError>,
 }
 
-#[cfg(feature = "build-v3")]
-impl From<&V3BuildResult> for IndexDescription {
-    fn from(build_result: &V3BuildResult) -> Self {
+#[cfg(feature = "build")]
+impl From<&BuildResult> for IndexDescription {
+    fn from(build_result: &BuildResult) -> Self {
         Self {
             entries_count: build_result.index.entries_len(),
             tokens_count: build_result.index.search_term_count(),
@@ -163,7 +163,7 @@ impl From<&V3BuildResult> for IndexDescription {
     }
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build")]
 impl Display for IndexDescription {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
@@ -185,20 +185,20 @@ impl Display for IndexDescription {
     }
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build")]
 pub struct BuildOutput {
     pub bytes: Bytes,
     pub description: IndexDescription,
 }
 
-#[cfg(not(feature = "build-v3"))]
+#[cfg(not(feature = "build"))]
 pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
     Err(BuildError::BinaryNotBuiltWithFeature)
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build")]
 pub fn build_index(config: &Config) -> core::result::Result<BuildOutput, BuildError> {
-    let result = V3Build(config)?;
+    let result = build(config)?;
     let description = IndexDescription::from(&result);
     let bytes = Bytes::from(&result.index);
     Ok(BuildOutput { bytes, description })

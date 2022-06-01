@@ -1,7 +1,7 @@
+use crate::build::annotated_words_from_string::AnnotatedWordable;
+use crate::build::fill_intermediate_entries::ReaderConfig;
 use crate::config::SRTConfig;
 use crate::config::SRTTimestampFormat;
-use crate::index_v3::build::annotated_words_from_string::AnnotatedWordable;
-use crate::index_v3::build::fill_intermediate_entries::ReaderConfig;
 use crate::index_v3::AnnotatedWord;
 use crate::index_v3::AnnotatedWordList;
 use crate::InternalWordAnnotation;
@@ -9,7 +9,7 @@ use crate::InternalWordAnnotation;
 use super::ReadResult;
 use super::WordListGenerationError;
 
-pub fn generate(
+pub(crate) fn generate(
     config: &ReaderConfig,
     read_result: &ReadResult,
 ) -> Result<AnnotatedWordList, WordListGenerationError> {

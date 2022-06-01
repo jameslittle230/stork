@@ -197,8 +197,7 @@ fn char_is_cjk_ideograph(c: &char) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::{
-        config::Config,
-        index_v3::{build::intermediate_entry::NormalizedEntry, AnnotatedWordList},
+        build::intermediate_entry::NormalizedEntry, config::Config, index_v3::AnnotatedWordList,
     };
     use std::collections::{BTreeMap, HashMap};
 

@@ -7,7 +7,7 @@ use super::{ReadResult, ReaderConfig, WordListGenerationError};
 use kuchiki::{traits::TendrilSink, ElementData, NodeDataRef, Selectors};
 use std::collections::HashMap;
 
-pub fn generate(
+pub(crate) fn generate(
     config: &ReaderConfig,
     read_result: &ReadResult,
 ) -> Result<AnnotatedWordList, WordListGenerationError> {

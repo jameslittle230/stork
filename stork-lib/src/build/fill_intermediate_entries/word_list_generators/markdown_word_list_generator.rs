@@ -2,7 +2,7 @@ use super::{html_word_list_generator, ReadResult, ReaderConfig, WordListGenerati
 use crate::index_v3::AnnotatedWordList;
 use pulldown_cmark::{html, Parser};
 
-pub fn generate(
+pub(crate) fn generate(
     config: &ReaderConfig,
     read_result: &ReadResult,
 ) -> Result<AnnotatedWordList, WordListGenerationError> {
@@ -26,8 +26,8 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::{
+        build::fill_intermediate_entries::{ReadResult, ReaderConfig},
         config::{File, Filetype, InputConfig, OutputConfig},
-        index_v3::build::fill_intermediate_entries::{ReadResult, ReaderConfig},
     };
 
     use super::generate;

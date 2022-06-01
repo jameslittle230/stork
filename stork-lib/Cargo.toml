@@ -13,7 +13,7 @@ categories = ["wasm"]
 exclude = ['/dist/', 'node_modules/', '/test/', '/test-assets/']
 
 [features]
-default = ["build-v3-web-scraping"]
+default = ["build-web-scraping"]
 search-v2 = []
 search-v3 = ["rmp-serde"]
 build = [
@@ -26,7 +26,7 @@ build = [
     "frontmatter",
     "indicatif",
 ]
-build-v3-web-scraping = ["build-v3", "reqwest"]
+build-web-scraping = ["build", "reqwest"]
 
 [dependencies]
 bytes = "1.1.0"

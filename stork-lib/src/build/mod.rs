@@ -14,7 +14,8 @@ use fill_containers::fill_containers;
 use fill_intermediate_entries::fill_intermediate_entries;
 use fill_stems::fill_stems;
 
-use errors::{DocumentError, IndexGenerationError, WordListGenerationError};
+pub use errors::DocumentError;
+use errors::{IndexGenerationError, WordListGenerationError};
 
 use intermediate_entry::NormalizedEntry;
 
@@ -23,7 +24,7 @@ use nudger::Nudger;
 
 use crate::{config::Config, V3Index as Index};
 
-use super::{Container, Entry, PassthroughConfig};
+use super::index_v3::{Container, Entry, PassthroughConfig};
 
 #[derive(Debug)]
 pub struct BuildResult {

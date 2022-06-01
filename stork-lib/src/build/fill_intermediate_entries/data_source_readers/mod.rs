@@ -32,8 +32,8 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::{
+        build::fill_intermediate_entries::{ReadResult, ReaderConfig},
         config::{DataSource, File, Filetype, InputConfig, OutputConfig},
-        index_v3::build::fill_intermediate_entries::{ReadResult, ReaderConfig},
     };
 
     use super::read_from_data_source;

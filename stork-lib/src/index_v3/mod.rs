@@ -8,7 +8,7 @@ type AliasTarget = String;
 type Score = u8;
 
 mod read;
-mod scores;
+pub(crate) mod scores;
 mod search;
 
 pub use search::search;
@@ -20,9 +20,9 @@ mod write;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Index {
-    config: PassthroughConfig,
-    entries: Vec<Entry>,
-    containers: BTreeMap<String, Container>,
+    pub(crate) config: PassthroughConfig,
+    pub(crate) entries: Vec<Entry>,
+    pub(crate) containers: BTreeMap<String, Container>,
 }
 
 impl Index {
@@ -44,24 +44,24 @@ impl Index {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, SmartDefault)]
-struct PassthroughConfig {
-    url_prefix: String,
-    title_boost: TitleBoost,
+pub(crate) struct PassthroughConfig {
+    pub(crate) url_prefix: String,
+    pub(crate) title_boost: TitleBoost,
 
     #[default(OutputConfig::default().excerpt_buffer)]
-    excerpt_buffer: u8,
+    pub(crate) excerpt_buffer: u8,
     #[default(OutputConfig::default().excerpts_per_result)]
-    excerpts_per_result: u8,
+    pub(crate) excerpts_per_result: u8,
     #[default(OutputConfig::default().displayed_results_count)]
-    displayed_results_count: u8,
+    pub(crate) displayed_results_count: u8,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-struct Entry {
-    contents: String,
-    title: String,
-    url: String,
-    fields: Fields,
+pub(crate) struct Entry {
+    pub(crate) contents: String,
+    pub(crate) title: String,
+    pub(crate) url: String,
+    pub(crate) fields: Fields,
 }
 
 /**
@@ -76,51 +76,51 @@ struct Entry {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Container {
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    results: BTreeMap<EntryIndex, SearchResult>,
+    pub(crate) results: BTreeMap<EntryIndex, SearchResult>,
 
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    aliases: BTreeMap<AliasTarget, Score>,
+    pub(crate) aliases: BTreeMap<AliasTarget, Score>,
 }
 
 impl Container {
-    #[cfg(feature = "build-v3")]
-    fn new() -> Self {
+    #[cfg(feature = "build")]
+    pub(crate) fn new() -> Self {
         Self::default()
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-struct SearchResult {
-    excerpts: Vec<Excerpt>,
-    score: Score,
+pub(crate) struct SearchResult {
+    pub(crate) excerpts: Vec<Excerpt>,
+    pub(crate) score: Score,
 }
 
 impl SearchResult {
-    #[cfg(feature = "build-v3")]
-    fn new() -> SearchResult {
+    #[cfg(feature = "build")]
+    pub(crate) fn new() -> SearchResult {
         SearchResult {
             excerpts: vec![],
-            score: MATCHED_WORD_SCORE,
+            score: scores::MATCHED_WORD_SCORE,
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-struct Excerpt {
-    word_index: usize,
+pub(crate) struct Excerpt {
+    pub(crate) word_index: usize,
 
     // #[serde(default, skip_serializing_if = "WordListSource::is_default")]
-    source: WordListSource,
+    pub(crate) source: WordListSource,
 
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    internal_annotations: Vec<InternalWordAnnotation>,
+    pub(crate) internal_annotations: Vec<InternalWordAnnotation>,
 
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    fields: Fields,
+    pub(crate) fields: Fields,
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, SmartDefault)]
-enum WordListSource {
+pub(crate) enum WordListSource {
     Title,
 
     #[default]
@@ -128,20 +128,20 @@ enum WordListSource {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-struct AnnotatedWord {
-    word: String,
-    internal_annotations: Vec<InternalWordAnnotation>,
-    fields: Fields,
+pub(crate) struct AnnotatedWord {
+    pub(crate) word: String,
+    pub(crate) internal_annotations: Vec<InternalWordAnnotation>,
+    pub(crate) fields: Fields,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct AnnotatedWordList {
-    word_list: Vec<AnnotatedWord>,
+pub(crate) struct AnnotatedWordList {
+    pub(crate) word_list: Vec<AnnotatedWord>,
 }
 
-#[cfg(feature = "build-v3")]
+#[cfg(feature = "build")]
 impl AnnotatedWordList {
-    fn get_full_text(&self) -> String {
+    pub(crate) fn get_full_text(&self) -> String {
         self.word_list
             .iter()
             .map(|aw| aw.word.clone())
@@ -237,7 +237,7 @@ mod tests {
             },
         };
 
-        let build_result = build(&config).unwrap();
+        let build_result = crate::build(&config).unwrap();
 
         assert_eq!(build_result.index.containers.keys().len(), 33);
 

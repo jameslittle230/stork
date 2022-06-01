@@ -208,8 +208,8 @@ fn truncate_with_ellipsis_to_length(
 mod tests {
     use super::{fill_intermediate_entries, truncate_with_ellipsis_to_length};
     use crate::{
+        build::{errors::WordListGenerationError, intermediate_entry::NormalizedEntry},
         config::{Config, DataSource, File, InputConfig, OutputConfig},
-        index_v3::build::{errors::WordListGenerationError, intermediate_entry::NormalizedEntry},
         DocumentError, IndexGenerationError,
     };
     use unicode_segmentation::UnicodeSegmentation;

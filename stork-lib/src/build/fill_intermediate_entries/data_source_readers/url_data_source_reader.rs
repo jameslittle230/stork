@@ -1,6 +1,6 @@
 use super::{ReadResult, ReaderConfig, WordListGenerationError};
 
-#[cfg(not(feature = "build-v3-web-scraping"))]
+#[cfg(not(feature = "build-web-scraping"))]
 pub(crate) fn read(
     _url: &str,
     _config: &ReaderConfig,
@@ -8,7 +8,7 @@ pub(crate) fn read(
     Err(WordListGenerationError::FeatureNotAvailable)
 }
 
-#[cfg(feature = "build-v3-web-scraping")]
+#[cfg(feature = "build-web-scraping")]
 pub(crate) fn read(
     url: &str,
     config: &ReaderConfig,
