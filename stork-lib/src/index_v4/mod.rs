@@ -6,7 +6,10 @@ use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::config::{OutputConfig, TitleBoost};
+use crate::{
+    build::word_segmented_document::{AnnotatedWord},
+    config::{OutputConfig, TitleBoost},
+};
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 struct QueryTreeRemoteDestination {
@@ -32,43 +35,49 @@ type QueryTreeChildren = BTreeMap<char, QueryTreeChildDestination>;
  * Stork Index file.
  */
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct IndexDiskRepresentation {
+pub(crate) struct IndexDiskRepresentation {
     /**
      * The root of a radix tree for all words in the document. Each node
      * in the tree (even if it has children) points to a set of query results
      * that get displayed when that word is searched for.
      */
-    query_tree: QueryTreeChildren,
+    pub(crate) query_tree: QueryTreeNode,
 
     /**
      * Represents a possible search result.
      */
-    query_results: Vec<QueryResult>,
+    pub(crate) query_results: Vec<QueryResult>,
 
     /**
-     * The documents that have been indexed. Each query
+     * The documents that have been indexed.
      */
-    documents: Vec<Document>,
-    settings: Settings,
+    pub(crate) documents: Vec<Document>,
+    pub(crate) settings: Settings,
     // metadata_keys: Vec<String>
 }
 
 impl IndexDiskRepresentation {
-    fn to_bytes(&self) -> Bytes {
+    pub(crate) fn to_bytes(&self) -> Bytes {
         Bytes::from(rmp_serde::to_vec(self).unwrap())
     }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct PartialIndexDiskRepresentation {
-    partial_index_name: String,
-    query_tree: QueryTreeNode,
-    query_results: Vec<QueryResult>,
+pub(crate) struct PartialIndexDiskRepresentation {
+    pub(crate) partial_index_name: String,
+    pub(crate) query_tree: QueryTreeNode,
+    pub(crate) query_results: Vec<QueryResult>,
 }
 
+/**
+ * A QueryResult is something that can be searched for. Matches will come from
+ * the contents of a document, the title of a document, or the value of metadata
+ * for one or more documents (ex: searching for "Piper" should return all documents
+ * who have a metadata value where the key is "Author" and the value is "Jessica Piper")
+ */
 #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
-enum QueryResult {
-    DocumentSourceExcerpt(Excerpt),
+pub(crate) enum QueryResult {
+    DocumentContentsExcerpt(Excerpt),
     TitleExcerpt(TitleExcerpt),
     MetadataValue(MetadataValue),
 }
@@ -78,64 +87,102 @@ enum QueryResult {
  * are grouped by document in the visible search results.
  */
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct Document {
-    title: String,
-    contents: String,
-    url: String,
-    metadata: Vec<MetadataEntry>,
+pub(crate) struct Document {
+    pub(crate) title: String,
+    pub(crate) contents: String,
+    pub(crate) url: String,
+    pub(crate) metadata: Vec<MetadataEntry>,
 }
 
 /**
  * User-defined key/value pair that is indexed and searchable.
  */
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct MetadataEntry {
-    key: String,
-    value: String,
+pub(crate) struct MetadataEntry {
+    pub(crate) key: String,
+    pub(crate) value: String,
 }
+
+pub(crate) type DocumentIndex = usize;
+pub(crate) type MetadataIndex = usize;
+pub(crate) type QueryResultIndex = usize;
+pub(crate) type CharacterOffset = usize;
 
 /**
  * An extracted piece of a document's contents
  */
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct Excerpt {
-    document_id: u64,
-    contents_character_offset: u64,
+pub(crate) struct Excerpt {
+    pub(crate) document_id: DocumentIndex,
+    pub(crate) contents_character_offset: CharacterOffset,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct TitleExcerpt {
-    document_id: u64,
-    title_character_offset: u64,
+pub(crate) struct TitleExcerpt {
+    pub(crate) document_id: DocumentIndex,
+    pub(crate) title_character_offset: CharacterOffset,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct MetadataValue {
-    document_id: u64,
-    metadata_index: u64,
+pub(crate) struct MetadataValue {
+    pub(crate) document_id: DocumentIndex,
+    pub(crate) metadata_entry_index: MetadataIndex, // the index into that document's metadata vec, not some global metadata vec (this doesn't exist)
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 struct QueryTreeNode {
-    best_query_results: Vec<u64>,
-    total_children_count: u64,
+    query_results: Vec<QueryResultIndex>,
+    total_children_count: usize,
     children: QueryTreeChildren,
 }
 
-#[derive(Debug, Clone, SmartDefault, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct Settings {
-    url_prefix: String,
+impl QueryTreeNode {
+    pub(crate) fn insert_annotated_word(
+        &mut self,
+        AnnotatedWord { word, .. }: &AnnotatedWord,
+        query_result_index: QueryResultIndex,
+    ) {
+        let word_characters = word.chars();
 
-    title_boost: TitleBoost,
+        let mut examined_node = self;
+
+        for char in word_characters {
+            examined_node.total_children_count += 1;
+            if let Some(QueryTreeChildDestination::Local(mut node)) = examined_node.children.get(&char)
+            {
+                examined_node = &mut node;
+            } else if let Some(QueryTreeChildDestination::Remote(_)) =
+                examined_node.children.get(&char)
+            {
+                todo!();
+            } else {
+                let mut new_node = QueryTreeNode::default();
+                examined_node
+                    .children
+                    .insert(char, QueryTreeChildDestination::Local(new_node));
+
+                examined_node = &mut new_node;
+            }
+        }
+
+        examined_node.query_results.push(query_result_index);
+    }
+}
+
+#[derive(Debug, Clone, SmartDefault, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub(crate) struct Settings {
+    pub(crate) url_prefix: String,
+
+    pub(crate) title_boost: TitleBoost,
 
     #[default(OutputConfig::default().excerpt_buffer)]
-    excerpt_buffer: u8,
+    pub(crate) excerpt_buffer: u8,
 
     #[default(OutputConfig::default().excerpts_per_result)]
-    excerpts_per_result: u8,
+    pub(crate) excerpts_per_result: u8,
 
     #[default(OutputConfig::default().displayed_results_count)]
-    displayed_results_count: u8,
+    pub(crate) displayed_results_count: u8,
 }
 
 #[cfg(test)]
@@ -154,21 +201,25 @@ mod tests {
     #[test]
     fn build_small_index_disk_representation() {
         let index = IndexDiskRepresentation {
-            query_tree: BTreeMap::from([(
-                'a',
-                QueryTreeChildDestination::Local(QueryTreeNode {
-                    best_query_results: vec![1, 2, 3],
-                    total_children_count: 25,
-                    children: BTreeMap::from([
-                        ('c', QueryTreeChildDestination::Local(QueryTreeNode {
-                            best_query_results: vec![1, 2, 3],
-                            total_children_count: 25,
-                            children: BTreeMap::new()
-                        }))
-                    ]),
-                }),
-            )]),
-            query_results: vec![QueryResult::DocumentSourceExcerpt(Excerpt {
+            query_tree: QueryTreeNode {    
+                children: BTreeMap::from([(
+                    'a',
+                    QueryTreeChildDestination::Local(QueryTreeNode {
+                        query_results: vec![1, 2, 3],
+                        total_children_count: 25,
+                        children: BTreeMap::from([
+                            ('c', QueryTreeChildDestination::Local(QueryTreeNode {
+                                query_results: vec![1, 2, 3],
+                                total_children_count: 25,
+                                children: BTreeMap::new()
+                            }))
+                        ]),
+                    }),
+                )]),
+                query_results: vec![],
+                total_children_count: 200,
+        },
+            query_results: vec![QueryResult::DocumentContentsExcerpt(Excerpt {
                 document_id: 0,
                 contents_character_offset: 1234,
             })],

@@ -1,6 +1,5 @@
-use crate::config::Filetype;
+use crate::{build::errors::DocumentReadError, config::Filetype};
 
-use super::{ReadResult, ReaderConfig, WordListGenerationError};
 use std::{
     fs::File,
     io::{BufReader, Read},
@@ -9,24 +8,21 @@ use std::{
 
 pub(crate) fn read(
     path: &str,
-    config: &ReaderConfig,
-) -> Result<ReadResult, WordListGenerationError> {
-    let base_directory_path = Path::new(&config.global.base_directory);
+    config: &crate::config::Config,
+) -> Result<(String, Option<Filetype>), DocumentReadError> {
+    let base_directory_path = Path::new(&config.input.base_directory);
     let full_pathname = base_directory_path.join(&path);
 
     let file = File::open(&full_pathname)
-        .map_err(|_| WordListGenerationError::FileNotFound(full_pathname.clone()))?;
+        .map_err(|_| DocumentReadError::FileNotFound(full_pathname.clone()))?;
+
     let mut buf_reader = BufReader::new(file);
     let mut buffer = String::new();
     let _bytes_read = buf_reader.read_to_string(&mut buffer);
 
     let filetype_from_extension = get_filetype_from_path(&full_pathname);
 
-    Ok(ReadResult {
-        buffer,
-        filetype: config.file.filetype.clone().or(filetype_from_extension),
-        frontmatter_fields: None,
-    })
+    Ok((buffer, filetype_from_extension))
 }
 
 fn get_filetype_from_path(path: &Path) -> Option<Filetype> {

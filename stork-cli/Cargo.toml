@@ -18,7 +18,7 @@ v1-compat = []
 search-v2 = ["stork-lib/search-v2"]
 search-v3 = ["stork-lib/search-v3"]
 build = ["search-v3", "stork-lib/build"]
-build-web-scraping = ["build", "stork-lib/build-web-scraping"]
+build-web-scraping = ["build", "stork-lib/web-scraping"]
 
 [dependencies]
 atty = "0.2.14"

@@ -65,6 +65,15 @@ impl From<StemmingConfig> for String {
     }
 }
 
+impl StemmingConfig {
+    pub(crate) fn to_optional(&self) -> Option<Algorithm> {
+        match self {
+            StemmingConfig::None => None,
+            StemmingConfig::Language(algo) => Some(algo.clone()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

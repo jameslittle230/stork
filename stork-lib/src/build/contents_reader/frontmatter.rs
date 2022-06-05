@@ -5,19 +5,19 @@ use std::collections::HashMap;
 
 use crate::{config::FrontmatterConfig, Fields};
 
-pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields, String) {
-    let default_output = (HashMap::new(), buffer.to_string());
+pub fn parse(handling: &FrontmatterConfig, contents: &str) -> (Fields, String) {
+    let default_output = (HashMap::new(), contents.to_string());
     match handling {
         FrontmatterConfig::Ignore => default_output,
         FrontmatterConfig::Omit => {
-            if let Ok((_yaml, text)) = parse_and_find_content(buffer) {
+            if let Ok((_yaml, text)) = parse_and_find_content(contents) {
                 (HashMap::new(), text.trim().to_string())
             } else {
                 default_output
             }
         }
         FrontmatterConfig::Parse => {
-            if let Ok((Some(Yaml::Hash(map)), text)) = parse_and_find_content(buffer) {
+            if let Ok((Some(Yaml::Hash(map)), text)) = parse_and_find_content(contents) {
                 let fields = map
                     .into_iter()
                     .map(|(k, v)| {
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn omit_option() {
         let expected: (Fields, String) = (HashMap::new(), "this is not".to_string());
-        let output = parse_frontmatter(
+        let output = parse(
             &FrontmatterConfig::Omit,
             &mut r#"---
 this: "is frontmatter"
@@ -78,7 +78,7 @@ this is not
             .collect(),
             "this is not".to_string(),
         );
-        let output = parse_frontmatter(
+        let output = parse(
             &FrontmatterConfig::Parse,
             &mut r#"---
 this: "is frontmatter"

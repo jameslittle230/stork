@@ -11,12 +11,6 @@ use std::convert::TryFrom;
 use std::sync::Mutex;
 use thiserror::Error;
 
-#[cfg(feature = "build")]
-use {
-    num_format::{Locale, ToFormattedString},
-    std::fmt::Display,
-};
-
 pub type Fields = HashMap<String, String>;
 
 mod output;
@@ -32,6 +26,8 @@ use stopwords::STOPWORDS as stopwords;
 
 mod config;
 pub use config::{Config, ConfigReadError};
+
+mod string_utils;
 
 #[cfg(feature = "search-v2")]
 mod index_v2;
@@ -50,10 +46,7 @@ use {index_v3::search as V3Search, index_v3::Index as V3Index};
 mod build;
 
 #[cfg(feature = "build")]
-pub use build::DocumentError;
-
-#[cfg(feature = "build")]
-use build::{build, errors::IndexGenerationError, BuildResult};
+use build::{BuildError, BuildOutput, BuildWarning};
 
 // We can't pass a parsed index over the WASM boundary so we store the parsed indices here
 lazy_static! {
@@ -129,67 +122,30 @@ pub fn index_from_bytes(bytes: Bytes) -> core::result::Result<ParsedIndex, Index
         _ => Err(IndexParseError::ParseError()),
     }
 }
-#[derive(Debug, Error)]
-pub enum BuildError {
-    #[error("{0}")]
-    ConfigReadError(#[from] ConfigReadError),
+// #[derive(Debug, Error)]
+// pub enum BuildError {
+//     #[error("{0}")]
+//     ConfigReadError(#[from] ConfigReadError),
 
-    #[error("The Stork binary was not compiled with the ability to build indexes. Please recompile with the `build_v3` feature enabled.")]
-    BinaryNotBuiltWithFeature,
+//     #[error("The Stork binary was not compiled with the ability to build indexes. Please recompile with the `build_v3` feature enabled.")]
+//     BinaryNotBuiltWithFeature,
 
-    #[error("{0}")]
-    #[cfg(feature = "build")]
-    IndexGenerationError(#[from] IndexGenerationError),
-}
+//     #[error("{0}")]
+//     #[cfg(feature = "build")]
+//     IndexGenerationError(#[from] BuildError),
+// }
 
-#[cfg(feature = "build")]
-#[derive(Debug)]
-pub struct IndexDescription {
-    pub entries_count: usize,
-    pub tokens_count: usize,
-    pub index_size_bytes: usize,
-    pub warnings: Vec<DocumentError>,
-}
-
-#[cfg(feature = "build")]
-impl From<&BuildResult> for IndexDescription {
-    fn from(build_result: &BuildResult) -> Self {
-        Self {
-            entries_count: build_result.index.entries_len(),
-            tokens_count: build_result.index.search_term_count(),
-            index_size_bytes: Bytes::from(&build_result.index).len(),
-            warnings: build_result.errors.clone(),
-        }
-    }
-}
-
-#[cfg(feature = "build")]
-impl Display for IndexDescription {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!(
-            r#"{}Index stats:
-  - {} entries
-  - {} search terms
-  - {} bytes per entry
-  - {} bytes per search term"#,
-            if self.warnings.is_empty() {
-                "".to_string()
-            } else {
-                DocumentError::display_list(&self.warnings) + "\n"
-            },
-            self.entries_count.to_formatted_string(&Locale::en),
-            self.tokens_count.to_formatted_string(&Locale::en),
-            (self.index_size_bytes / self.entries_count).to_formatted_string(&Locale::en),
-            (self.index_size_bytes / self.tokens_count).to_formatted_string(&Locale::en),
-        ))
-    }
-}
-
-#[cfg(feature = "build")]
-pub struct BuildOutput {
-    pub bytes: Bytes,
-    pub description: IndexDescription,
-}
+// #[cfg(feature = "build")]
+// impl From<&BuildOutput> for IndexDescription {
+//     fn from(build_result: &BuildOutput) -> Self {
+//         Self {
+//             entries_count: build_result.entries_len(),
+//             tokens_count: build_result.index.search_term_count(),
+//             index_size_bytes: Bytes::from(&build_result.index).len(),
+//             warnings: build_result.errors.clone(),
+//         }
+//     }
+// }
 
 #[cfg(not(feature = "build"))]
 pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
@@ -198,10 +154,7 @@ pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
 
 #[cfg(feature = "build")]
 pub fn build_index(config: &Config) -> core::result::Result<BuildOutput, BuildError> {
-    let result = build(config)?;
-    let description = IndexDescription::from(&result);
-    let bytes = Bytes::from(&result.index);
-    Ok(BuildOutput { bytes, description })
+    build::build_index(config, Box::new(|progress| println!("{progress}"))) // TODO: Move this function to the CLI crate, just pass the closure through
 }
 
 pub fn register_index(
