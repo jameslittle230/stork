@@ -12,8 +12,26 @@ pub(super) struct WordSegmentedDocument {
     pub(super) url: String,
 }
 
+#[derive(Debug, Clone)]
 pub(crate) struct AnnotatedWord {
     pub(crate) word: String,
+    pub(crate) annotation: WordAnnotation,
+}
+
+impl AnnotatedWord {
+    pub(crate) fn new(word: String, character_offset: usize, url_suffix: Option<String>) -> Self {
+        Self {
+            word,
+            annotation: WordAnnotation {
+                character_offset,
+                url_suffix,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct WordAnnotation {
     pub(crate) character_offset: usize,
     pub(crate) url_suffix: Option<String>,
 }

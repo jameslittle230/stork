@@ -1554,7 +1554,6 @@ version = "1.4.2"
 dependencies = [
  "bincode",
  "bytes",
- "console_error_panic_hook",
  "criterion",
  "frontmatter",
  "hex-literal",

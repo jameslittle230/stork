@@ -21,7 +21,7 @@ use document_parser::extract_document_contents;
 
 use bytes::Bytes;
 
-pub use errors::{BuildError, BuildWarning};
+pub use errors::{BuildError, BuildWarning, BuildWarning::DocumentReadError};
 
 use crate::{
     config::Config,
@@ -76,11 +76,13 @@ pub fn build_index(
 
     let mut index = IndexDiskRepresentation::default();
 
+    let mut word_document_map: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+
     for document in &config.input.files {
-        let read_contents_result = read_contents(&document, &config);
+        let read_contents_result = read_contents(document, config);
 
         if let Err(read_error) = &read_contents_result {
-            build_warnings.push(BuildWarning::DocumentReadError(read_error.clone()));
+            build_warnings.push(DocumentReadError(read_error.clone()));
         }
 
         // The read contents contains the contents of the file as read, including
@@ -100,33 +102,47 @@ pub fn build_index(
         //
         // Therefore, after in the markup parse step, we need to have our document's
         // final contents, along with an annotated word list.
-        let document_parse_result = extract_document_contents(&config, &document, &read_contents);
+        let document_parse_result = extract_document_contents(config, document, &read_contents);
 
         if let Err(parse_error) = &document_parse_result {
-            build_warnings.push(BuildWarning::DocumentReadError(parse_error.clone()));
+            build_warnings.push(DocumentReadError(parse_error.clone()));
         }
 
         let word_segmented_document = document_parse_result.unwrap();
 
-        let document = make_document(word_segmented_document, read_contents.frontmatter);
+        let document = make_document(&word_segmented_document, read_contents.frontmatter);
+        let document_index = index.documents.len();
         index.documents.push(document);
-        let document_index = index.documents.len() - 1;
 
+        // Temporary word → vec<excerpt index> map, which the tree will be built from
         for word in &word_segmented_document.annotated_words {
-            let excerpt = Excerpt {
-                document_id: document_index,
-                contents_character_offset: word.character_offset,
-            };
-
+            let query_results_index = index.query_results.len();
             index
                 .query_results
-                .push(QueryResult::DocumentContentsExcerpt(excerpt));
+                .push(QueryResult::DocumentContentsExcerpt(Excerpt {
+                    document_id: document_index,
+                    contents_character_offset: word.annotation.character_offset,
+                }));
 
-            let query_result_index = index.query_results.len() - 1;
+            word_document_map
+                .entry(word.word.clone())
+                .and_modify(|vec| vec.push(query_results_index))
+                .or_insert_with(|| vec![query_results_index]);
 
-            index
-                .query_tree
-                .insert_annotated_word(word, query_result_index);
+            //     let excerpt = Excerpt {
+            //         document_id: document_index,
+            //         contents_character_offset: word.character_offset,
+            //     };
+
+            //     index
+            //         .query_results
+            //         .push(QueryResult::DocumentContentsExcerpt(excerpt));
+
+            //     let query_result_index = index.query_results.len() - 1;
+
+            // index
+            //     .query_tree
+            //     .insert_annotated_word(word, query_result_index);
         }
     }
 
@@ -147,6 +163,18 @@ pub fn build_index(
     // Generate statistics from index
     // Serialize index, wrap in envelope
 
+    // dbg!(&word_document_map);
+
+    for word in (&word_document_map).keys() {
+        for query_result_index in word_document_map.get(word).unwrap() {
+            index
+                .query_tree
+                .push_value_for_word(word, query_result_index.to_owned());
+        }
+    }
+
+    dbg!(&index.query_tree);
+
     Ok(BuildOutput {
         index: vec![index.to_bytes()],
         statistics: IndexBuildStatistics {
@@ -159,13 +187,13 @@ pub fn build_index(
 }
 
 fn make_document(
-    word_segmented_document: WordSegmentedDocument,
+    word_segmented_document: &WordSegmentedDocument,
     metadata: Option<HashMap<String, String>>,
 ) -> Document {
     Document {
-        title: word_segmented_document.title,
-        contents: word_segmented_document.contents,
-        url: word_segmented_document.url,
+        title: word_segmented_document.title.clone(),
+        contents: word_segmented_document.contents.clone(),
+        url: word_segmented_document.url.clone(),
         metadata: make_metadata_from_map(metadata),
     }
 }
@@ -174,11 +202,11 @@ fn make_metadata_from_map(hashmap: Option<HashMap<String, String>>) -> Vec<Metad
     let mut metadata_entries = Vec::new();
 
     if let Some(hashmap) = hashmap {
-        for (k, v) in hashmap.iter() {
+        for (k, v) in &hashmap {
             metadata_entries.push(MetadataEntry {
                 key: k.clone(),
                 value: v.clone(),
-            })
+            });
         }
     }
 

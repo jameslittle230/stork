@@ -54,6 +54,7 @@ pub struct Excerpt {
  */
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum InternalWordAnnotation {
+    #[serde(rename = "a")]
     UrlSuffix(String),
 }
 

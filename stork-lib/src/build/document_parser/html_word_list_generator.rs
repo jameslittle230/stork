@@ -11,7 +11,7 @@ pub(crate) fn generate(
     document_config: &File,
     contents: &str,
 ) -> Result<(String, Vec<AnnotatedWord>), DocumentReadError> {
-    let document = kuchiki::parse_html().one(contents.clone());
+    let document = kuchiki::parse_html().one(contents);
 
     let selector: &str = document_config
         .html_selector_override
@@ -93,10 +93,12 @@ pub(crate) fn generate(
 
                         let mut annotated_words = words
                             .into_iter()
-                            .map(|indexed_word| AnnotatedWord {
-                                word: indexed_word.word,
-                                character_offset: indexed_word.character_offset,
-                                url_suffix: latest_id.clone().map(|id| format!("#{id}")),
+                            .map(|indexed_word| {
+                                AnnotatedWord::new(
+                                    indexed_word.word,
+                                    indexed_word.character_offset,
+                                    latest_id.clone().map(|id| format!("#{id}")),
+                                )
                             })
                             .collect();
 

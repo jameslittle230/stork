@@ -105,6 +105,6 @@ pub struct AttributedDocumentReadError {
 // }
 
 #[derive(Debug, Clone, PartialEq)]
-enum DeprecatedConfigSetting {
+pub enum DeprecatedConfigSetting {
     OutputDebugOption,
 }

@@ -107,7 +107,7 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
 
     let build_time = Instant::now();
 
-    let bytes_written = write_bytes(output_path, &build_output.bytes)?;
+    let bytes_written = write_bytes(output_path, &build_output.index.first().unwrap())?;
 
     let end_time = Instant::now();
 
@@ -116,7 +116,7 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
         "Success:".green(),
         bytes_written.to_formatted_string(&Locale::en)
     );
-    eprintln!("{}", build_output.description);
+    // eprintln!("{}", build_output.description);
 
     if submatches.is_present("timing") {
         eprintln!(

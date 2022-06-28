@@ -25,11 +25,14 @@ fn segment_words(string: &str) -> Vec<IndexedWord> {
     for thing in split {
         if !thing.trim().is_empty() {
             indexed_words.push(IndexedWord {
-                word: thing.to_string(),
+                word: thing
+                    .to_lowercase()
+                    .trim_matches(|char: char| char.is_ascii_punctuation())
+                    .to_string(),
                 character_offset: offset_so_far,
             });
         }
-        offset_so_far += thing.chars().collect::<Vec<char>>().len();
+        offset_so_far += thing.chars().count();
     }
 
     indexed_words

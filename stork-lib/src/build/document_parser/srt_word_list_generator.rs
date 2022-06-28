@@ -18,13 +18,15 @@ pub(crate) fn generate(
     for sub in subs {
         let mut annotated_words = segment_words(&sub.text)
             .iter()
-            .map(|indexed_word| AnnotatedWord {
-                word: indexed_word.word.clone(),
-                character_offset: indexed_word.character_offset,
-                url_suffix: Some(build_srt_url_time_suffix(
-                    &sub.start_time,
-                    &config.input.srt_config,
-                )),
+            .map(|indexed_word| {
+                AnnotatedWord::new(
+                    indexed_word.word.clone(),
+                    indexed_word.character_offset,
+                    Some(build_srt_url_time_suffix(
+                        &sub.start_time,
+                        &config.input.srt_config,
+                    )),
+                )
             })
             .collect();
 

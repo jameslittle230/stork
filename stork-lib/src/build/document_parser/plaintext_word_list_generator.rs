@@ -12,10 +12,12 @@ pub(crate) fn generate(
 ) -> Result<(String, Vec<AnnotatedWord>), DocumentReadError> {
     let word_list = segment_words(contents)
         .iter()
-        .map(|indexed_word| AnnotatedWord {
-            word: indexed_word.word.clone(),
-            character_offset: indexed_word.character_offset,
-            url_suffix: None,
+        .map(|indexed_word| {
+            AnnotatedWord::new(
+                indexed_word.word.clone(),
+                indexed_word.character_offset,
+                None,
+            )
         })
         .collect();
     Ok((contents.to_string(), word_list))

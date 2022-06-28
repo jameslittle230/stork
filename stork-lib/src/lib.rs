@@ -46,7 +46,7 @@ use {index_v3::search as V3Search, index_v3::Index as V3Index};
 mod build;
 
 #[cfg(feature = "build")]
-use build::{BuildError, BuildOutput, BuildWarning};
+pub use build::{BuildError, BuildOutput, BuildWarning};
 
 // We can't pass a parsed index over the WASM boundary so we store the parsed indices here
 lazy_static! {

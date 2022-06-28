@@ -25,7 +25,7 @@ pub(crate) struct ReadContentsOutput {
     pub(crate) frontmatter: Option<Fields>,
 }
 
-pub fn read_contents(
+pub(crate) fn read_contents(
     document: &crate::config::File,
     config: &crate::config::Config,
 ) -> Result<ReadContentsOutput, AttributedDocumentReadError> {

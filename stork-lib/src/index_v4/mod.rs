@@ -1,33 +1,32 @@
 #![allow(dead_code)]
 
-use std::collections::BTreeMap;
+mod tree;
 
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::{
-    build::word_segmented_document::{AnnotatedWord},
-    config::{OutputConfig, TitleBoost},
-};
+use crate::config::{OutputConfig, TitleBoost};
 
-#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct QueryTreeRemoteDestination {
-    partial_index_name: String,
-}
+pub(crate) use tree::CharEdgeTree;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
-enum QueryTreeChildDestination {
-    Local(QueryTreeNode),
-    Remote(QueryTreeRemoteDestination),
-}
+// #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
+// struct QueryTreeRemoteDestination {
+//     partial_index_name: String,
+// }
+
+// #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
+// enum QueryTreeChildDestination {
+//     Local(Box<QueryTreeNode>),
+//     Remote(Box<QueryTreeRemoteDestination>),
+// }
 
 /**
  * A query tree node has multiple children, each represented by the character
  * that gets consumed when the map's key is matched against the query. Some
  * values i
  */
-type QueryTreeChildren = BTreeMap<char, QueryTreeChildDestination>;
+// type QueryTreeChildren = BTreeMap<char, QueryTreeChildDestination>;
 
 /**
  * Serializing this data structure with a specific serializer will vend a
@@ -41,7 +40,7 @@ pub(crate) struct IndexDiskRepresentation {
      * in the tree (even if it has children) points to a set of query results
      * that get displayed when that word is searched for.
      */
-    pub(crate) query_tree: QueryTreeNode,
+    pub(crate) query_tree: CharEdgeTree<QueryResultIndex>,
 
     /**
      * Represents a possible search result.
@@ -65,12 +64,12 @@ impl IndexDiskRepresentation {
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct PartialIndexDiskRepresentation {
     pub(crate) partial_index_name: String,
-    pub(crate) query_tree: QueryTreeNode,
+    pub(crate) query_tree: CharEdgeTree<QueryResultIndex>,
     pub(crate) query_results: Vec<QueryResult>,
 }
 
 /**
- * A QueryResult is something that can be searched for. Matches will come from
+ * A `QueryResult` is something that can be searched for. Matches will come from
  * the contents of a document, the title of a document, or the value of metadata
  * for one or more documents (ex: searching for "Piper" should return all documents
  * who have a metadata value where the key is "Author" and the value is "Jessica Piper")
@@ -129,46 +128,6 @@ pub(crate) struct MetadataValue {
     pub(crate) metadata_entry_index: MetadataIndex, // the index into that document's metadata vec, not some global metadata vec (this doesn't exist)
 }
 
-#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-struct QueryTreeNode {
-    query_results: Vec<QueryResultIndex>,
-    total_children_count: usize,
-    children: QueryTreeChildren,
-}
-
-impl QueryTreeNode {
-    pub(crate) fn insert_annotated_word(
-        &mut self,
-        AnnotatedWord { word, .. }: &AnnotatedWord,
-        query_result_index: QueryResultIndex,
-    ) {
-        let word_characters = word.chars();
-
-        let mut examined_node = self;
-
-        for char in word_characters {
-            examined_node.total_children_count += 1;
-            if let Some(QueryTreeChildDestination::Local(mut node)) = examined_node.children.get(&char)
-            {
-                examined_node = &mut node;
-            } else if let Some(QueryTreeChildDestination::Remote(_)) =
-                examined_node.children.get(&char)
-            {
-                todo!();
-            } else {
-                let mut new_node = QueryTreeNode::default();
-                examined_node
-                    .children
-                    .insert(char, QueryTreeChildDestination::Local(new_node));
-
-                examined_node = &mut new_node;
-            }
-        }
-
-        examined_node.query_results.push(query_result_index);
-    }
-}
-
 #[derive(Debug, Clone, SmartDefault, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct Settings {
     pub(crate) url_prefix: String,
@@ -200,42 +159,28 @@ mod tests {
 
     #[test]
     fn build_small_index_disk_representation() {
+        let mut query_tree: CharEdgeTree<QueryResultIndex> = CharEdgeTree::default();
+        query_tree.push_value_for_word("according", 0);
+
         let index = IndexDiskRepresentation {
-            query_tree: QueryTreeNode {    
-                children: BTreeMap::from([(
-                    'a',
-                    QueryTreeChildDestination::Local(QueryTreeNode {
-                        query_results: vec![1, 2, 3],
-                        total_children_count: 25,
-                        children: BTreeMap::from([
-                            ('c', QueryTreeChildDestination::Local(QueryTreeNode {
-                                query_results: vec![1, 2, 3],
-                                total_children_count: 25,
-                                children: BTreeMap::new()
-                            }))
-                        ]),
-                    }),
-                )]),
-                query_results: vec![],
-                total_children_count: 200,
-        },
-            query_results: vec![QueryResult::DocumentContentsExcerpt(Excerpt {
-                document_id: 0,
-                contents_character_offset: 1234,
-            })],
-            documents: vec![Document {
-                title: "This is a document title.".to_string(),
-                contents: "According to all known laws of aviation, there is no way that a bee should be able to fly. Its wings are too small to get its fat little body off the ground. The bee, of course, flies anyway because bees don't care what humans think is impossible.".to_string(),
-                url: "https://www.example.com/".to_string(),
-                metadata: vec![
-                    MetadataEntry {
-                        key: "author".to_string(),
-                        value: "John Doe".to_string(),
-                    },
-                ],
-            }],
-            settings: Settings::default(),
-        };
+        query_tree,
+        query_results: vec![QueryResult::DocumentContentsExcerpt(Excerpt {
+            document_id: 0,
+            contents_character_offset: 0,
+        })],
+        documents: vec![Document {
+            title: "This is a document title.".to_string(),
+            contents: "According to all known laws of aviation, there is no way that a bee should be able to fly. Its wings are too small to get its fat little body off the ground. The bee, of course, flies anyway because bees don't care what humans think is impossible.".to_string(),
+            url: "https://www.example.com/".to_string(),
+            metadata: vec![
+                MetadataEntry {
+                    key: "author".to_string(),
+                    value: "John Doe".to_string(),
+                },
+            ],
+        }],
+        settings: Settings::default(),
+    };
         let bytes = index.to_bytes();
         dbg!(&bytes.len());
     }
