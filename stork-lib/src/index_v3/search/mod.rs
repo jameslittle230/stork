@@ -154,9 +154,9 @@ impl ContainerWithQuery {
     }
 }
 
-impl From<Entry> for crate::Entry {
+impl From<Entry> for crate::Document {
     fn from(entry: Entry) -> Self {
-        crate::Entry {
+        crate::Document {
             url: entry.url.clone(),
             title: entry.title.clone(),
             fields: entry.fields,

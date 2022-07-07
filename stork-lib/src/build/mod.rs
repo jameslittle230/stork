@@ -167,13 +167,15 @@ pub fn build_index(
 
     for word in (&word_document_map).keys() {
         for query_result_index in word_document_map.get(word).unwrap() {
+            if word == "printing" {
+                dbg!(query_result_index);
+                dbg!(index.query_results.get(query_result_index.to_owned()));
+            }
             index
                 .query_tree
                 .push_value_for_word(word, query_result_index.to_owned());
         }
     }
-
-    dbg!(&index.query_tree);
 
     Ok(BuildOutput {
         index: vec![index.to_bytes()],

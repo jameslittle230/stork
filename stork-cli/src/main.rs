@@ -107,7 +107,7 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
 
     let build_time = Instant::now();
 
-    let bytes_written = write_bytes(output_path, &build_output.index.first().unwrap())?;
+    let bytes_written = write_bytes(output_path, build_output.index.first().unwrap())?;
 
     let end_time = Instant::now();
 

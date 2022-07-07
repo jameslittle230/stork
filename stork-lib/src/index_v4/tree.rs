@@ -18,13 +18,13 @@ impl<T> Arena<T> {
         self.root = root;
     }
 
-    pub fn add_node(&mut self, node: T) -> ArenaIndex {
+    fn add_node(&mut self, node: T) -> ArenaIndex {
         let index = self.values.len();
         self.values.push(Some(node));
         index
     }
 
-    pub fn remove_node_at(&mut self, index: ArenaIndex) -> Option<T> {
+    fn remove_node_at(&mut self, index: ArenaIndex) -> Option<T> {
         if let Some(node) = self.values.get_mut(index) {
             node.take()
         } else {
@@ -32,7 +32,7 @@ impl<T> Arena<T> {
         }
     }
 
-    pub fn node_at(&self, index: ArenaIndex) -> Option<&T> {
+    fn node_at(&self, index: ArenaIndex) -> Option<&T> {
         return if let Some(node) = self.values.get(index) {
             node.as_ref()
         } else {
@@ -40,7 +40,7 @@ impl<T> Arena<T> {
         };
     }
 
-    pub fn node_at_mut(&mut self, index: ArenaIndex) -> Option<&mut T> {
+    fn node_at_mut(&mut self, index: ArenaIndex) -> Option<&mut T> {
         return if let Some(node) = self.values.get_mut(index) {
             node.as_mut()
         } else {
@@ -111,6 +111,10 @@ where
         }
     }
 
+    pub(crate) fn node_at(&self, index: usize) -> Option<&CharEdgeNode<Vec<U>>> {
+        self.arena.node_at(index)
+    }
+
     pub(crate) fn push_value_for_word(&mut self, word: &str, value: U) {
         let mut current_index = self.arena.root.unwrap();
         for char in word.chars() {
@@ -137,6 +141,24 @@ where
 
         let current = self.arena.node_at_mut(current_index).unwrap();
         current.value.push(value);
+    }
+
+    pub(crate) fn get_value_for_word(&self, word: &str) -> Vec<U> {
+        let mut curr = self.arena.root.as_ref();
+        for char in word.chars() {
+            curr = self
+                .arena
+                .node_at(curr.unwrap().to_owned())
+                .unwrap()
+                .children
+                .get(&char);
+        }
+
+        self.arena
+            .node_at(curr.unwrap().to_owned())
+            .unwrap()
+            .value
+            .clone()
     }
 }
 

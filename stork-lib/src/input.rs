@@ -5,6 +5,7 @@ use thiserror::Error;
 pub enum VersionedIndex {
     V2(Bytes),
     V3(Bytes),
+    V4(Bytes),
 }
 
 impl TryFrom<Bytes> for VersionedIndex {
@@ -12,6 +13,7 @@ impl TryFrom<Bytes> for VersionedIndex {
 
     fn try_from(value: Bytes) -> Result<Self, Self::Error> {
         let mut buffer = value;
+        return Ok(Self::V4(buffer));
         let u64_size = std::mem::size_of::<u64>();
 
         if buffer.len() <= u64_size {

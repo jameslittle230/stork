@@ -62,7 +62,7 @@ mod tests {
     fn display_pretty_search_results_given_output() {
         let results = Output {
             results: vec![stork_lib::Result {
-                entry: stork_lib::Entry {
+                entry: stork_lib::Document {
                     title: "Some Document Title".to_string(),
                     url: "https://example.com".to_string(),
                     fields: HashMap::new(),

@@ -11,33 +11,6 @@ mod markdown_word_list_generator;
 mod plaintext_word_list_generator;
 mod srt_word_list_generator;
 
-struct IndexedWord {
-    word: String,
-    character_offset: usize,
-}
-
-fn segment_words(string: &str) -> Vec<IndexedWord> {
-    let split = string.split(|c: char| c.is_ascii_whitespace() || c == '-');
-
-    let mut indexed_words: Vec<IndexedWord> = Vec::new();
-    let mut offset_so_far = 0;
-
-    for thing in split {
-        if !thing.trim().is_empty() {
-            indexed_words.push(IndexedWord {
-                word: thing
-                    .to_lowercase()
-                    .trim_matches(|char: char| char.is_ascii_punctuation())
-                    .to_string(),
-                character_offset: offset_so_far,
-            });
-        }
-        offset_so_far += thing.chars().count();
-    }
-
-    indexed_words
-}
-
 pub(super) fn extract_document_contents(
     config: &Config,
     document_config: &File,
@@ -75,4 +48,26 @@ pub(super) fn extract_document_contents(
         document: document_config.clone(),
         read_error: e,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::string_utils::segment_words;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_word_segmentation() {
+        let output = segment_words("lorem ipsum");
+        assert_eq!(output[1].character_offset, 6);
+    }
+
+    #[test]
+    fn test_word_segmentation_multiple_spaces() {
+        let output = segment_words("lorem  ipsum");
+    }
+
+    #[test]
+    fn test_word_segmentation_spaces_dashes() {
+        let output = segment_words("lorem  -- ipsum");
+    }
 }

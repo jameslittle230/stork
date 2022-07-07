@@ -4,7 +4,7 @@ use crate::config::{Config, File};
 
 use kuchiki::{traits::TendrilSink, ElementData, NodeDataRef, Selectors};
 
-use super::segment_words;
+use crate::string_utils::segment_words;
 
 pub(crate) fn generate(
     config: &Config,

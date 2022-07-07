@@ -3,7 +3,7 @@ use crate::build::word_segmented_document::AnnotatedWord;
 
 use crate::config::{Config, File, SRTConfig, SRTTimestampFormat};
 
-use super::segment_words;
+use crate::string_utils::segment_words;
 
 pub(crate) fn generate(
     config: &Config,

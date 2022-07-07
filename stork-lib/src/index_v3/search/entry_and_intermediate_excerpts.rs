@@ -188,7 +188,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
         };
 
         Result {
-            entry: crate::Entry::from(entry),
+            entry: crate::Document::from(entry),
             excerpts,
             title_highlight_ranges,
             score: result_score,

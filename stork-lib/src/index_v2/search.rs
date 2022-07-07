@@ -86,9 +86,9 @@ impl ContainerWithQuery {
     }
 }
 
-impl From<crate::index_v2::Entry> for crate::Entry {
+impl From<crate::index_v2::Entry> for crate::Document {
     fn from(entry: crate::index_v2::Entry) -> Self {
-        crate::Entry {
+        crate::Document {
             url: entry.url.clone(),
             title: entry.title.clone(),
             fields: entry.fields.unwrap_or_default(),
@@ -197,7 +197,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
         let score = excerpts.first().map_or(0, |first| first.score);
 
         Result {
-            entry: crate::Entry::from(entry),
+            entry: crate::Document::from(entry),
             excerpts,
             title_highlight_ranges: vec![],
             score,

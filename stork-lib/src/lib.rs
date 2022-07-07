@@ -15,7 +15,7 @@ pub type Fields = HashMap<String, String>;
 
 mod output;
 pub use output::{
-    Entry, Excerpt, HighlightRange, IndexMetadata, InternalWordAnnotation, Output, Result,
+    Document, Excerpt, HighlightRange, IndexMetadata, InternalWordAnnotation, Output, Result,
 };
 
 mod input;
@@ -35,6 +35,8 @@ mod index_v2;
 mod index_v3;
 
 mod index_v4;
+use index_v4::search::search as V4Search;
+use index_v4::IndexDiskRepresentation as V4Index;
 
 #[cfg(feature = "search-v2")]
 use {index_v2::search as V2Search, index_v2::Index as V2Index};
@@ -72,12 +74,14 @@ pub enum IndexParseError {
 }
 
 #[derive(Debug)]
-pub enum ParsedIndex {
+pub(crate) enum ParsedIndex {
     #[cfg(feature = "search-v2")]
     V2(V2Index),
 
     #[cfg(feature = "search-v3")]
     V3(V3Index),
+
+    V4(V4Index),
 
     #[cfg(not(any(feature = "search-v2", feature = "search-v3")))]
     Unknown,
@@ -100,12 +104,13 @@ impl ParsedIndex {
             ParsedIndex::Unknown => IndexMetadata {
                 index_version: "unknown".to_string(),
             },
+            ParsedIndex::V4(_) => todo!(),
         }
     }
 }
 
 #[allow(unreachable_patterns)]
-pub fn index_from_bytes(bytes: Bytes) -> core::result::Result<ParsedIndex, IndexParseError> {
+pub(crate) fn index_from_bytes(bytes: Bytes) -> core::result::Result<ParsedIndex, IndexParseError> {
     let versioned = VersionedIndex::try_from(bytes)?;
 
     match versioned {
@@ -118,6 +123,10 @@ pub fn index_from_bytes(bytes: Bytes) -> core::result::Result<ParsedIndex, Index
         VersionedIndex::V3(bytes) => V3Index::try_from(bytes)
             .map_err(|e| IndexParseError::V3Error(e.to_string()))
             .map(ParsedIndex::V3),
+
+        VersionedIndex::V4(bytes) => V4Index::try_from(bytes)
+            .map_err(|e| IndexParseError::V3Error(e.to_string()))
+            .map(ParsedIndex::V4),
 
         _ => Err(IndexParseError::ParseError()),
     }
@@ -196,6 +205,8 @@ pub fn search_from_cache(key: &str, query: &str) -> core::result::Result<Output,
         #[cfg(feature = "search-v3")]
         ParsedIndex::V3(index) => Ok(V3Search(index, query)),
 
+        ParsedIndex::V4(index) => Ok(V4Search(index, query)),
+
         #[cfg(not(any(feature = "search-v2", feature = "search-v3")))]
         ParsedIndex::Unknown => Err(SearchError::IndexVersionNotSupported),
     }
@@ -212,6 +223,7 @@ pub fn search(index: Bytes, query: &str) -> core::result::Result<Output, SearchE
 
         #[cfg(feature = "search-v2")]
         ParsedIndex::V2(index) => Ok(V2Search(&index, query)),
+        ParsedIndex::V4(index) => Ok(V4Search(&index, query)),
 
         _ => Err(SearchError::IndexVersionNotSupported),
     }

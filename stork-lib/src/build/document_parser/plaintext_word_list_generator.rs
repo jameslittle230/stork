@@ -2,7 +2,7 @@ use crate::build::errors::DocumentReadError;
 use crate::build::word_segmented_document::AnnotatedWord;
 use crate::config::{Config, File};
 
-use super::segment_words;
+use crate::string_utils::segment_words;
 
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn generate(

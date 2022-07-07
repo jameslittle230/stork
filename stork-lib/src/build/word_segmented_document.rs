@@ -4,6 +4,7 @@ use rust_stemmers::Algorithm as StemAlgorithm;
  * The first layer of document processing. Holds the document's metadata and its
  * contents after those contents have gone through the word separation algorithm.
  */
+#[derive(Debug, Clone)]
 pub(super) struct WordSegmentedDocument {
     pub(super) annotated_words: Vec<AnnotatedWord>,
     pub(super) contents: String, // The word separation algorithm is lossy - you're not guaranteed to be able to get the original contents back from the word list.

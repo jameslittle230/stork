@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+pub mod search;
 mod tree;
 
 use bytes::Bytes;
@@ -29,27 +30,27 @@ pub(crate) use tree::CharEdgeTree;
 // type QueryTreeChildren = BTreeMap<char, QueryTreeChildDestination>;
 
 /**
- * Serializing this data structure with a specific serializer will vend a
- * binary blob which, when packaged in a Stork Index envelope, will be a valid
- * Stork Index file.
+Serializing this data structure with a specific serializer will vend a
+binary blob which, when packaged in a Stork Index envelope, will be a valid
+Stork Index file.
  */
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct IndexDiskRepresentation {
     /**
-     * The root of a radix tree for all words in the document. Each node
-     * in the tree (even if it has children) points to a set of query results
-     * that get displayed when that word is searched for.
-     */
+    The root of a radix tree for all words in the document. Each node
+    in the tree (even if it has children) points to a set of query results
+    that get displayed when that word is searched for.
+    */
     pub(crate) query_tree: CharEdgeTree<QueryResultIndex>,
 
     /**
-     * Represents a possible search result.
-     */
+    Represents a possible search result.
+    */
     pub(crate) query_results: Vec<QueryResult>,
 
     /**
-     * The documents that have been indexed.
-     */
+    The documents that have been indexed.
+    */
     pub(crate) documents: Vec<Document>,
     pub(crate) settings: Settings,
     // metadata_keys: Vec<String>
@@ -61,6 +62,13 @@ impl IndexDiskRepresentation {
     }
 }
 
+impl TryFrom<Bytes> for IndexDiskRepresentation {
+    type Error = rmp_serde::decode::Error;
+    fn try_from(bytes: Bytes) -> Result<Self, Self::Error> {
+        rmp_serde::from_read_ref(&bytes.to_vec())
+    }
+}
+
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct PartialIndexDiskRepresentation {
     pub(crate) partial_index_name: String,
@@ -69,10 +77,10 @@ pub(crate) struct PartialIndexDiskRepresentation {
 }
 
 /**
- * A `QueryResult` is something that can be searched for. Matches will come from
- * the contents of a document, the title of a document, or the value of metadata
- * for one or more documents (ex: searching for "Piper" should return all documents
- * who have a metadata value where the key is "Author" and the value is "Jessica Piper")
+A `QueryResult` is something that can be searched for. Matches will come from
+the contents of a document, the title of a document, or the value of metadata
+for one or more documents (ex: searching for "Piper" should return all documents
+who have a metadata value where the key is "Author" and the value is "Jessica Piper")
  */
 #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) enum QueryResult {
@@ -82,8 +90,10 @@ pub(crate) enum QueryResult {
 }
 
 /**
- * A document that is indexed. Excerpts belong to exactly one document, and
- * are grouped by document in the visible search results.
+A document that is indexed, serialized in a V4 index.
+
+Excerpts belong to exactly one document, and are grouped by document in the
+visible search results.
  */
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct Document {
@@ -107,9 +117,11 @@ pub(crate) type MetadataIndex = usize;
 pub(crate) type QueryResultIndex = usize;
 pub(crate) type CharacterOffset = usize;
 
-/**
- * An extracted piece of a document's contents
- */
+/// A reference to an extracted piece of a document's contents, serialized in a V4 index.
+///
+/// This struct contains:
+/// * An index into the list of documents
+/// * A character offset into the documents' contents
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct Excerpt {
     pub(crate) document_id: DocumentIndex,
