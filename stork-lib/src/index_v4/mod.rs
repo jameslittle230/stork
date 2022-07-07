@@ -62,10 +62,10 @@ impl IndexDiskRepresentation {
     }
 }
 
-impl TryFrom<Bytes> for IndexDiskRepresentation {
+impl TryFrom<&Bytes> for IndexDiskRepresentation {
     type Error = rmp_serde::decode::Error;
-    fn try_from(bytes: Bytes) -> Result<Self, Self::Error> {
-        rmp_serde::from_read_ref(&bytes.to_vec())
+    fn try_from(bytes: &Bytes) -> Result<Self, Self::Error> {
+        rmp_serde::from_read_ref(bytes)
     }
 }
 

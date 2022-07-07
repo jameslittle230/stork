@@ -93,11 +93,11 @@ impl Index {
     }
 }
 
-impl TryFrom<Bytes> for Index {
+impl TryFrom<&Bytes> for Index {
     type Error = &'static str;
 
-    fn try_from(value: Bytes) -> Result<Self, Self::Error> {
-        let mut value = value;
+    fn try_from(value: &Bytes) -> Result<Self, Self::Error> {
+        let mut value = value.clone();
 
         let entries = {
             let size = value.get_u64();

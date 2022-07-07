@@ -4,11 +4,12 @@
 #![allow(clippy::must_use_candidate)]
 
 use bytes::Bytes;
+use envelope::{Envelope, EnvelopeDecodeError, Prefix};
 use lazy_static::lazy_static;
 
-use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Mutex;
+use std::{collections::HashMap, env};
 use thiserror::Error;
 
 pub type Fields = HashMap<String, String>;
@@ -18,11 +19,10 @@ pub use output::{
     Document, Excerpt, HighlightRange, IndexMetadata, InternalWordAnnotation, Output, Result,
 };
 
-mod input;
-use input::{IndexVersioningError, VersionedIndex};
-
 mod stopwords;
 use stopwords::STOPWORDS as stopwords;
+
+mod envelope;
 
 mod config;
 pub use config::{Config, ConfigReadError};
@@ -61,7 +61,7 @@ lazy_static! {
 #[derive(Error, Debug)]
 pub enum IndexParseError {
     #[error("{0}")]
-    VersioningError(#[from] IndexVersioningError),
+    VersioningError(#[from] EnvelopeDecodeError),
 
     #[error("Could not parse index, despite knowing the version.")]
     ParseError(),
@@ -110,51 +110,28 @@ impl ParsedIndex {
 }
 
 #[allow(unreachable_patterns)]
-pub(crate) fn index_from_bytes(bytes: Bytes) -> core::result::Result<ParsedIndex, IndexParseError> {
-    let versioned = VersionedIndex::try_from(bytes)?;
-
-    match versioned {
+pub(crate) fn index_from_envelope(
+    envelope: &Envelope,
+) -> core::result::Result<ParsedIndex, IndexParseError> {
+    let bytes = envelope.bytes.first().unwrap();
+    match envelope.prefix {
         #[cfg(feature = "search-v2")]
-        VersionedIndex::V2(bytes) => V2Index::try_from(bytes)
+        Prefix::StorkV2 => V2Index::try_from(bytes)
             .map_err(|e| IndexParseError::V2Error(e.to_string()))
             .map(ParsedIndex::V2),
 
         #[cfg(feature = "search-v3")]
-        VersionedIndex::V3(bytes) => V3Index::try_from(bytes)
+        Prefix::StorkV3 => V3Index::try_from(bytes)
             .map_err(|e| IndexParseError::V3Error(e.to_string()))
             .map(ParsedIndex::V3),
 
-        VersionedIndex::V4(bytes) => V4Index::try_from(bytes)
+        Prefix::StorkV4 => V4Index::try_from(bytes)
             .map_err(|e| IndexParseError::V3Error(e.to_string()))
             .map(ParsedIndex::V4),
 
         _ => Err(IndexParseError::ParseError()),
     }
 }
-// #[derive(Debug, Error)]
-// pub enum BuildError {
-//     #[error("{0}")]
-//     ConfigReadError(#[from] ConfigReadError),
-
-//     #[error("The Stork binary was not compiled with the ability to build indexes. Please recompile with the `build_v3` feature enabled.")]
-//     BinaryNotBuiltWithFeature,
-
-//     #[error("{0}")]
-//     #[cfg(feature = "build")]
-//     IndexGenerationError(#[from] BuildError),
-// }
-
-// #[cfg(feature = "build")]
-// impl From<&BuildOutput> for IndexDescription {
-//     fn from(build_result: &BuildOutput) -> Self {
-//         Self {
-//             entries_count: build_result.entries_len(),
-//             tokens_count: build_result.index.search_term_count(),
-//             index_size_bytes: Bytes::from(&build_result.index).len(),
-//             warnings: build_result.errors.clone(),
-//         }
-//     }
-// }
 
 #[cfg(not(feature = "build"))]
 pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
@@ -162,15 +139,19 @@ pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
 }
 
 #[cfg(feature = "build")]
-pub fn build_index(config: &Config) -> core::result::Result<BuildOutput, BuildError> {
-    build::build_index(config, Box::new(|progress| println!("{progress}"))) // TODO: Move this function to the CLI crate, just pass the closure through
+pub fn build_index(
+    config: &Config,
+    report_progress: &dyn Fn(u64, u64),
+) -> core::result::Result<BuildOutput, BuildError> {
+    build::build_index(config, report_progress)
 }
 
 pub fn register_index(
     name: &str,
     bytes: Bytes,
 ) -> core::result::Result<IndexMetadata, IndexParseError> {
-    let parsed = index_from_bytes(bytes)?;
+    let envelope = Envelope::try_from(bytes)?;
+    let parsed = index_from_envelope(&envelope)?;
     // todo: save deserialized index to cache
     let metadata = parsed.get_metadata();
     INDEX_CACHE.lock().unwrap().insert(name.to_string(), parsed);
@@ -179,6 +160,9 @@ pub fn register_index(
 
 #[derive(Debug, Error)]
 pub enum SearchError {
+    #[error("{0}")]
+    VersioningError(#[from] EnvelopeDecodeError),
+
     #[error("{0}")]
     IndexParseError(#[from] IndexParseError),
 
@@ -214,7 +198,8 @@ pub fn search_from_cache(key: &str, query: &str) -> core::result::Result<Output,
 
 #[allow(unused_variables)]
 pub fn search(index: Bytes, query: &str) -> core::result::Result<Output, SearchError> {
-    let index = index_from_bytes(index)?;
+    let envelope = Envelope::try_from(index)?;
+    let index = index_from_envelope(&envelope)?;
 
     #[allow(unreachable_patterns)]
     match index {

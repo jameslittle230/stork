@@ -25,6 +25,7 @@ pub use errors::{BuildError, BuildWarning, BuildWarning::DocumentReadError};
 
 use crate::{
     config::Config,
+    envelope::{Envelope, Prefix},
     index_v4::{Document, Excerpt, MetadataEntry},
     index_v4::{IndexDiskRepresentation, QueryResult},
 };
@@ -70,7 +71,7 @@ impl Display for IndexBuildStatistics {
 
 pub fn build_index(
     config: &Config,
-    report_progress: Box<dyn Fn(f32)>,
+    report_progress: &dyn Fn(u64, u64),
 ) -> Result<BuildOutput, BuildError> {
     let mut build_warnings: Vec<BuildWarning> = Vec::new();
 
@@ -78,11 +79,22 @@ pub fn build_index(
 
     let mut word_document_map: BTreeMap<String, Vec<usize>> = BTreeMap::new();
 
-    for document in &config.input.files {
+    let should_report_progress = config
+        .input
+        .files
+        .iter()
+        .any(|file| matches!(file.source(), crate::config::DataSource::URL(_)));
+
+    for (i, document) in config.input.files.iter().enumerate() {
+        if should_report_progress {
+            report_progress((i + 1) as u64, config.input.files.len() as u64);
+        }
+
         let read_contents_result = read_contents(document, config);
 
         if let Err(read_error) = &read_contents_result {
             build_warnings.push(DocumentReadError(read_error.clone()));
+            continue;
         }
 
         // The read contents contains the contents of the file as read, including
@@ -106,6 +118,7 @@ pub fn build_index(
 
         if let Err(parse_error) = &document_parse_result {
             build_warnings.push(DocumentReadError(parse_error.clone()));
+            continue;
         }
 
         let word_segmented_document = document_parse_result.unwrap();
@@ -128,22 +141,14 @@ pub fn build_index(
                 .entry(word.word.clone())
                 .and_modify(|vec| vec.push(query_results_index))
                 .or_insert_with(|| vec![query_results_index]);
-
-            //     let excerpt = Excerpt {
-            //         document_id: document_index,
-            //         contents_character_offset: word.character_offset,
-            //     };
-
-            //     index
-            //         .query_results
-            //         .push(QueryResult::DocumentContentsExcerpt(excerpt));
-
-            //     let query_result_index = index.query_results.len() - 1;
-
-            // index
-            //     .query_tree
-            //     .insert_annotated_word(word, query_result_index);
         }
+    }
+
+    if should_report_progress {
+        report_progress(
+            config.input.files.len() as u64,
+            config.input.files.len() as u64,
+        );
     }
 
     // for each document:
@@ -163,14 +168,8 @@ pub fn build_index(
     // Generate statistics from index
     // Serialize index, wrap in envelope
 
-    // dbg!(&word_document_map);
-
     for word in (&word_document_map).keys() {
         for query_result_index in word_document_map.get(word).unwrap() {
-            if word == "printing" {
-                dbg!(query_result_index);
-                dbg!(index.query_results.get(query_result_index.to_owned()));
-            }
             index
                 .query_tree
                 .push_value_for_word(word, query_result_index.to_owned());
@@ -178,7 +177,7 @@ pub fn build_index(
     }
 
     Ok(BuildOutput {
-        index: vec![index.to_bytes()],
+        index: vec![Envelope::wrap(Prefix::StorkV4, vec![index.to_bytes()]).to_bytes()],
         statistics: IndexBuildStatistics {
             entries_count: 0,
             tokens_count: 0,

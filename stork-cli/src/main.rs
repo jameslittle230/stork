@@ -3,6 +3,7 @@
 use std::{process::exit, time::Instant};
 
 use colored::Colorize;
+use indicatif::ProgressBar;
 
 mod clap;
 mod display_timings;
@@ -42,50 +43,9 @@ fn main() {
         ("build", Some(submatches)) => build_handler(submatches),
         ("search", Some(submatches)) => search_handler(submatches),
         ("test", Some(submatches)) => test_handler(submatches),
-
-        // Delete when releasing 2.0.0
         (_, _) => {
-            fn print_nudging_string(errant_command: &str) {
-                eprintln!("{} The command line interface has been updated: please use `stork {}` instead of `stork --{}`. See `stork --help` for more.", "Warning:".yellow(), errant_command, errant_command);
-            }
-
-            if let Some(config_path) = app_matches.value_of("build") {
-                // gotta wrap it in a closure so our question marks work
-                let wrapper = || -> CmdResult {
-                    print_nudging_string("build");
-                    let config_string = read_from_path(config_path)?;
-                    let config = Config::try_from(config_string.as_str())?;
-                    let output_path = config.output.UNUSED_filename
-                        .ok_or_else(|| {
-                            let msg = "You've used the old-style command line interface (`stork --build`) with an index file that is missing an output filename, so Stork can't figure out where to write your index.";
-                            StorkCommandLineError::InvalidCommandLineArguments(msg)
-                        })?;
-
-                    #[rustfmt::skip]
-                    let itr = vec!["stork", "build", "--input", config_path, "--output", &output_path];
-                    let global_matches = app().get_matches_from(itr);
-                    let submatches = global_matches.subcommand_matches("build").unwrap();
-                    build_handler(submatches)
-                };
-                wrapper()
-            } else if let Some(values_iter) = app_matches.values_of("search") {
-                print_nudging_string("search");
-                let values: Vec<&str> = values_iter.collect();
-                let global_matches = app().get_matches_from(vec![
-                    "stork", "search", "--input", values[0], "--query", values[1],
-                ]);
-                let submatches = global_matches.subcommand_matches("search").unwrap();
-                search_handler(submatches)
-            } else if let Some(input_file) = app_matches.value_of("test") {
-                print_nudging_string("test");
-                let global_matches =
-                    app().get_matches_from(vec!["stork", "test", "--input", input_file]);
-                let submatches = global_matches.subcommand_matches("search").unwrap();
-                test_handler(submatches)
-            } else {
-                let _clap_result = app().print_help();
-                Ok(())
-            }
+            let _ = app().print_help();
+            Ok(())
         }
     };
 
@@ -103,7 +63,13 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
 
     let config_string = read_from_path(config_path)?;
     let config = Config::try_from(config_string.as_str())?;
-    let build_output = build_index(&config)?;
+
+    let pb = ProgressBar::new(1);
+
+    let build_output = build_index(&config, &|progress: u64, total: u64| {
+        pb.set_length(total);
+        pb.set_position(progress);
+    })?;
 
     let build_time = Instant::now();
 
@@ -116,7 +82,6 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
         "Success:".green(),
         bytes_written.to_formatted_string(&Locale::en)
     );
-    // eprintln!("{}", build_output.description);
 
     if submatches.is_present("timing") {
         eprintln!(

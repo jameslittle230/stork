@@ -26,6 +26,7 @@ bytes = "1.1.0"
 clap = { version = "2.33.3", features = ["color"] }
 colored = "2.0.0"
 hyper = { version = "0.14.17", optional = true, features = ["server"] }
+indicatif = "0.16.2"
 num-format = "0.4.0"
 serde = "1.0.130"
 serde_json = "1.0.68"

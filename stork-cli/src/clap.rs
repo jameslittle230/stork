@@ -12,7 +12,7 @@ pub fn app() -> App<'static, 'static> {
         .setting(AppSettings::ColoredHelp)
         .setting(AppSettings::DeriveDisplayOrder)
         .setting(AppSettings::GlobalVersion)
-        // .setting(AppSettings::SubcommandRequiredElseHelp) // TODO: When 2.0.0 is released, uncomment this
+        .setting(AppSettings::SubcommandRequiredElseHelp)
         .max_term_width(100)
         .arg(
             Arg::with_name("build")

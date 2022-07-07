@@ -19,10 +19,10 @@ impl TryFrom<&[u8]> for Index {
     }
 }
 
-impl TryFrom<Bytes> for Index {
+impl TryFrom<&Bytes> for Index {
     type Error = rmp_serde::decode::Error;
 
-    fn try_from(value: Bytes) -> Result<Self, Self::Error> {
-        rmp_serde::from_read_ref(value.as_ref())
+    fn try_from(value: &Bytes) -> Result<Self, Self::Error> {
+        rmp_serde::from_read_ref(value)
     }
 }
