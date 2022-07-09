@@ -138,10 +138,19 @@ pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
     Err(BuildError::BinaryNotBuiltWithFeature)
 }
 
+pub enum BuildProgressReport {
+    StartingDocument {
+        count: u64,
+        total: u64,
+        title: String,
+    },
+    Finished,
+}
+
 #[cfg(feature = "build")]
 pub fn build_index(
     config: &Config,
-    report_progress: &dyn Fn(u64, u64),
+    report_progress: &dyn Fn(BuildProgressReport),
 ) -> core::result::Result<BuildOutput, BuildError> {
     build::build_index(config, report_progress)
 }

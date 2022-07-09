@@ -1,5 +1,3 @@
-use crate::build::word_segmented_document::AnnotatedWord;
-
 pub(crate) fn pluralize_with_count(count: usize, singular: &str, plural: &str) -> String {
     format!("{} {}", count, if count == 1 { singular } else { plural })
 }

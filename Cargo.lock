@@ -1645,6 +1645,7 @@ dependencies = [
  "textwrap 0.14.2",
  "thiserror",
  "tokio",
+ "unicode-segmentation",
 ]
 
 [[package]]

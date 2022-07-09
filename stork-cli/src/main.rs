@@ -3,18 +3,19 @@
 use std::{process::exit, time::Instant};
 
 use colored::Colorize;
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressStyle};
 
 mod clap;
 mod display_timings;
 mod errors;
 mod io;
 mod pretty_print_search_results;
+mod string_utils;
 
 #[cfg(feature = "test-server")]
 mod test_server;
 
-use crate::clap::app;
+use crate::{clap::app, string_utils::truncate_with_ellipsis_to_length};
 use io::{read_bytes_from_path, read_from_path, write_bytes};
 
 use ::clap::ArgMatches;
@@ -43,10 +44,7 @@ fn main() {
         ("build", Some(submatches)) => build_handler(submatches),
         ("search", Some(submatches)) => search_handler(submatches),
         ("test", Some(submatches)) => test_handler(submatches),
-        (_, _) => {
-            let _ = app().print_help();
-            Ok(())
-        }
+        (_, _) => Ok(()),
     };
 
     if let Err(error) = result {
@@ -64,11 +62,26 @@ fn build_handler(submatches: &ArgMatches) -> CmdResult {
     let config_string = read_from_path(config_path)?;
     let config = Config::try_from(config_string.as_str())?;
 
-    let pb = ProgressBar::new(1);
+    let pb = ProgressBar::new(config.input.files.len() as u64);
+    pb.set_draw_target(ProgressDrawTarget::stderr_nohz());
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("[{elapsed}] {bar:40.cyan/blue} {pos}/{len} | {msg}")
+            .progress_chars("##-"),
+    );
 
-    let build_output = build_index(&config, &|progress: u64, total: u64| {
-        pb.set_length(total);
-        pb.set_position(progress);
+    let build_output = build_index(&config, &|report| match report {
+        stork_lib::BuildProgressReport::StartingDocument {
+            count,
+            total,
+            title,
+        } => {
+            let message = truncate_with_ellipsis_to_length(&title, 21, None);
+            pb.set_message(message);
+            pb.set_position(count);
+            pb.tick();
+        }
+        stork_lib::BuildProgressReport::Finished => pb.finish(),
     })?;
 
     let build_time = Instant::now();

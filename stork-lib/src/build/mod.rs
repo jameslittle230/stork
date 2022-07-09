@@ -28,6 +28,7 @@ use crate::{
     envelope::{Envelope, Prefix},
     index_v4::{Document, Excerpt, MetadataEntry},
     index_v4::{IndexDiskRepresentation, QueryResult},
+    BuildProgressReport,
 };
 
 use self::word_segmented_document::WordSegmentedDocument;
@@ -71,7 +72,7 @@ impl Display for IndexBuildStatistics {
 
 pub fn build_index(
     config: &Config,
-    report_progress: &dyn Fn(u64, u64),
+    report_progress: &dyn Fn(BuildProgressReport),
 ) -> Result<BuildOutput, BuildError> {
     let mut build_warnings: Vec<BuildWarning> = Vec::new();
 
@@ -87,7 +88,11 @@ pub fn build_index(
 
     for (i, document) in config.input.files.iter().enumerate() {
         if should_report_progress {
-            report_progress((i + 1) as u64, config.input.files.len() as u64);
+            report_progress(BuildProgressReport::StartingDocument {
+                count: (i + 1) as u64,
+                total: config.input.files.len() as u64,
+                title: document.title.clone(),
+            });
         }
 
         let read_contents_result = read_contents(document, config);
@@ -144,36 +149,18 @@ pub fn build_index(
         }
     }
 
-    if should_report_progress {
-        report_progress(
-            config.input.files.len() as u64,
-            config.input.files.len() as u64,
-        );
-    }
-
-    // for each document:
-    //   1. fetch contents and extract frontmatter to fields
-    //   2. create Document (v4 index model) and append to list
-    //   3. segment contents into words
-    //   4. for each word:
-    //      a. create QueryResult (v4 index model) and append to list
-    //      b. add word to query tree
-    //      c. something something stems
-    //   5. For each word in title:
-    //      a. create QueryResult (v4 index model) and append to list
-    //      b. add word to query tree
-    //      c. something something stems
-    //   6. Something something metadata
-
-    // Generate statistics from index
-    // Serialize index, wrap in envelope
-
     for word in (&word_document_map).keys() {
         for query_result_index in word_document_map.get(word).unwrap() {
             index
                 .query_tree
-                .push_value_for_word(word, query_result_index.to_owned());
+                .push_value_for_string(word, query_result_index.to_owned());
         }
+
+        // stems, prefixes, metadata
+    }
+
+    if should_report_progress {
+        report_progress(BuildProgressReport::Finished);
     }
 
     Ok(BuildOutput {
@@ -262,206 +249,219 @@ fn make_metadata_from_map(hashmap: Option<HashMap<String, String>>) -> Vec<Metad
 //     })
 // }
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use crate::config::{Config, DataSource, File, Filetype, InputConfig};
+    use crate::{
+        build::errors::AttributedDocumentReadError,
+        config::{Config, DataSource, File, Filetype, InputConfig},
+    };
 
-//     use super::*;
+    use super::{errors::DocumentReadError, *};
 
-//     use pretty_assertions::assert_eq;
+    use pretty_assertions::assert_eq;
 
-//     fn generate_invalid_file_missing_selector() -> File {
-//         File {
-//             explicit_source: Some(DataSource::Contents("".to_string())),
-//             title: "Missing Selector".to_string(),
-//             filetype: Some(Filetype::HTML),
-//             html_selector_override: Some(".article".to_string()),
-//             ..File::default()
-//         }
-//     }
+    fn generate_invalid_file_missing_selector() -> File {
+        File {
+            explicit_source: Some(DataSource::Contents("".to_string())),
+            title: "Missing Selector".to_string(),
+            filetype: Some(Filetype::HTML),
+            html_selector_override: Some(".article".to_string()),
+            ..File::default()
+        }
+    }
 
-//     fn generate_invalid_file_empty_contents() -> File {
-//         File {
-//             explicit_source: Some(DataSource::Contents("".to_string())),
-//             title: "Empty Contents".to_string(),
-//             filetype: Some(Filetype::PlainText),
-//             ..File::default()
-//         }
-//     }
+    fn generate_invalid_file_empty_contents() -> File {
+        File {
+            explicit_source: Some(DataSource::Contents("".to_string())),
+            title: "Empty Contents".to_string(),
+            filetype: Some(Filetype::PlainText),
+            ..File::default()
+        }
+    }
 
-//     fn generate_valid_file() -> File {
-//         File {
-//             explicit_source: Some(DataSource::Contents("This is contents".to_string())),
-//             title: "Successful File".to_string(),
-//             filetype: Some(Filetype::PlainText),
-//             ..File::default()
-//         }
-//     }
+    fn generate_valid_file() -> File {
+        File {
+            explicit_source: Some(DataSource::Contents("This is contents".to_string())),
+            title: "Successful File".to_string(),
+            filetype: Some(Filetype::PlainText),
+            ..File::default()
+        }
+    }
 
-//     #[test]
-//     fn missing_html_selector_fails_gracefully() {
-//         let config = Config {
-//             input: InputConfig {
-//                 files: vec![
-//                     generate_invalid_file_missing_selector(),
-//                     generate_valid_file(),
-//                 ],
-//                 ..InputConfig::default()
-//             },
-//             ..Config::default()
-//         };
+    fn build(config: &Config) -> Result<BuildOutput, BuildError> {
+        build_index(config, &|_| {})
+    }
 
-//         let build_results = build(&config).unwrap();
+    fn read_error_from_build_warning(build_warning: BuildWarning) -> Option<DocumentReadError> {
+        if let BuildWarning::DocumentReadError(attrib) = build_warning {
+            return Some(attrib.read_error);
+        }
 
-//         assert_eq!(build_results.errors.len(), 1);
+        None
+    }
 
-//         let expected = &WordListGenerationError::SelectorNotPresent(".article".to_string());
-//         let computed = &build_results
-//             .errors
-//             .first()
-//             .unwrap()
-//             .word_list_generation_error;
+    #[test]
+    fn missing_html_selector_fails_gracefully() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![
+                    generate_invalid_file_missing_selector(),
+                    generate_valid_file(),
+                ],
+                ..InputConfig::default()
+            },
+            ..Config::default()
+        };
 
-//         assert_eq!(expected, computed);
-//     }
+        let build_results = build(&config).unwrap();
 
-//     #[test]
-//     fn empty_contents_fails_gracefully() {
-//         let config = Config {
-//             input: InputConfig {
-//                 files: vec![
-//                     generate_invalid_file_empty_contents(),
-//                     generate_valid_file(),
-//                 ],
-//                 ..InputConfig::default()
-//             },
-//             ..Config::default()
-//         };
+        assert_eq!(build_results.warnings.len(), 1);
 
-//         let build_results = build(&config).unwrap();
-//         assert_eq!(build_results.errors.len(), 1);
+        let expected = errors::DocumentReadError::SelectorNotPresent(".article".to_string());
+        let computed =
+            read_error_from_build_warning(build_results.warnings.first().unwrap().to_owned())
+                .unwrap();
 
-//         let expected = &WordListGenerationError::EmptyWordList;
-//         let computed = &build_results
-//             .errors
-//             .first()
-//             .unwrap()
-//             .word_list_generation_error;
-//         assert_eq!(expected, computed);
-//     }
+        assert_eq!(expected, computed);
+    }
 
-//     #[test]
-//     fn test_all_invalid_files_return_error() {
-//         let config = Config {
-//             input: InputConfig {
-//                 files: vec![
-//                     generate_invalid_file_empty_contents(),
-//                     generate_invalid_file_missing_selector(),
-//                 ],
-//                 ..InputConfig::default()
-//             },
-//             ..Config::default()
-//         };
+    // #[test]
+    // fn empty_contents_fails_gracefully() {
+    //     let config = Config {
+    //         input: InputConfig {
+    //             files: vec![
+    //                 generate_invalid_file_empty_contents(),
+    //                 generate_valid_file(),
+    //             ],
+    //             ..InputConfig::default()
+    //         },
+    //         ..Config::default()
+    //     };
 
-//         let build_error = build(&config).unwrap_err();
+    //     let build_results = build(&config).unwrap();
+    //     assert_eq!(build_results.errors.len(), 1);
 
-//         // partial equality, this doesn't check that the inner vecs are equal :(
-//         assert_eq!(build_error, BuildError::AllDocumentErrors(vec![]));
+    //     let expected = &WordListGenerationError::EmptyWordList;
+    //     let computed = &build_results
+    //         .errors
+    //         .first()
+    //         .unwrap()
+    //         .word_list_generation_error;
+    //     assert_eq!(expected, computed);
+    // }
 
-//         if let BuildError::AllDocumentErrors(document_errors) = build_error {
-//             let word_list_generation_errors: Vec<WordListGenerationError> = document_errors
-//                 .iter()
-//                 .map(|d| d.word_list_generation_error.clone())
-//                 .collect();
-//             assert_eq!(
-//                 word_list_generation_errors,
-//                 vec![
-//                     WordListGenerationError::EmptyWordList,
-//                     WordListGenerationError::SelectorNotPresent(".article".to_string())
-//                 ]
-//             );
-//         } else {
-//             panic!()
-//         }
-//     }
+    // #[test]
+    // fn test_all_invalid_files_return_error() {
+    //     let config = Config {
+    //         input: InputConfig {
+    //             files: vec![
+    //                 generate_invalid_file_empty_contents(),
+    //                 generate_invalid_file_missing_selector(),
+    //             ],
+    //             ..InputConfig::default()
+    //         },
+    //         ..Config::default()
+    //     };
 
-//     #[test]
-//     fn test_no_files_returns_error() {
-//         let config = Config {
-//             input: InputConfig {
-//                 files: vec![],
-//                 ..InputConfig::default()
-//             },
-//             ..Config::default()
-//         };
-//         let build_error = build(&config).unwrap_err();
+    //     let build_error = build(&config).unwrap_err();
 
-//         assert_eq!(build_error, BuildError::NoFilesSpecified);
-//     }
+    //     // partial equality, this doesn't check that the inner vecs are equal :(
+    //     assert_eq!(build_error, BuildError::AllDocumentErrors(vec![]));
 
-//     #[test]
-//     fn test_failing_file_does_not_halt_indexing() {
-//         let config = Config {
-//             input: InputConfig {
-//                 files: vec![
-//                     generate_invalid_file_missing_selector(),
-//                     generate_valid_file(),
-//                 ],
-//                 ..InputConfig::default()
-//             },
-//             ..Config::default()
-//         };
+    //     if let BuildError::AllDocumentErrors(document_errors) = build_error {
+    //         let word_list_generation_errors: Vec<WordListGenerationError> = document_errors
+    //             .iter()
+    //             .map(|d| d.word_list_generation_error.clone())
+    //             .collect();
+    //         assert_eq!(
+    //             word_list_generation_errors,
+    //             vec![
+    //                 WordListGenerationError::EmptyWordList,
+    //                 WordListGenerationError::SelectorNotPresent(".article".to_string())
+    //             ]
+    //         );
+    //     } else {
+    //         panic!()
+    //     }
+    // }
 
-//         assert_eq!(build(&config).unwrap().errors.len(), 1);
-//         assert_eq!(build(&config).unwrap().index.entries.len(), 1);
-//     }
+    // #[test]
+    // fn test_no_files_returns_error() {
+    //     let config = Config {
+    //         input: InputConfig {
+    //             files: vec![],
+    //             ..InputConfig::default()
+    //         },
+    //         ..Config::default()
+    //     };
+    //     let build_error = build(&config).unwrap_err();
 
-//     #[test]
-//     fn long_normalized_word_can_be_indexed() {
-//         // Bug reported in issue 227.
-//         // @TODO: Should the prefix aliaser handle long words differently? I'm not sure if
-//         // a search for `prism` or `csharp` will return any results with this input.
-//         let config = Config {
-//             input: InputConfig {
-//                 files: vec![
-//                     File {
-//                         filetype: Some(Filetype::Markdown),
-//                         explicit_source: Some(DataSource::Contents(
-//                             "https://prismjs.com/download.html#themes=prism&languages=markup+css+clike+javascript+bash+c+csharp+cpp+go+java+markdown+python+scss+sql+toml+yaml&plugins=toolbar+copy-to-clipboard".to_string())),
-//                         ..File::default()
-//                     }
-//                 ],
-//                 ..InputConfig::default()
-//             },
-//             ..Config::default()
-//         };
+    //     assert_eq!(build_error, BuildError::NoFilesSpecified);
+    // }
 
-//         let build_results = build(&config).unwrap();
-//         assert!(build_results.errors.is_empty());
-//     }
+    // #[test]
+    // fn test_failing_file_does_not_halt_indexing() {
+    //     let config = Config {
+    //         input: InputConfig {
+    //             files: vec![
+    //                 generate_invalid_file_missing_selector(),
+    //                 generate_valid_file(),
+    //             ],
+    //             ..InputConfig::default()
+    //         },
+    //         ..Config::default()
+    //     };
 
-//     #[test]
-//     fn longer_normalized_word_can_be_indexed() {
-//         // Bug reported in issue 230.
-//         // @TODO: Should the prefix aliaser handle long words differently? I'm not sure if
-//         // a search for `prism` or `csharp` will return any results with this input.
-//         let config = Config {
-//             input: InputConfig {
-//                 files: vec![
-//                     File {
-//                         filetype: Some(Filetype::Markdown),
-//                         explicit_source: Some(DataSource::Contents(
-//                             "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg/390px-Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg".to_string())),
-//                         ..File::default()
-//                     }
-//                 ],
-//                 ..InputConfig::default()
-//             },
-//             ..Config::default()
-//         };
+    //     assert_eq!(build(&config).unwrap().errors.len(), 1);
+    //     assert_eq!(build(&config).unwrap().index.entries.len(), 1);
+    // }
 
-//         let build_results = build(&config).unwrap();
-//         assert!(build_results.errors.is_empty());
-//     }
-// }
+    // #[test]
+    // fn long_normalized_word_can_be_indexed() {
+    //     // Bug reported in issue 227.
+    //     // @TODO: Should the prefix aliaser handle long words differently? I'm not sure if
+    //     // a search for `prism` or `csharp` will return any results with this input.
+    //     let config = Config {
+    //         input: InputConfig {
+    //             files: vec![
+    //                 File {
+    //                     filetype: Some(Filetype::Markdown),
+    //                     explicit_source: Some(DataSource::Contents(
+    //                         "https://prismjs.com/download.html#themes=prism&languages=markup+css+clike+javascript+bash+c+csharp+cpp+go+java+markdown+python+scss+sql+toml+yaml&plugins=toolbar+copy-to-clipboard".to_string())),
+    //                     ..File::default()
+    //                 }
+    //             ],
+    //             ..InputConfig::default()
+    //         },
+    //         ..Config::default()
+    //     };
+
+    //     let build_results = build(&config).unwrap();
+    //     assert!(build_results.errors.is_empty());
+    // }
+
+    // #[test]
+    // fn longer_normalized_word_can_be_indexed() {
+    //     // Bug reported in issue 230.
+    //     // @TODO: Should the prefix aliaser handle long words differently? I'm not sure if
+    //     // a search for `prism` or `csharp` will return any results with this input.
+    //     let config = Config {
+    //         input: InputConfig {
+    //             files: vec![
+    //                 File {
+    //                     filetype: Some(Filetype::Markdown),
+    //                     explicit_source: Some(DataSource::Contents(
+    //                         "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg/390px-Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29%28cropped%29.jpg".to_string())),
+    //                     ..File::default()
+    //                 }
+    //             ],
+    //             ..InputConfig::default()
+    //         },
+    //         ..Config::default()
+    //     };
+
+    //     let build_results = build(&config).unwrap();
+    //     assert!(build_results.errors.is_empty());
+    // }
+}
