@@ -44,7 +44,7 @@ impl From<&Document> for OutputDocument {
 }
 
 pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> Output {
-    let query_result_indices = index.query_tree.get_value_for_word(query);
+    let query_result_indices = index.query_tree.get_value_for_string(query);
 
     let mut excerpts_by_document: HashMap<OutputDocument, Vec<OutputExcerpt>> = HashMap::new();
 
@@ -65,19 +65,24 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> Output {
         }
     }
 
-    let results = excerpts_by_document
+    let mut results: Vec<OutputResult> = excerpts_by_document
         .iter()
         .map(|(output_document, list_of_excerpts)| OutputResult {
             entry: output_document.clone(),
             excerpts: list_of_excerpts.clone(),
             title_highlight_ranges: vec![],
-            score: 10,
+            score: 10 * list_of_excerpts.len(),
         })
         .collect();
 
+    results.sort_by_key(|r| r.score);
+    results.reverse();
+
+    let total_hit_count = results.len();
+
     Output {
         results,
-        total_hit_count: 0,
+        total_hit_count,
         url_prefix: "".to_string(),
     }
 }

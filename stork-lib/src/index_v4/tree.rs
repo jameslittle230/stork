@@ -1,6 +1,7 @@
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, HashSet},
     fmt::Debug,
+    hash::Hash,
 };
 
 use serde::{Deserialize, Serialize};
@@ -53,7 +54,7 @@ impl<T> Arena<T> {
  * The edges of our tree are indexable by a char, instead of by a number or by
  * left/right.
  */
-#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct CharEdgeNode<U>
 where
     U: Debug + Clone,
@@ -78,58 +79,91 @@ where
     }
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
-pub(crate) struct CharEdgeTree<U>
+/// A tree data structure (backed by an Arena) where each node's value is a
+/// `HashSet` of U values, and where a node's children are represented by a char.
+///
+/// ```txt
+///                         +--------+                        
+///                         |  ROOT  |                        
+///                         +--------+                        
+///                              |                            
+///       +-----------+----------+-----------+-----------+    
+///      a|          b|         c|          d|          e|    
+///  +--------+  +--------+ +--------+  +--------+  +--------+
+///  | [1, 2] |  |  [ ]   | |  [2]   |  | [2, 3] |  | [5, 6] |
+///  +--------+  +--------+ +--------+  +--------+  +--------+
+///                                          |                
+///       +-----------+----------+-----------+-----------+    
+///      a|          b|         c|          d|          e|    
+///  +--------+  +--------+ +--------+  +--------+  +--------+
+///  | [1, 2] |  |  [ ]   | |  [2]   |  | [2, 3] |  | [5, 6] |
+///  +--------+  +--------+ +--------+  +--------+  +--------+
+/// ```
+///
+/// Usage is sort of like a hash map. You insert a key/value pair and the value
+/// gets inserted into the node at each character up through the spelling of that word.
+///
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub(crate) struct CharEdgeSetTree<U>
 where
-    U: Debug + Clone,
+    U: Debug + Clone + Hash + Eq,
 {
-    arena: Arena<CharEdgeNode<Vec<U>>>,
+    arena: Arena<CharEdgeNode<HashSet<U>>>,
 }
 
-impl<U> Default for CharEdgeTree<U>
+impl<U> Default for CharEdgeSetTree<U>
 where
-    U: Debug + Clone,
+    U: Debug + Clone + Hash + Eq,
 {
     fn default() -> Self {
-        CharEdgeTree {
+        CharEdgeSetTree {
             arena: Arena {
-                values: vec![Some(CharEdgeTree::build_node())],
+                values: vec![Some(CharEdgeSetTree::build_node())],
                 root: Some(0),
             },
         }
     }
 }
 
-impl<U> CharEdgeTree<U>
+impl<U> CharEdgeSetTree<U>
 where
-    U: Debug + Clone,
+    U: Debug + Clone + Hash + Eq,
 {
-    fn build_node() -> CharEdgeNode<Vec<U>> {
+    fn build_node() -> CharEdgeNode<HashSet<U>> {
         CharEdgeNode {
-            value: vec![],
+            value: HashSet::new(),
             children: BTreeMap::default(),
         }
     }
 
-    pub(crate) fn node_at(&self, index: usize) -> Option<&CharEdgeNode<Vec<U>>> {
+    fn node_at(&self, index: usize) -> Option<&CharEdgeNode<HashSet<U>>> {
         self.arena.node_at(index)
     }
 
-    pub(crate) fn push_value_for_word(&mut self, word: &str, value: U) {
+    pub(crate) fn push_value_for_string(&mut self, word: &str, value: U) {
         let mut current_index = self.arena.root.unwrap();
-        for char in word.chars() {
+
+        for (count, char) in word.chars().enumerate() {
             let next_index = self
                 .arena
                 .node_at(current_index)
                 .unwrap()
                 .children
                 .get(&char);
+
             if let Some(next_index) = next_index {
                 current_index = next_index.to_owned();
+                if count >= 2 {
+                    if let Some(node) = self.arena.node_at_mut(current_index.to_owned()) {
+                        node.value.insert(value.clone());
+                    }
+                }
             } else {
-                let mut new_node: CharEdgeNode<Vec<U>> = CharEdgeTree::build_node();
-                new_node.value.push(value.clone());
-                let next_index = self.arena.add_node(CharEdgeTree::build_node());
+                let mut new_node: CharEdgeNode<HashSet<U>> = CharEdgeSetTree::build_node();
+                if count >= 2 {
+                    new_node.value.insert(value.clone());
+                }
+                let next_index = self.arena.add_node(new_node);
                 self.arena
                     .node_at_mut(current_index)
                     .unwrap()
@@ -138,12 +172,11 @@ where
                 current_index = next_index;
             }
         }
-
-        let current = self.arena.node_at_mut(current_index).unwrap();
-        current.value.push(value);
+        let node = self.arena.node_at_mut(current_index).unwrap();
+        node.value.insert(value);
     }
 
-    pub(crate) fn get_value_for_word(&self, word: &str) -> Vec<U> {
+    pub(crate) fn get_value_for_string(&self, word: &str) -> Vec<U> {
         let mut curr = self.arena.root.as_ref();
         for char in word.chars() {
             curr = self
@@ -159,78 +192,38 @@ where
             .unwrap()
             .value
             .clone()
+            .into_iter()
+            .collect()
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
 
-//     #[test]
-//     fn create_new_tree() {
-//         let tree = Tree::new();
-//         tree.push_value(1);
+    #[test]
+    fn insert_values() {
+        let mut tree = CharEdgeSetTree::default();
+        tree.push_value_for_string("test", 1);
 
-//         assert_eq!(tree.values, vec![1]);
-//     }
+        assert_eq!(tree.get_value_for_string("t").is_empty(), true);
+        assert_eq!(tree.get_value_for_string("te").is_empty(), true);
+        assert_eq!(tree.get_value_for_string("tes"), vec![1]);
+        assert_eq!(tree.get_value_for_string("test"), vec![1]);
+    }
 
-//     #[test]
-//     fn insert_value_and_child() {
-//         let mut tree = Tree::new();
-//         tree.push_value(1);
-//         tree.push_value(2);
-//         let child = tree.get_or_push_child('a');
-//         child.push_value(3);
+    #[test]
+    fn insert_values_two_words() {
+        let mut tree = CharEdgeSetTree::default();
+        tree.push_value_for_string("test", 1);
+        tree.push_value_for_string("tesseract", 2);
 
-//         assert_eq!(
-//             &tree,
-//             &Tree {
-//                 values: vec![1, 2],
-//                 children: BTreeMap::from([(
-//                     'a',
-//                     Box::new(Tree {
-//                         values: vec![3],
-//                         children: BTreeMap::new()
-//                     })
-//                 )])
-//             }
-//         );
-//     }
-
-//     #[test]
-//     fn insert_multiple_values_for_same_child() {
-//         let mut tree = Tree::new();
-//         tree.push_value(1);
-
-//         let child = tree.get_or_push_child('a');
-//         child.push_value(2);
-
-//         let child = tree.get_or_push_child('a');
-//         child.push_value(3);
-
-//         assert_eq!(
-//             &tree,
-//             &Tree {
-//                 values: vec![1],
-//                 children: BTreeMap::from([(
-//                     'a',
-//                     Box::new(Tree {
-//                         values: vec![2, 3],
-//                         children: BTreeMap::new()
-//                     })
-//                 )])
-//             }
-//         );
-//     }
-
-//     // #[test]
-//     // fn insert_right() {
-//     //     let tree = BinaryTree::new(1).right(BinaryTree::new(2));
-
-//     //     if let Some(node) = tree.right {
-//     //         assert_eq!(node.value, 2);
-//     //     }
-
-//     //     assert_eq!(tree.left, None);
-//     // }
-// }
+        assert_eq!(tree.get_value_for_string("t").is_empty(), true);
+        assert_eq!(tree.get_value_for_string("te").is_empty(), true);
+        assert_eq!(tree.get_value_for_string("tes"), vec![1, 2]);
+        assert_eq!(tree.get_value_for_string("tess"), vec![2]);
+        assert_eq!(tree.get_value_for_string("test"), vec![1]);
+        assert_eq!(tree.get_value_for_string("tesseract"), vec![2]);
+    }
+}

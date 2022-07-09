@@ -9,7 +9,7 @@ use smart_default::SmartDefault;
 
 use crate::config::{OutputConfig, TitleBoost};
 
-pub(crate) use tree::CharEdgeTree;
+pub(crate) use tree::CharEdgeSetTree;
 
 // #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 // struct QueryTreeRemoteDestination {
@@ -34,14 +34,14 @@ Serializing this data structure with a specific serializer will vend a
 binary blob which, when packaged in a Stork Index envelope, will be a valid
 Stork Index file.
  */
-#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub(crate) struct IndexDiskRepresentation {
     /**
     The root of a radix tree for all words in the document. Each node
     in the tree (even if it has children) points to a set of query results
     that get displayed when that word is searched for.
     */
-    pub(crate) query_tree: CharEdgeTree<QueryResultIndex>,
+    pub(crate) query_tree: CharEdgeSetTree<QueryResultIndex>,
 
     /**
     Represents a possible search result.
@@ -69,10 +69,10 @@ impl TryFrom<&Bytes> for IndexDiskRepresentation {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub(crate) struct PartialIndexDiskRepresentation {
     pub(crate) partial_index_name: String,
-    pub(crate) query_tree: CharEdgeTree<QueryResultIndex>,
+    pub(crate) query_tree: CharEdgeSetTree<QueryResultIndex>,
     pub(crate) query_results: Vec<QueryResult>,
 }
 
@@ -171,8 +171,8 @@ mod tests {
 
     #[test]
     fn build_small_index_disk_representation() {
-        let mut query_tree: CharEdgeTree<QueryResultIndex> = CharEdgeTree::default();
-        query_tree.push_value_for_word("according", 0);
+        let mut query_tree: CharEdgeSetTree<QueryResultIndex> = CharEdgeSetTree::default();
+        query_tree.push_value_for_string("according", 0);
 
         let index = IndexDiskRepresentation {
         query_tree,
