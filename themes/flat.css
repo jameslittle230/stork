@@ -179,6 +179,7 @@
 .stork-wrapper-flat .stork-close-button svg {
   width: 11px;
   height: 11px;
+  margin: auto;
 }
 
 .stork-wrapper-flat .stork-close-button:hover {

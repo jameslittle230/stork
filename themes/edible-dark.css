@@ -221,6 +221,7 @@
   width: 0.8em;
   position: relative;
   top: 1px;
+  margin: auto;
 }
 
 .stork-wrapper-edible-dark .stork-close-button:hover {
