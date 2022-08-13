@@ -1,113 +1,54 @@
 #![allow(clippy::module_name_repetitions)]
+#![allow(unused_variables, clippy::unnecessary_wraps, clippy::too_many_lines)]
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashSet};
 
 #[cfg(feature = "display")]
 use std::fmt::Display;
 
-mod fill_containers;
-mod fill_intermediate_entries;
-mod fill_stems;
+pub(crate) mod parse_document;
+pub(crate) mod read_contents;
 
-mod annotated_words_from_string;
-pub mod errors;
-pub mod word_segmented_document;
+use crate::{build_output, config, envelope, fields::Fields, index_v4};
 
-mod contents_reader;
-use contents_reader::read_contents;
+use self::parse_document::DocumentParseValue;
 
-mod document_parser;
-use document_parser::extract_document_contents;
+use rust_stemmers::Stemmer;
 
-use bytes::Bytes;
+pub(crate) fn build_index(
+    config: &config::Config,
+    progress: Option<&dyn Fn(build_output::progress::Report)>,
+) -> Result<build_output::success::Value, build_output::error::InternalBuildError> {
+    let mut warnings: Vec<build_output::warning::BuildWarning> = Vec::new();
 
-pub use errors::{BuildError, BuildWarning, BuildWarning::DocumentReadError};
+    let mut index = index_v4::IndexDiskRepresentation::default();
 
-use crate::{
-    config::Config,
-    envelope::{Envelope, Prefix},
-    index_v4::{Document, Excerpt, MetadataEntry},
-    index_v4::{IndexDiskRepresentation, QueryResult},
-    BuildProgressReport,
-};
+    let mut word_document_map: BTreeMap<String, HashSet<index_v4::QueryResultIndex>> =
+        BTreeMap::new();
 
-use self::word_segmented_document::WordSegmentedDocument;
+    let should_report_progress = should_report_progress(config);
 
-/**
- * Eventually, the build method will return this!
- */
-pub struct BuildOutput {
-    pub index: Vec<Bytes>, // The build process might create multiple files, hence the vec
-    pub statistics: IndexBuildStatistics, // For reporting to our build frontend
-    pub warnings: Vec<BuildWarning>, // Non-fatal issues
-}
-
-#[derive(Debug)]
-pub struct IndexBuildStatistics {
-    pub entries_count: usize,
-    pub tokens_count: usize,
-    pub index_size_bytes: usize,
-}
-
-#[cfg(feature = "display")]
-impl Display for IndexBuildStatistics {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let document_count_string = self.entries_count.to_formatted_string(&Locale::en);
-        let tokens_count_string = self.tokens_count.to_formatted_string(&Locale::en);
-        let bytes_per_document_string =
-            (self.index_size_bytes / self.entries_count).to_formatted_string(&Locale::en);
-        let bytes_per_token_string =
-            (self.index_size_bytes / self.tokens_count).to_formatted_string(&Locale::en);
-        f.write_fmt(format!(
-            r#"Index stats:
-  - {entries_count_string} entries
-  - {tokens_count_string} search terms
-  - {bytes_per_document_string} bytes per entry
-  - {bytes_per_token_string} bytes per search term"#,
-        ))
-    }
-}
-
-#[allow(unused_variables, clippy::unnecessary_wraps)]
-
-pub fn build_index(
-    config: &Config,
-    report_progress: &dyn Fn(BuildProgressReport),
-) -> Result<BuildOutput, BuildError> {
-    let mut build_warnings: Vec<BuildWarning> = Vec::new();
-
-    let mut index = IndexDiskRepresentation::default();
-
-    let mut word_document_map: BTreeMap<String, Vec<usize>> = BTreeMap::new();
-
-    let should_report_progress = config
-        .input
-        .files
-        .iter()
-        .any(|file| matches!(file.source(), crate::config::DataSource::URL(_)));
-
-    for (i, document) in config.input.files.iter().enumerate() {
-        if should_report_progress {
-            report_progress(BuildProgressReport::StartingDocument {
-                count: (i + 1) as u64,
-                total: config.input.files.len() as u64,
-                title: document.title.clone(),
-            });
+    for (i, file_config) in config.input.files.iter().enumerate() {
+        if let Some(progress_fn) = progress {
+            if should_report_progress {
+                progress_fn(build_output::progress::Report {
+                    total_document_count: config.input.files.len(),
+                    state: build_output::progress::State::StartedDocument {
+                        index: i,
+                        title: file_config.title.clone(),
+                    },
+                })
+            }
         }
 
-        let read_contents_result = read_contents(document, config);
-
-        if let Err(read_error) = &read_contents_result {
-            build_warnings.push(DocumentReadError(read_error.clone()));
-            continue;
-        }
+        let word_segmentation_result = read_contents::read_contents(config, i)
+            .and_then(|read_value| parse_document::parse_document(config, i, &read_value));
 
         // The read contents contains the contents of the file as read, including
         // markup that needs to be parsed. It _does not_ contain frontmatter,
         // which is assumed to be "out of band" with the that markup and is always
         // assumed to be the first thing in the document.
-        let read_contents = read_contents_result.unwrap();
-
+        //
         // We can't work with our contents until we've turned "read contents"
         // into "document contents" by parsing the markup, because "read contents"
         // still has that markup in it. So at this point, we parse markup to get
@@ -119,212 +60,252 @@ pub fn build_index(
         //
         // Therefore, after in the markup parse step, we need to have our document's
         // final contents, along with an annotated word list.
-        let document_parse_result = extract_document_contents(config, document, &read_contents);
 
-        if let Err(parse_error) = &document_parse_result {
-            build_warnings.push(DocumentReadError(parse_error.clone()));
-            continue;
+        let document_id: usize;
+        let output_document: index_v4::Document;
+        match &word_segmentation_result {
+            Ok(document) => {
+                output_document = make_output_document(document);
+                index.documents.push(output_document);
+                document_id = index.documents.len();
+            }
+            Err(e) => {
+                warnings.push(e.into());
+                continue;
+            }
         }
 
-        let word_segmented_document = document_parse_result.unwrap();
+        let document_parse_value = word_segmentation_result.unwrap();
 
-        let document = make_document(&word_segmented_document, read_contents.frontmatter);
-        let document_index = index.documents.len();
-        index.documents.push(document);
-
-        // Temporary word → vec<excerpt index> map, which the tree will be built from
-        for word in &word_segmented_document.annotated_words {
-            let query_results_index = index.query_results.len();
+        for title_word in &document_parse_value.annotated_title_words {
+            let query_results_index: index_v4::QueryResultIndex = index.query_results.len();
             index
                 .query_results
-                .push(QueryResult::DocumentContentsExcerpt(Excerpt {
-                    document_id: document_index,
-                    contents_character_offset: word.annotation.character_offset,
-                }));
+                .push(index_v4::QueryResult::TitleExcerpt(
+                    index_v4::TitleExcerpt {
+                        document_id,
+                        title_character_offset: title_word.annotation.byte_offset,
+                    },
+                ));
 
             word_document_map
+                .entry(title_word.word.clone())
+                .and_modify(|set| {
+                    set.insert(query_results_index);
+                })
+                .or_insert_with(|| HashSet::from([query_results_index]));
+
+            // Step 3: Insert (Stem, QueryResult) into the temporary map
+            match &file_config
+                .stemming_override
+                .clone()
+                .unwrap_or_else(|| config.input.stemming.clone())
+            {
+                crate::config::StemmingConfig::None => {}
+                crate::config::StemmingConfig::Language(alg) => {
+                    let stem = Stemmer::create(*alg).stem(&title_word.word).to_string();
+                    word_document_map
+                        .entry(stem.clone())
+                        .and_modify(|set| {
+                            set.insert(query_results_index);
+                        })
+                        .or_insert_with(|| HashSet::from([query_results_index]));
+                }
+            }
+        }
+
+        // Build up a temporary word → vec<excerpt index> map,
+        // which the tree will be built from
+        for word in &document_parse_value.annotated_words {
+            // Step 1: Build a QueryResult for the word
+            let query_results_index: index_v4::QueryResultIndex = index.query_results.len();
+            index
+                .query_results
+                .push(index_v4::QueryResult::DocumentContentsExcerpt(
+                    index_v4::DocumentContentsExcerpt {
+                        document_id,
+                        contents_character_offset: word.annotation.byte_offset,
+                        url_suffix: word.annotation.url_suffix.clone(),
+                    },
+                ));
+
+            // Step 2: Insert (Word, QueryResult) into a temporary map
+            word_document_map
                 .entry(word.word.clone())
-                .and_modify(|vec| vec.push(query_results_index))
-                .or_insert_with(|| vec![query_results_index]);
+                .and_modify(|set| {
+                    set.insert(query_results_index);
+                })
+                .or_insert_with(|| HashSet::from([query_results_index]));
+
+            // Step 3: Insert (Stem, QueryResult) into the temporary map
+            match &file_config
+                .stemming_override
+                .clone()
+                .unwrap_or_else(|| config.input.stemming.clone())
+            {
+                crate::config::StemmingConfig::None => {}
+                crate::config::StemmingConfig::Language(alg) => {
+                    let stem = Stemmer::create(*alg).stem(&word.word).to_string();
+                    word_document_map
+                        .entry(stem.clone())
+                        .and_modify(|set| {
+                            set.insert(query_results_index);
+                        })
+                        .or_insert_with(|| HashSet::from([query_results_index]));
+                }
+            }
+
+            // TODO: Step 4: Include fuzzy matches
         }
     }
 
+    // Insert the temp map into our index's radix tree
     for word in (&word_document_map).keys() {
-        for query_result_index in word_document_map.get(word).unwrap() {
+        // All the places the word appears
+        let query_result_indexes = word_document_map.get(word).unwrap();
+        for query_result_index in query_result_indexes {
             index
                 .query_tree
                 .push_value_for_string(word, query_result_index.to_owned());
         }
 
-        // stems, prefixes, metadata
+        // TODO: stems, prefixes, metadata
     }
 
     if should_report_progress {
-        report_progress(BuildProgressReport::Finished);
-    }
-
-    Ok(BuildOutput {
-        index: vec![Envelope::wrap(Prefix::StorkV4, vec![index.to_bytes()]).to_bytes()],
-        statistics: IndexBuildStatistics {
-            entries_count: 0,
-            tokens_count: 0,
-            index_size_bytes: 0,
-        },
-        warnings: build_warnings,
-    })
-}
-
-fn make_document(
-    word_segmented_document: &WordSegmentedDocument,
-    metadata: Option<HashMap<String, String>>,
-) -> Document {
-    Document {
-        title: word_segmented_document.title.clone(),
-        contents: word_segmented_document.contents.clone(),
-        url: word_segmented_document.url.clone(),
-        metadata: make_metadata_from_map(metadata),
-    }
-}
-
-fn make_metadata_from_map(hashmap: Option<HashMap<String, String>>) -> Vec<MetadataEntry> {
-    let mut metadata_entries = Vec::new();
-
-    if let Some(hashmap) = hashmap {
-        for (k, v) in &hashmap {
-            metadata_entries.push(MetadataEntry {
-                key: k.clone(),
-                value: v.clone(),
+        if let Some(report_progress) = progress {
+            report_progress(build_output::progress::Report {
+                total_document_count: config.input.files.len(),
+                state: build_output::progress::State::Finished,
             });
         }
     }
 
-    metadata_entries
+    Ok(build_output::success::Value {
+        primary_data: envelope::Envelope::wrap(envelope::Prefix::StorkV4, vec![index.to_bytes()])
+            .to_bytes(),
+        sidecar_data: vec![],
+        statistics: build_output::success::BuildStatistics {
+            entries_count: 0,
+            tokens_count: 0,
+            index_size_bytes: 0,
+        },
+        warnings,
+    })
 }
 
-// pub fn build(config: &Config) -> Result<BuildResult, BuildError> {
-//     fill_intermediate_entries(config, &mut intermediate_entries, &mut document_errors)?;
+fn should_report_progress(config: &config::Config) -> bool {
+    config.input.files.len() > 1000
+        || config
+            .input
+            .files
+            .iter()
+            .any(|file| matches!(file.source(), crate::config::DataSource::URL(_)))
+}
 
-//     if intermediate_entries.is_empty() {
-//         if document_errors.is_empty() {
-//             return Err(BuildError::NoFilesSpecified);
-//         }
-//         return Err(BuildError::AllDocumentErrors(document_errors));
-//     }
+fn make_output_document(document: &DocumentParseValue) -> index_v4::Document {
+    fn make_metadata_from_map(hashmap: &Option<Fields>) -> Vec<index_v4::MetadataEntry> {
+        let mut metadata_entries = Vec::new();
 
-//     let mut stems: BTreeMap<String, Vec<String>> = BTreeMap::new();
-//     fill_stems(&intermediate_entries, &mut stems);
+        if let Some(hashmap) = hashmap {
+            for (k, v) in hashmap {
+                metadata_entries.push(index_v4::MetadataEntry {
+                    key: k.clone(),
+                    value: v.clone(),
+                });
+            }
+        }
 
-//     let mut containers: BTreeMap<String, Container> = BTreeMap::new();
-//     fill_containers(config, &intermediate_entries, &stems, &mut containers);
+        metadata_entries
+    }
 
-//     let entries: Vec<Entry> = intermediate_entries
-//         .iter()
-//         .map(Entry::from)
-//         .map(|mut entry| {
-//             if config.output.excerpts_per_result == 0 {
-//                 entry.contents = "".to_string();
-//             }
-
-//             entry
-//         })
-//         .collect::<Vec<Entry>>();
-
-//     let passthrough_config = PassthroughConfig {
-//         url_prefix: config.input.url_prefix.clone(),
-//         title_boost: config.input.title_boost.clone(),
-//         excerpt_buffer: config.output.excerpt_buffer,
-//         excerpts_per_result: config.output.excerpts_per_result,
-//         displayed_results_count: config.output.displayed_results_count,
-//     };
-
-//     let index = Index {
-//         entries,
-//         containers,
-//         config: passthrough_config,
-//     };
-
-//     Ok(BuildResult {
-//         index,
-//         errors: document_errors,
-//     })
-// }
+    index_v4::Document {
+        title: document.title.clone(),
+        contents: document.contents.clone(),
+        url: document.url.clone(),
+        metadata: make_metadata_from_map(&document.fields),
+    }
+}
 
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        build::errors::AttributedDocumentReadError,
-        config::{Config, DataSource, File, Filetype, InputConfig},
-    };
+    // use crate::config::{Config, DataSource, File, Filetype, InputConfig};
 
-    use super::{errors::DocumentReadError, *};
+    // use super::{
+    //     output::{
+    //         document_problem::DocumentProblem, error::BuildError, success::Value,
+    //         warning::BuildWarning,
+    //     },
+    //     *,
+    // };
 
-    use pretty_assertions::assert_eq;
+    // use pretty_assertions::assert_eq;
 
-    fn generate_invalid_file_missing_selector() -> File {
-        File {
-            explicit_source: Some(DataSource::Contents("".to_string())),
-            title: "Missing Selector".to_string(),
-            filetype: Some(Filetype::HTML),
-            html_selector_override: Some(".article".to_string()),
-            ..File::default()
-        }
-    }
+    // fn generate_invalid_file_missing_selector() -> File {
+    //     File {
+    //         explicit_source: Some(DataSource::Contents("".to_string())),
+    //         title: "Missing Selector".to_string(),
+    //         filetype: Some(Filetype::HTML),
+    //         html_selector_override: Some(".article".to_string()),
+    //         ..File::default()
+    //     }
+    // }
 
-    fn generate_invalid_file_empty_contents() -> File {
-        File {
-            explicit_source: Some(DataSource::Contents("".to_string())),
-            title: "Empty Contents".to_string(),
-            filetype: Some(Filetype::PlainText),
-            ..File::default()
-        }
-    }
+    // fn generate_invalid_file_empty_contents() -> File {
+    //     File {
+    //         explicit_source: Some(DataSource::Contents("".to_string())),
+    //         title: "Empty Contents".to_string(),
+    //         filetype: Some(Filetype::PlainText),
+    //         ..File::default()
+    //     }
+    // }
 
-    fn generate_valid_file() -> File {
-        File {
-            explicit_source: Some(DataSource::Contents("This is contents".to_string())),
-            title: "Successful File".to_string(),
-            filetype: Some(Filetype::PlainText),
-            ..File::default()
-        }
-    }
+    // fn generate_valid_file() -> File {
+    //     File {
+    //         explicit_source: Some(DataSource::Contents("This is contents".to_string())),
+    //         title: "Successful File".to_string(),
+    //         filetype: Some(Filetype::PlainText),
+    //         ..File::default()
+    //     }
+    // }
 
-    fn build(config: &Config) -> Result<BuildOutput, BuildError> {
-        build_index(config, &|_| {})
-    }
+    // fn build(config: &Config) -> Result<Value, BuildError> {
+    //     build_index(config, None)
+    // }
 
-    fn read_error_from_build_warning(build_warning: BuildWarning) -> Option<DocumentReadError> {
-        if let BuildWarning::DocumentReadError(attrib) = build_warning {
-            return Some(attrib.read_error);
-        }
+    // fn read_error_from_build_warning(build_warning: BuildWarning) -> Option<DocumentProblem> {
+    //     if let BuildWarning::DocumentProblem(attrib) = build_warning {
+    //         return Some(attrib.read_error);
+    //     }
 
-        None
-    }
+    //     None
+    // }
 
-    #[test]
-    fn missing_html_selector_fails_gracefully() {
-        let config = Config {
-            input: InputConfig {
-                files: vec![
-                    generate_invalid_file_missing_selector(),
-                    generate_valid_file(),
-                ],
-                ..InputConfig::default()
-            },
-            ..Config::default()
-        };
+    // #[test]
+    // fn missing_html_selector_fails_gracefully() {
+    //     let config = Config {
+    //         input: InputConfig {
+    //             files: vec![
+    //                 generate_invalid_file_missing_selector(),
+    //                 generate_valid_file(),
+    //             ],
+    //             ..InputConfig::default()
+    //         },
+    //         ..Config::default()
+    //     };
 
-        let build_results = build(&config).unwrap();
+    //     let build_results = build(&config).unwrap();
 
-        assert_eq!(build_results.warnings.len(), 1);
+    //     assert_eq!(build_results.warnings.len(), 1);
 
-        let expected = errors::DocumentReadError::SelectorNotPresent(".article".to_string());
-        let computed =
-            read_error_from_build_warning(build_results.warnings.first().unwrap().to_owned())
-                .unwrap();
+    //     let expected = DocumentProblem::SelectorNotPresent(".article".to_string());
+    //     let computed =
+    //         read_error_from_build_warning(build_results.warnings.first().unwrap().to_owned())
+    //             .unwrap();
 
-        assert_eq!(expected, computed);
-    }
+    //     assert_eq!(expected, computed);
+    // }
 
     // #[test]
     // fn empty_contents_fails_gracefully() {

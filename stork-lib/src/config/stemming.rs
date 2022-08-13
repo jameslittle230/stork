@@ -69,7 +69,7 @@ impl StemmingConfig {
     pub(crate) fn to_optional(&self) -> Option<Algorithm> {
         match self {
             StemmingConfig::None => None,
-            StemmingConfig::Language(algo) => Some(algo.clone()),
+            StemmingConfig::Language(algo) => Some(*algo),
         }
     }
 }
@@ -77,6 +77,7 @@ impl StemmingConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use std::convert::TryFrom;
     #[test]
     fn test_none_lowercase() {

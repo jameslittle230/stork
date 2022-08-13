@@ -3,21 +3,26 @@ target
 **/*.rs.bk
 node_modules
 dist
+/local-dev/dist
 pkg
 wasm-pack.log
+yarn-error.log
 coverage
 
-# Test Files
-scripts/*_exe.sh
+# Ignore any index files that get added to the project root
+/*.st
+
+# Install these by fetching git submodules
 /local-dev/test-corpora/federalist/*.txt
 /local-dev/test-corpora/3b1b/*.srt
+
+# Local developmenet build artifacts
 /local-dev/test-indexes/*.st
-/local-dev/dist
-yarn-error.log
 
 # Development Files
 .DS_Store
 .vscode
+
 # Vim Swap
 [._]*.s[a-v][a-z]
 !*.svg  # comment out if you don't need vector files

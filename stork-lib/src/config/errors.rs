@@ -1,7 +1,11 @@
+use bstr::Utf8Error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ConfigReadError {
+    #[error("Could not read input as a valid UTF-8 string")]
+    InvalidString(#[from] Utf8Error), // TODO: Add a test for this case
+
     #[error("Recieved empty configuration string")]
     EmptyString,
 

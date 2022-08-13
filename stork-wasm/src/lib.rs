@@ -34,20 +34,20 @@ impl<T: Sized + Serialize, E: Display> From<Result<T, E>> for WasmOutput {
     }
 }
 
-#[wasm_bindgen]
-pub fn wasm_register_index(name: &str, data: &[u8]) -> String {
-    console_error_panic_hook::set_once();
-    let data = Bytes::from(Vec::from(data)); // TODO: This seems questionable
-    let result = stork_lib::register_index(name, data);
-    WasmOutput::from(result).0
-}
+// #[wasm_bindgen]
+// pub fn wasm_register_index(name: &str, data: &[u8]) -> String {
+//     console_error_panic_hook::set_once();
+//     let data = Bytes::from(Vec::from(data)); // TODO: This seems questionable
+//     let result = stork_lib::register_index(name, data);
+//     WasmOutput::from(result).0
+// }
 
-#[wasm_bindgen]
-pub fn wasm_search(name: &str, query: &str) -> String {
-    console_error_panic_hook::set_once();
-    let result = stork_lib::search_from_cache(name, query);
-    WasmOutput::from(result).0
-}
+// #[wasm_bindgen]
+// pub fn wasm_search(name: &str, query: &str) -> String {
+//     console_error_panic_hook::set_once();
+//     let result = stork_lib::search_from_cache(name, query);
+//     WasmOutput::from(result).0
+// }
 
 #[wasm_bindgen]
 pub fn wasm_stork_version() -> String {
@@ -63,11 +63,6 @@ mod tests {
         two: String,
         three: bool,
     }
-
-    use std::{
-        fs,
-        io::{BufReader, Read},
-    };
 
     use super::*;
     #[test]
@@ -95,38 +90,39 @@ mod tests {
         assert_eq!(computed, expected);
     }
 
-    #[test]
-    fn retrieve_v3_from_cache() {
-        let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
-        let mut buf_reader = BufReader::new(file);
-        let mut index_bytes: Vec<u8> = Vec::new();
-        let _bytes_read = buf_reader.read_to_end(&mut index_bytes).unwrap();
+    // TODO: Restore these tests
+    // #[test]
+    // fn retrieve_v3_from_cache() {
+    //     let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
+    //     let mut buf_reader = BufReader::new(file);
+    //     let mut index_bytes: Vec<u8> = Vec::new();
+    //     let _bytes_read = buf_reader.read_to_end(&mut index_bytes).unwrap();
 
-        let _str = wasm_register_index("zero-seven-zero", index_bytes.as_slice());
-        let str = wasm_register_index("zero-zeven-zero-again", index_bytes.as_slice());
-        assert_eq!(str, r#"{"indexVersion":"stork-3"}"#);
+    //     let _str = wasm_register_index("zero-seven-zero", index_bytes.as_slice());
+    //     let str = wasm_register_index("zero-zeven-zero-again", index_bytes.as_slice());
+    //     assert_eq!(str, r#"{"indexVersion":"stork-3"}"#);
 
-        let results = wasm_search("zero-seven-zero", "liberty");
-        assert!(results.contains("despotic power and hostile to the principles of liberty. An over-scrupulous jealousy of danger to the"));
-        assert_eq!(results.len(), 1254);
-    }
+    //     let results = wasm_search("zero-seven-zero", "liberty");
+    //     assert!(results.contains("despotic power and hostile to the principles of liberty. An over-scrupulous jealousy of danger to the"));
+    //     assert_eq!(results.len(), 1254);
+    // }
 
-    #[test]
-    fn cache_miss_errors_as_expected() {
-        let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
-        let mut buf_reader = BufReader::new(file);
-        let mut index_bytes: Vec<u8> = Vec::new();
-        let _bytes_read = buf_reader.read_to_end(&mut index_bytes).unwrap();
+    // #[test]
+    // fn cache_miss_errors_as_expected() {
+    //     let file = fs::File::open("../test-assets/federalist-min-0.7.0.st").unwrap();
+    //     let mut buf_reader = BufReader::new(file);
+    //     let mut index_bytes: Vec<u8> = Vec::new();
+    //     let _bytes_read = buf_reader.read_to_end(&mut index_bytes).unwrap();
 
-        let str = wasm_register_index("cache-name-one", index_bytes.as_slice());
-        assert_eq!(str, r#"{"indexVersion":"stork-3"}"#);
+    //     let str = wasm_register_index("cache-name-one", index_bytes.as_slice());
+    //     assert_eq!(str, r#"{"indexVersion":"stork-3"}"#);
 
-        let results = wasm_search("cache-name-two", "liberty");
-        assert_eq!(
-            results,
-            r#"{"error": "Index `cache-name-two` has not been registered. You need to register the index before performing searches with it."}"#
-        );
-    }
+    //     let results = wasm_search("cache-name-two", "liberty");
+    //     assert_eq!(
+    //         results,
+    //         r#"{"error": "Index `cache-name-two` has not been registered. You need to register the index before performing searches with it."}"#
+    //     );
+    // }
 
     #[cfg(feature = "v2")]
     #[test]

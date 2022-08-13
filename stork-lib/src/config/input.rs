@@ -19,8 +19,6 @@ pub enum TitleBoost {
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
 pub struct InputConfig {
-    #[serde(rename = "surrounding_word_count")]
-    pub UNUSED_surrounding_word_count: Option<u8>,
     pub base_directory: String,
     pub url_prefix: String,
     pub title_boost: TitleBoost,

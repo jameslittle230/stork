@@ -6,6 +6,8 @@ use strum::ParseError;
 use strum_macros::{Display, EnumString};
 use thiserror::Error;
 
+/// Prefix: one of a few known values.
+/// Bytes: decoded Length-Value blobs.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Envelope {
     pub(super) prefix: Prefix,

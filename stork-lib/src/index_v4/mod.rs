@@ -9,7 +9,8 @@ use smart_default::SmartDefault;
 
 use crate::config::{OutputConfig, TitleBoost};
 
-pub(crate) use tree::CharEdgeSetTree;
+pub(crate) use search::search;
+pub(crate) use tree::Tree;
 
 // #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 // struct QueryTreeRemoteDestination {
@@ -41,7 +42,7 @@ pub(crate) struct IndexDiskRepresentation {
     in the tree (even if it has children) points to a set of query results
     that get displayed when that word is searched for.
     */
-    pub(crate) query_tree: CharEdgeSetTree<QueryResultIndex>,
+    pub(crate) query_tree: Tree<QueryResultIndex>,
 
     /**
     Represents a possible search result.
@@ -53,7 +54,8 @@ pub(crate) struct IndexDiskRepresentation {
     */
     pub(crate) documents: Vec<Document>,
     pub(crate) settings: Settings,
-    // metadata_keys: Vec<String>
+    // metadata_keys: Vec<String> // TODO: Fill this out
+    // TODO: LSH hashmap for fuzzy searching? http://jil.im/lsh
 }
 
 impl IndexDiskRepresentation {
@@ -72,29 +74,25 @@ impl TryFrom<&Bytes> for IndexDiskRepresentation {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub(crate) struct PartialIndexDiskRepresentation {
     pub(crate) partial_index_name: String,
-    pub(crate) query_tree: CharEdgeSetTree<QueryResultIndex>,
+    pub(crate) query_tree: Tree<QueryResultIndex>,
     pub(crate) query_results: Vec<QueryResult>,
 }
 
-/**
-A `QueryResult` is something that can be searched for. Matches will come from
-the contents of a document, the title of a document, or the value of metadata
-for one or more documents (ex: searching for "Piper" should return all documents
-who have a metadata value where the key is "Author" and the value is "Jessica Piper")
- */
+/// A `QueryResult` is something that can be searched for. Matches will come from
+/// the contents of a document, the title of a document, or the value of metadata
+/// for one or more documents (ex: searching for "Piper" should return all documents
+/// who have a metadata value where the key is "Author" and the value is "Jessica Piper")
 #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) enum QueryResult {
-    DocumentContentsExcerpt(Excerpt),
+    DocumentContentsExcerpt(DocumentContentsExcerpt),
     TitleExcerpt(TitleExcerpt),
     MetadataValue(MetadataValue),
 }
 
-/**
-A document that is indexed, serialized in a V4 index.
-
-Excerpts belong to exactly one document, and are grouped by document in the
-visible search results.
- */
+/// A document that is indexed, serialized in a V4 index.
+///
+/// Excerpts belong to exactly one document, and are grouped by document in the
+/// visible search results.
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct Document {
     pub(crate) title: String,
@@ -103,9 +101,7 @@ pub(crate) struct Document {
     pub(crate) metadata: Vec<MetadataEntry>,
 }
 
-/**
- * User-defined key/value pair that is indexed and searchable.
- */
+/// * User-defined key/value pair that is indexed and searchable.
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct MetadataEntry {
     pub(crate) key: String,
@@ -123,9 +119,10 @@ pub(crate) type CharacterOffset = usize;
 /// * An index into the list of documents
 /// * A character offset into the documents' contents
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-pub(crate) struct Excerpt {
+pub(crate) struct DocumentContentsExcerpt {
     pub(crate) document_id: DocumentIndex,
     pub(crate) contents_character_offset: CharacterOffset,
+    pub(crate) url_suffix: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -154,46 +151,4 @@ pub(crate) struct Settings {
 
     #[default(OutputConfig::default().displayed_results_count)]
     pub(crate) displayed_results_count: u8,
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-
-    #[test]
-    fn build_empty_index_disk_representation() {
-        let index = IndexDiskRepresentation::default();
-        let bytes = index.to_bytes();
-        dbg!(&bytes.len());
-        dbg!(&bytes);
-    }
-
-    #[test]
-    fn build_small_index_disk_representation() {
-        let mut query_tree: CharEdgeSetTree<QueryResultIndex> = CharEdgeSetTree::default();
-        query_tree.push_value_for_string("according", 0);
-
-        let index = IndexDiskRepresentation {
-        query_tree,
-        query_results: vec![QueryResult::DocumentContentsExcerpt(Excerpt {
-            document_id: 0,
-            contents_character_offset: 0,
-        })],
-        documents: vec![Document {
-            title: "This is a document title.".to_string(),
-            contents: "According to all known laws of aviation, there is no way that a bee should be able to fly. Its wings are too small to get its fat little body off the ground. The bee, of course, flies anyway because bees don't care what humans think is impossible.".to_string(),
-            url: "https://www.example.com/".to_string(),
-            metadata: vec![
-                MetadataEntry {
-                    key: "author".to_string(),
-                    value: "John Doe".to_string(),
-                },
-            ],
-        }],
-        settings: Settings::default(),
-    };
-        let bytes = index.to_bytes();
-        dbg!(&bytes.len());
-    }
 }

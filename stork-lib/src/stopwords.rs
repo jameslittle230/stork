@@ -1,3 +1,4 @@
+// TODO: Audit, remove esoteric words, and add lists for different languages. (Should stopwords be encoded into the index?)
 pub const STOPWORDS: &[&str] = &[
     "a",
     "about",

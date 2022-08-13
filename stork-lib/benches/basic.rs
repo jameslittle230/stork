@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::{convert::TryFrom, path::PathBuf, process::exit, time::Duration};
-use stork_lib::Config;
+use stork_lib::config::Config;
 
 fn config_from_path(path: &str) -> Config {
     if !std::path::Path::join(&std::env::current_dir().unwrap(), ".stork-project-root").exists() {
@@ -20,10 +20,11 @@ fn build_federalist(c: &mut Criterion) {
     group.measurement_time(Duration::from_secs(12));
 
     group.bench_function("federalist", |b| {
-        b.iter(|| stork_lib::build_index(&config).unwrap())
+        b.iter(|| stork_lib::build_index(&config, None).unwrap())
     });
 }
 
+// TODO: Restore this benchmark
 fn search_federalist_for_liberty(c: &mut Criterion) {
     let config = config_from_path("./stork-lib/benches/federalist.toml");
     todo!();

@@ -7,10 +7,10 @@ use intermediate_excerpt::IntermediateExcerpt;
 mod entry_and_intermediate_excerpts;
 use entry_and_intermediate_excerpts::EntryAndIntermediateExcerpts;
 
-use crate::stopwords;
-use crate::Output;
-use crate::Result;
-use crate::V3Index as Index;
+use super::Index;
+use crate::search_output::Result;
+use crate::search_output::SearchResult as Output;
+use crate::stopwords::STOPWORDS as stopwords;
 
 use super::scores::STOPWORD_SCORE;
 use super::AliasTarget;
@@ -154,9 +154,9 @@ impl ContainerWithQuery {
     }
 }
 
-impl From<Entry> for crate::Document {
+impl From<Entry> for crate::search_output::Document {
     fn from(entry: Entry) -> Self {
-        crate::Document {
+        crate::search_output::Document {
             url: entry.url.clone(),
             title: entry.title.clone(),
             fields: entry.fields,

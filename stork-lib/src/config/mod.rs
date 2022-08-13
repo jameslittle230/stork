@@ -1,5 +1,7 @@
 #![allow(clippy::module_name_repetitions)]
 
+use bstr::ByteSlice;
+use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
@@ -31,6 +33,15 @@ pub struct Config {
     pub output: OutputConfig,
 }
 
+impl TryFrom<Bytes> for Config {
+    type Error = ConfigReadError;
+
+    fn try_from(bytes: Bytes) -> Result<Self, Self::Error> {
+        let string = bytes.to_str()?;
+        Self::try_from(string)
+    }
+}
+
 impl TryFrom<&str> for Config {
     type Error = ConfigReadError;
 
@@ -39,6 +50,7 @@ impl TryFrom<&str> for Config {
             return Err(ConfigReadError::EmptyString);
         }
 
+        // TODO: Can I infer what filetype I'm seeing and pass that info into this function so I'm not literally trying to decode two things at once?
         let toml_output = toml::from_str::<Self>(value);
         let json_output = serde_json::from_str::<Self>(value);
 
@@ -48,6 +60,7 @@ impl TryFrom<&str> for Config {
             (Err(_), Ok(json_config)) => Ok(json_config),
 
             (Err(toml_error), Err(json_error)) => {
+                // TODO: Use dtolnay's serde error path crate
                 if let Some((mut toml_line, mut toml_col)) = toml_error.line_col() {
                     toml_line += 1;
                     toml_col += 1;
@@ -83,7 +96,6 @@ mod tests {
     fn get_default_config() -> Config {
         Config {
             input: InputConfig {
-                UNUSED_surrounding_word_count: None,
                 base_directory: "test/federalist".into(),
                 url_prefix: "".into(),
                 title_boost: TitleBoost::Moderate,
@@ -153,8 +165,6 @@ mod tests {
                 minimum_index_ideographic_substring_length: 1,
             },
             output: OutputConfig {
-                UNUSED_filename: None,
-                debug: true,
                 save_nearest_html_id: false,
                 excerpt_buffer: 8,
                 excerpts_per_result: 5,

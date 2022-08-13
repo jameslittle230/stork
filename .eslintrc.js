@@ -35,3 +35,5 @@ module.exports = {
     }
   ]
 };
+
+// TODO: Use the sort imports prettier plugin

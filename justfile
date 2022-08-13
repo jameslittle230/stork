@@ -72,7 +72,7 @@ build-wasm-all-features:
     wc -c < ./stork-wasm/pkg/stork_bg.wasm
 
 solo-build-js:
-    yarn webpack --config webpack.prod.js
+    yarn webpack --config js/webpack/webpack.prod.js
 
 build-js: build-wasm _yarn solo-build-js
 
@@ -91,7 +91,7 @@ build-wasm-dev:
     cd stork-wasm && wasm-pack build --target web --out-name stork --dev -- --no-default-features --features="v3"
 
 solo-build-js-dev:
-    yarn webpack --config webpack.dev.js
+    yarn webpack --config js/webpack/webpack.dev.js
 
 build-js-dev: build-wasm-dev _yarn solo-build-js-dev
 

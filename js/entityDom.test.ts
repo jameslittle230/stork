@@ -10,7 +10,7 @@ jest.mock("./resultToListItem");
 jest.mock("./wasmQueue");
 jest.mock("./dom");
 
-// @TODO: Mock resultToListItem()
+// TODO: Mock resultToListItem()
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 jest.mock("stork-search", () => {}, { virtual: true });
@@ -189,13 +189,13 @@ describe("entitydom", () => {
     });
 
     expect.assertions(entityDom.elements.list.children.length * 2);
-    ((entityDom.elements.list as unknown) as MockHtmlElement).children.forEach(
+    (entityDom.elements.list as unknown as MockHtmlElement).children.forEach(
       (listItem: MockHtmlElement, idx: number) => {
-        const mockAddFunction = (listItem.classList
-          .add as unknown) as jest.MockedFunction<typeof add>;
+        const mockAddFunction = listItem.classList
+          .add as unknown as jest.MockedFunction<typeof add>;
 
-        const mockRemoveFunction = (listItem.classList
-          .remove as unknown) as jest.MockedFunction<typeof add>;
+        const mockRemoveFunction = listItem.classList
+          .remove as unknown as jest.MockedFunction<typeof add>;
 
         if (idx == highlightTarget) {
           expect(mockRemoveFunction).not.toHaveBeenCalled();

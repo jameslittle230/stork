@@ -1,77 +1,82 @@
+mod build_output_excerpt;
+mod title_highlight_ranges;
+
 use std::collections::HashMap;
 
-use super::{Document, Excerpt, IndexDiskRepresentation, QueryResult};
-use crate::{
-    string_utils::{get_surroundings, segment_words},
-    Document as OutputDocument, Excerpt as OutputExcerpt, HighlightRange, InternalWordAnnotation,
-    Output, Result as OutputResult,
+use super::{Document, DocumentContentsExcerpt, IndexDiskRepresentation, QueryResult};
+
+use crate::search_output::{
+    Document as OutputDocument, Excerpt as OutputExcerpt, Result as OutputResult,
 };
 
-impl OutputExcerpt {
-    fn from(excerpt: &Excerpt, document: &Document) -> Self {
-        let (before, after, full) = {
-            let (a, b, c) =
-                get_surroundings(&document.contents, excerpt.contents_character_offset, 8);
-            (a.unwrap(), b.unwrap(), c.unwrap())
-        };
-
-        let after_segmented = segment_words(after);
-
-        OutputExcerpt {
-            text: full.to_string(),
-            highlight_ranges: vec![HighlightRange {
-                beginning: before.len(),
-                end: before.len() + after_segmented.first().unwrap().word.len(),
-            }],
-            score: 10,
-            internal_annotations: vec![InternalWordAnnotation::Debug(format!(
-                "char_offset: {}",
-                excerpt.contents_character_offset
-            ))],
-            fields: HashMap::default(),
-        }
-    }
-}
+use crate::search_output::{HighlightRange, InternalWordAnnotation, SearchResult};
 
 impl From<&Document> for OutputDocument {
     fn from(document: &Document) -> Self {
         Self {
             url: document.url.clone(),
             title: document.title.clone(),
-            fields: HashMap::default(), // TODO
+            fields: HashMap::default(), // TODO: Pass fields through
         }
     }
 }
 
-pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> Output {
-    let query_result_indices = index.query_tree.get_value_for_string(query);
+pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResult {
+    struct DocumentSearchOutput {
+        contents_excerpts: Vec<OutputExcerpt>,
+        title_highlight_ranges: Vec<HighlightRange>,
+    }
 
-    let mut excerpts_by_document: HashMap<OutputDocument, Vec<OutputExcerpt>> = HashMap::new();
+    let query_result_indices = index.query_tree.get_values_for_string(query);
+
+    let mut excerpts_by_document: HashMap<OutputDocument, DocumentSearchOutput> = HashMap::new();
 
     for query_result_index in query_result_indices {
         let query_result = index.query_results.get(query_result_index).unwrap();
 
-        if let QueryResult::DocumentContentsExcerpt(excerpt) = query_result {
-            let document = index.documents.get(excerpt.document_id).unwrap();
-            let output_document: OutputDocument = document.into();
-            let output_excerpt = OutputExcerpt::from(excerpt, document);
+        match query_result {
+            QueryResult::DocumentContentsExcerpt(excerpt) => {
+                let document = index.documents.get(excerpt.document_id).unwrap();
+                let output_document: OutputDocument = document.into();
+                let output_excerpt = build_output_excerpt::build(excerpt, document);
 
-            excerpts_by_document
-                .entry(output_document)
-                .and_modify(|vec| vec.push(output_excerpt.clone()))
-                .or_insert_with(|| vec![output_excerpt]);
-        } else {
-            panic!("Unhandled excerpt type when searching");
+                excerpts_by_document
+                    .entry(output_document)
+                    .and_modify(|stuff| stuff.contents_excerpts.push(output_excerpt.clone()))
+                    .or_insert_with(|| DocumentSearchOutput {
+                        contents_excerpts: vec![output_excerpt],
+                        title_highlight_ranges: vec![],
+                    });
+            }
+            QueryResult::TitleExcerpt(excerpt) => {
+                let document = index.documents.get(excerpt.document_id).unwrap();
+                let output_document: OutputDocument = document.into();
+                let mut title_highlight_ranges = title_highlight_ranges::get(excerpt, document);
+
+                excerpts_by_document
+                    .entry(output_document)
+                    .and_modify(|stuff| {
+                        // TODO: Rename this from `stuff`
+                        stuff
+                            .title_highlight_ranges
+                            .append(&mut title_highlight_ranges);
+                    })
+                    .or_insert_with(|| DocumentSearchOutput {
+                        contents_excerpts: vec![],
+                        title_highlight_ranges,
+                    });
+            }
+            QueryResult::MetadataValue(_) => panic!("Need to handle metadata value in search!"), // TODO
         }
     }
 
     let mut results: Vec<OutputResult> = excerpts_by_document
         .iter()
-        .map(|(output_document, list_of_excerpts)| OutputResult {
+        .map(|(output_document, stuff)| OutputResult {
             entry: output_document.clone(),
-            excerpts: list_of_excerpts.clone(),
-            title_highlight_ranges: vec![],
-            score: 10 * list_of_excerpts.len(),
+            excerpts: stuff.contents_excerpts.clone(),
+            title_highlight_ranges: stuff.title_highlight_ranges.clone(),
+            score: 10 * stuff.contents_excerpts.len() + 30 * stuff.title_highlight_ranges.len(), // TODO: Tweak scores, use the title boost config
         })
         .collect();
 
@@ -80,7 +85,7 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> Output {
 
     let total_hit_count = results.len();
 
-    Output {
+    SearchResult {
         results,
         total_hit_count,
         url_prefix: "".to_string(),

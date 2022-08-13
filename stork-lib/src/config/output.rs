@@ -5,13 +5,6 @@ use smart_default::SmartDefault;
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
 pub struct OutputConfig {
-    #[serde(rename = "filename")]
-    #[default(None)]
-    pub UNUSED_filename: Option<String>,
-
-    #[default = false]
-    pub debug: bool,
-
     #[default = false]
     pub save_nearest_html_id: bool,
 

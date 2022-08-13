@@ -13,8 +13,11 @@ mod search;
 
 pub use search::search;
 
-use crate::config::{OutputConfig, TitleBoost};
-use crate::{Fields, InternalWordAnnotation};
+use crate::fields::Fields;
+use crate::{
+    config::{OutputConfig, TitleBoost},
+    search_output,
+};
 
 mod write;
 
@@ -113,7 +116,7 @@ pub(crate) struct Excerpt {
     pub(crate) source: WordListSource,
 
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub(crate) internal_annotations: Vec<InternalWordAnnotation>,
+    pub(crate) internal_annotations: Vec<search_output::InternalWordAnnotation>,
 
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(crate) fields: Fields,
@@ -130,14 +133,14 @@ pub(crate) enum WordListSource {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(crate) struct AnnotatedWord {
     pub(crate) word: String,
-    pub(crate) internal_annotations: Vec<InternalWordAnnotation>,
+    pub(crate) internal_annotations: Vec<search_output::InternalWordAnnotation>,
     pub(crate) fields: Fields,
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::config::Config;
     use crate::config::{DataSource, File, Filetype, InputConfig};
-    use crate::Config;
 
     use super::*;
     use pretty_assertions::assert_eq;
