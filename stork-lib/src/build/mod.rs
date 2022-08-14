@@ -28,21 +28,23 @@ pub(crate) fn build_index(
 
     let should_report_progress = should_report_progress(config);
 
-    for (i, file_config) in config.input.files.iter().enumerate() {
+    for (document_id, file_config) in config.input.files.iter().enumerate() {
         if let Some(progress_fn) = progress {
             if should_report_progress {
                 progress_fn(build_output::progress::Report {
                     total_document_count: config.input.files.len(),
                     state: build_output::progress::State::StartedDocument {
-                        index: i,
+                        index: document_id,
                         title: file_config.title.clone(),
                     },
                 })
             }
         }
 
-        let word_segmentation_result = read_contents::read_contents(config, i)
-            .and_then(|read_value| parse_document::parse_document(config, i, &read_value));
+        let word_segmentation_result =
+            read_contents::read_contents(config, document_id).and_then(|read_value| {
+                parse_document::parse_document(config, document_id, &read_value)
+            });
 
         // The read contents contains the contents of the file as read, including
         // markup that needs to be parsed. It _does not_ contain frontmatter,
@@ -61,13 +63,11 @@ pub(crate) fn build_index(
         // Therefore, after in the markup parse step, we need to have our document's
         // final contents, along with an annotated word list.
 
-        let document_id: usize;
         let output_document: index_v4::Document;
         match &word_segmentation_result {
             Ok(document) => {
                 output_document = make_output_document(document);
-                index.documents.push(output_document);
-                document_id = index.documents.len();
+                index.documents.insert(document_id, output_document);
             }
             Err(e) => {
                 warnings.push(e.into());
@@ -126,6 +126,7 @@ pub(crate) fn build_index(
                         document_id,
                         contents_character_offset: word.annotation.byte_offset,
                         url_suffix: word.annotation.url_suffix.clone(),
+                        debug: Some(vec![file_config.title.clone(), word.word.clone()].join(" - ")),
                     },
                 ));
 

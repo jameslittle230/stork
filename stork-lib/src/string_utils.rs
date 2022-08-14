@@ -39,7 +39,6 @@ pub(crate) fn get_words_surrounding_offset(
     byte_offset: usize,
     surrounding_word_count: usize,
 ) -> (String, String) {
-    dbg!(string.len());
     let before = &string[0..byte_offset];
     let after = &string[byte_offset..];
 

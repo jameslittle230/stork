@@ -47,8 +47,6 @@ fn build(submatches: &ArgMatches) -> CommandOutput {
     let output_path = submatches.get_one::<String>("output").unwrap();
     let debug_flag = submatches.is_present("debug");
 
-    dbg!(debug_flag);
-
     let mut config: lib::config::Config = io::read(config_path)?.try_into()?;
     config.local.debug_output = debug_flag;
 

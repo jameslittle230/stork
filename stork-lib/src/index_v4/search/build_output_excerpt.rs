@@ -6,8 +6,6 @@ pub(super) fn build(
     excerpt: &super::DocumentContentsExcerpt,
     document: &super::Document,
 ) -> super::OutputExcerpt {
-    dbg!(&document.title);
-    dbg!(excerpt); // TODO: Check that the document referenced during build is the same as the document referenced when searching
     let (before_offset, after_offset) = crate::string_utils::get_words_surrounding_offset(
         &document.contents,
         excerpt.contents_character_offset,

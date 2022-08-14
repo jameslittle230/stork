@@ -3,6 +3,8 @@
 pub mod search;
 mod tree;
 
+use std::collections::BTreeMap;
+
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -11,6 +13,11 @@ use crate::config::{OutputConfig, TitleBoost};
 
 pub(crate) use search::search;
 pub(crate) use tree::Tree;
+
+pub(crate) type DocumentIndex = usize;
+pub(crate) type MetadataIndex = usize;
+pub(crate) type QueryResultIndex = usize;
+pub(crate) type CharacterOffset = usize;
 
 /// Serializing this data structure with a specific serializer will vend a
 /// binary blob which, when packaged in a Stork Index envelope, will be a valid
@@ -26,7 +33,7 @@ pub(crate) struct IndexDiskRepresentation {
     pub(crate) query_results: Vec<QueryResult>,
 
     /// The documents that have been indexed.
-    pub(crate) documents: Vec<Document>,
+    pub(crate) documents: BTreeMap<DocumentIndex, Document>,
 
     pub(crate) settings: Settings,
     // metadata_keys: Vec<String> // TODO: Fill this out
@@ -83,11 +90,6 @@ pub(crate) struct MetadataEntry {
     pub(crate) value: String,
 }
 
-pub(crate) type DocumentIndex = usize;
-pub(crate) type MetadataIndex = usize;
-pub(crate) type QueryResultIndex = usize;
-pub(crate) type CharacterOffset = usize;
-
 /// A reference to an extracted piece of a document's contents, serialized in a V4 index.
 ///
 /// This struct contains:
@@ -98,6 +100,7 @@ pub(crate) struct DocumentContentsExcerpt {
     pub(crate) document_id: DocumentIndex,
     pub(crate) contents_character_offset: CharacterOffset,
     pub(crate) url_suffix: Option<String>,
+    pub(crate) debug: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]

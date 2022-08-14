@@ -29,6 +29,8 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
 
     let query_result_indices = index.query_tree.get_values_for_string(query);
 
+    dbg!(query_result_indices);
+
     let mut excerpts_by_document: HashMap<OutputDocument, DocumentSearchOutput> = HashMap::new();
 
     for query_result_index in query_result_indices {
@@ -36,7 +38,7 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
 
         match query_result {
             QueryResult::DocumentContentsExcerpt(excerpt) => {
-                let document = index.documents.get(excerpt.document_id).unwrap();
+                let document = index.documents.get(&excerpt.document_id).unwrap();
                 let output_document: OutputDocument = document.into();
                 let output_excerpt = build_output_excerpt::build(excerpt, document);
 
@@ -48,8 +50,9 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
                         title_highlight_ranges: vec![],
                     });
             }
+
             QueryResult::TitleExcerpt(excerpt) => {
-                let document = index.documents.get(excerpt.document_id).unwrap();
+                let document = index.documents.get(&excerpt.document_id).unwrap();
                 let output_document: OutputDocument = document.into();
                 let mut title_highlight_ranges = title_highlight_ranges::get(excerpt, document);
 
@@ -66,6 +69,7 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
                         title_highlight_ranges,
                     });
             }
+
             QueryResult::MetadataValue(_) => panic!("Need to handle metadata value in search!"), // TODO
         }
     }

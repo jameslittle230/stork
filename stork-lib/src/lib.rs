@@ -1,7 +1,8 @@
-#![allow(unused_variables)]
-#![warn(missing_docs)]
+#![allow(unused_variables)] // TODO: Remove and fix
+#![allow(dead_code)] // TODO: Remove and fix
 
-//! asdf
+// #![warn(missing_docs)] // TODO: Uncomment and document when needed
+// #![warn(clippy::pedantic)] // TODO: Uncomment and fix
 
 pub mod build_output;
 pub mod config;

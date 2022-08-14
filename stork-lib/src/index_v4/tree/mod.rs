@@ -161,4 +161,11 @@ mod tests {
         assert_eq!(tree.get_values_for_string("test"), vec![1]);
         assert_eq!(tree.get_values_for_string("tesseract"), vec![2]);
     }
+
+    #[test]
+    fn returns_none_when_no_result() {
+        let mut tree = Tree::default();
+        tree.push_value_for_string("hyperbolic", 42);
+        // assert_eq!(tree.get_values_for_string("tower"), None);
+    }
 }
