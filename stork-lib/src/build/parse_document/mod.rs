@@ -30,7 +30,10 @@ pub(super) fn parse_document(
     config: &crate::config::Config,
     file_index: usize,
     FileReadValue {
-        contents, filetype, ..
+        contents,
+        filetype,
+        frontmatter,
+        ..
     }: &FileReadValue,
 ) -> Result<DocumentParseValue, AttributedDocumentProblem> {
     match filetype {
@@ -68,7 +71,7 @@ pub(super) fn parse_document(
 
             title: document_config.title.clone(),
             url: document_config.url.clone(),
-            fields: None, // TODO: Pass fields through to later
+            fields: frontmatter.clone(),
         }
     })
     .map_err(|problem: DocumentProblem| AttributedDocumentProblem {
