@@ -26,11 +26,17 @@ pub use srt::{SRTConfig, SRTTimestampFormat};
 mod errors;
 pub use errors::ConfigReadError;
 
+mod local;
+pub use local::LocalConfig;
+
 #[derive(Serialize, Deserialize, Debug, SmartDefault, PartialEq)]
 #[serde(deny_unknown_fields, default)]
 pub struct Config {
     pub input: InputConfig,
     pub output: OutputConfig,
+
+    #[serde(skip)]
+    pub local: LocalConfig,
 }
 
 impl TryFrom<Bytes> for Config {
@@ -170,6 +176,7 @@ mod tests {
                 excerpts_per_result: 5,
                 displayed_results_count: 10,
             },
+            local: LocalConfig { debug_output: false },
         }
     }
 

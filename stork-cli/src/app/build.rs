@@ -5,7 +5,7 @@ pub(super) fn build_subcommand() -> Command<'static> {
         .about("Builds an index from a configuration and writes it to a file")
         .disable_version_flag(true)
         .arg(
-            Arg::with_name("config")
+            Arg::new("config")
                 .long("input")
                 .short('i')
                 .help("The path to your configuration file, or - for stdin")
@@ -14,7 +14,7 @@ pub(super) fn build_subcommand() -> Command<'static> {
                 .required(true),
         )
         .arg(
-            Arg::with_name("output")
+            Arg::new("output")
                 .short('o')
                 .long("output")
                 .takes_value(true)
@@ -24,13 +24,14 @@ pub(super) fn build_subcommand() -> Command<'static> {
         )
         .next_help_heading("DIAGNOSTICS")
         .arg(
-            Arg::with_name("timing")
+            Arg::new("timing")
                 .short('t')
                 .long("timing")
                 .help("Displays the duration of the build operation"),
         )
         .arg(
-            Arg::with_name("debug")
+            Arg::new("debug")
+                .takes_value(false)
                 .long("debug")
                 .help("The output format for the returned search results"), // TODO: Wire this config option up
         )

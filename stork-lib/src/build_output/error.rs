@@ -12,8 +12,6 @@ pub struct BuildError {
     error: InternalBuildError,
 }
 
-// ---
-
 // TODO: Wire up all the display implementations correctly here
 impl From<InternalBuildError> for BuildError {
     fn from(error: InternalBuildError) -> Self {
