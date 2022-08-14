@@ -12,47 +12,22 @@ use crate::config::{OutputConfig, TitleBoost};
 pub(crate) use search::search;
 pub(crate) use tree::Tree;
 
-// #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
-// struct QueryTreeRemoteDestination {
-//     partial_index_name: String,
-// }
-
-// #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
-// enum QueryTreeChildDestination {
-//     Local(Box<QueryTreeNode>),
-//     Remote(Box<QueryTreeRemoteDestination>),
-// }
-
-/**
- * A query tree node has multiple children, each represented by the character
- * that gets consumed when the map's key is matched against the query. Some
- * values i
- */
-// type QueryTreeChildren = BTreeMap<char, QueryTreeChildDestination>;
-
-/**
-Serializing this data structure with a specific serializer will vend a
-binary blob which, when packaged in a Stork Index envelope, will be a valid
-Stork Index file.
- */
+/// Serializing this data structure with a specific serializer will vend a
+/// binary blob which, when packaged in a Stork Index envelope, will be a valid
+/// Stork Index file.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub(crate) struct IndexDiskRepresentation {
-    /**
-    The root of a radix tree for all words in the document. Each node
-    in the tree (even if it has children) points to a set of query results
-    that get displayed when that word is searched for.
-    */
+    /// The root of a radix tree for all words in the document. Each node
+    /// in the tree (even if it has children) points to a set of query results
+    /// that get displayed when that word is searched for.
     pub(crate) query_tree: Tree<QueryResultIndex>,
 
-    /**
-    Represents a possible search result.
-    */
+    /// Represents a possible search result.
     pub(crate) query_results: Vec<QueryResult>,
 
-    /**
-    The documents that have been indexed.
-    */
+    /// The documents that have been indexed.
     pub(crate) documents: Vec<Document>,
+
     pub(crate) settings: Settings,
     // metadata_keys: Vec<String> // TODO: Fill this out
     // TODO: LSH hashmap for fuzzy searching? http://jil.im/lsh
@@ -101,7 +76,7 @@ pub(crate) struct Document {
     pub(crate) metadata: Vec<MetadataEntry>,
 }
 
-/// * User-defined key/value pair that is indexed and searchable.
+/// User-defined key/value pair that is indexed and searchable.
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct MetadataEntry {
     pub(crate) key: String,
