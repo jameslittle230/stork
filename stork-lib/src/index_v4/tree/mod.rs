@@ -121,25 +121,26 @@ where
         node.value.insert(value);
     }
 
-    pub(crate) fn get_values_for_string(&self, word: &str) -> Vec<U> {
-        // TODO: Don't panic when there's no edge path for the word
-        let mut curr = self.arena.root.as_ref();
-        for char in word.chars() {
-            curr = self
-                .arena
-                .node_at(curr.unwrap().to_owned())
-                .unwrap()
-                .children
-                .get(&char);
-        }
+    pub(crate) fn get_values_for_string(&self, word: &str) -> Option<Vec<U>> {
+        if let Some(curr) = self.arena.root.as_ref() {
+            let mut curr = curr;
+            for char in word.chars() {
+                match self
+                    .arena
+                    .node_at(curr.to_owned())
+                    .and_then(|node| node.children.get(&char))
+                {
+                    Some(new_node) => curr = new_node,
+                    None => return None,
+                }
+            }
 
-        self.arena
-            .node_at(curr.unwrap().to_owned())
-            .unwrap()
-            .value
-            .clone()
-            .into_iter()
-            .collect()
+            self.arena
+                .node_at(curr.to_owned())
+                .map(|node| node.value.clone().into_iter().collect::<Vec<U>>())
+        } else {
+            None
+        }
     }
 }
 
@@ -154,18 +155,24 @@ mod tests {
         tree.push_value_for_string("test", 1);
         tree.push_value_for_string("tesseract", 2);
 
-        assert_eq!(tree.get_values_for_string("t").is_empty(), true);
-        assert_eq!(tree.get_values_for_string("te").is_empty(), true);
-        assert_eq!(tree.get_values_for_string("tes"), vec![1, 2]);
-        assert_eq!(tree.get_values_for_string("tess"), vec![2]);
-        assert_eq!(tree.get_values_for_string("test"), vec![1]);
-        assert_eq!(tree.get_values_for_string("tesseract"), vec![2]);
+        assert_eq!(tree.get_values_for_string("t").unwrap().is_empty(), true);
+        assert_eq!(tree.get_values_for_string("te").unwrap().is_empty(), true);
+        assert_eq!(
+            tree.get_values_for_string("tes").map(|mut v| {
+                v.sort_unstable();
+                v
+            }),
+            Some(vec![1, 2])
+        );
+        assert_eq!(tree.get_values_for_string("tess"), Some(vec![2]));
+        assert_eq!(tree.get_values_for_string("test"), Some(vec![1]));
+        assert_eq!(tree.get_values_for_string("tesseract"), Some(vec![2]));
     }
 
     #[test]
     fn returns_none_when_no_result() {
         let mut tree = Tree::default();
         tree.push_value_for_string("hyperbolic", 42);
-        // assert_eq!(tree.get_values_for_string("tower"), None);
+        assert_eq!(tree.get_values_for_string("tower"), None);
     }
 }
