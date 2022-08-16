@@ -1,11 +1,7 @@
 mod arena;
 mod node;
 
-use std::{
-    collections::{BTreeMap, HashSet},
-    fmt::Debug,
-    hash::Hash,
-};
+use std::{collections::BTreeMap, fmt::Debug, hash::Hash};
 
 use serde::{Deserialize, Serialize};
 
@@ -59,7 +55,7 @@ where
     U: Debug + Clone + Hash + Eq,
 {
     min_char_insertion_length: usize,
-    arena: Arena<Node<HashSet<U>>>,
+    arena: Arena<Node<U>>,
 }
 
 impl<U> Default for Tree<U>
@@ -69,7 +65,7 @@ where
     fn default() -> Self {
         Tree {
             min_char_insertion_length: 2,
-            arena: Arena::new(Tree::build_node()),
+            arena: Arena::new(Node::new()),
         }
     }
 }
@@ -78,47 +74,37 @@ impl<U> Tree<U>
 where
     U: Debug + Clone + Hash + Eq,
 {
-    fn build_node() -> Node<HashSet<U>> {
-        Node {
-            value: HashSet::new(),
-            children: BTreeMap::default(),
-        }
-    }
-
     pub(crate) fn push_value_for_string(&mut self, word: &str, value: U) {
         let mut current_index = self.arena.root.unwrap();
 
+        // Traverse down the tree, per character
         for (count, char) in word.chars().enumerate() {
-            let next_index = self
-                .arena
-                .node_at(current_index)
-                .unwrap()
-                .children
-                .get(&char);
+            let current_node = self.arena.node_at(current_index).unwrap();
 
-            if let Some(next_index) = next_index {
-                current_index = next_index.to_owned();
-                if count >= self.min_char_insertion_length {
-                    if let Some(node) = self.arena.node_at_mut(current_index.to_owned()) {
-                        node.value.insert(value.clone());
+            match current_node.get_child(&char).cloned() {
+                Some(next_index) => {
+                    let next_node = self.arena.node_at_mut(next_index).unwrap();
+                    if count >= self.min_char_insertion_length {
+                        next_node.set_value(value.clone());
                     }
+                    current_index = next_index;
                 }
-            } else {
-                let mut new_node: Node<HashSet<U>> = Tree::build_node();
-                if count >= 2 {
-                    new_node.value.insert(value.clone());
+                None => {
+                    let mut new_node: Node<U> = Node::new();
+                    if count >= self.min_char_insertion_length {
+                        new_node.set_value(value.clone());
+                    }
+                    let next_index = self.arena.add_node(new_node);
+                    self.arena
+                        .node_at_mut(current_index)
+                        .unwrap()
+                        .push_child(char, next_index);
+                    current_index = next_index;
                 }
-                let next_index = self.arena.add_node(new_node);
-                self.arena
-                    .node_at_mut(current_index)
-                    .unwrap()
-                    .children
-                    .insert(char, next_index);
-                current_index = next_index;
-            }
+            };
         }
         let node = self.arena.node_at_mut(current_index).unwrap();
-        node.value.insert(value);
+        node.set_value(value);
     }
 
     pub(crate) fn get_values_for_string(&self, word: &str) -> Option<Vec<U>> {
@@ -128,7 +114,7 @@ where
                 match self
                     .arena
                     .node_at(curr.to_owned())
-                    .and_then(|node| node.children.get(&char))
+                    .and_then(|node| node.get_child(&char))
                 {
                     Some(new_node) => curr = new_node,
                     None => return None,
@@ -137,7 +123,7 @@ where
 
             self.arena
                 .node_at(curr.to_owned())
-                .map(|node| node.value.clone().into_iter().collect::<Vec<U>>())
+                .map(|node| node.get_values())
         } else {
             None
         }
