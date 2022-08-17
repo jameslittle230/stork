@@ -9,20 +9,31 @@ use super::arena::ArenaIndex;
 /// The edges of our tree are indexable by a char, instead of by a number or by
 /// left/right.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub(crate) struct Node<U>
+pub(super) struct Node<U>
 where
-    U: Debug + Clone + Hash + Eq,
+    U: super::NodeValueTrait,
 {
-    value: HashSet<U>,
+    value: HashSet<NodeValue<U>>,
     children: BTreeMap<char, ArenaIndex>,
+}
+
+impl<U> Node<U>
+where
+    U: super::NodeValueTrait,
+{
+    fn sorted_value(&self) -> Vec<&NodeValue<U>> {
+        let mut vec = self.value.iter().collect::<Vec<&NodeValue<U>>>();
+        vec.sort();
+        vec
+    }
 }
 
 impl<U> PartialEq for Node<U>
 where
-    U: Debug + Clone + Hash + Eq,
+    U: super::NodeValueTrait,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.value == other.value && self.children == other.children
+        self.sorted_value() == other.sorted_value() && self.children == other.children
     }
 }
 
@@ -41,39 +52,60 @@ where
 
 impl<U> Node<U>
 where
-    U: Debug + Clone + Hash + Eq,
+    U: super::NodeValueTrait,
 {
-    pub(crate) fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             value: HashSet::new(),
             children: BTreeMap::new(),
         }
     }
-    pub(crate) fn get_child(&self, key: &char) -> Option<&ArenaIndex> {
+    pub(super) fn get_child(&self, key: &char) -> Option<&ArenaIndex> {
         self.children.get(key)
     }
 
-    pub(crate) fn push_child(&mut self, key: char, child_index: ArenaIndex) {
+    pub(super) fn push_child(&mut self, key: char, child_index: ArenaIndex) {
         self.children.insert(key, child_index);
     }
 
-    pub(crate) fn set_value(&mut self, value: U) {
-        self.value.insert(value);
+    pub(super) fn set_value(&mut self, value: U, chars_remaining: u8) {
+        self.value.replace(NodeValue {
+            chars_remaining,
+            value,
+        });
     }
 
-    pub(crate) fn get_values(&self) -> Vec<U> {
-        self.value.clone().into_iter().collect::<Vec<U>>()
+    pub(super) fn get_values(&self) -> Vec<NodeValue<U>> {
+        self.value
+            .clone()
+            .into_iter()
+            .collect::<Vec<NodeValue<U>>>()
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
-pub(super) struct NodeChild {
-    pub(super) categorization: NodeValueCategorization,
-    pub(super) arena_index: ArenaIndex,
+#[derive(Debug, Clone, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub(super) struct NodeValue<U>
+where
+    U: super::NodeValueTrait,
+{
+    pub(super) chars_remaining: u8,
+    pub(super) value: U,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
-pub(super) enum NodeValueCategorization {
-    Exact,
-    Prefix,
+impl<U> PartialEq for NodeValue<U>
+where
+    U: super::NodeValueTrait,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
+impl<U> Hash for NodeValue<U>
+where
+    U: super::NodeValueTrait,
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.value.hash(state);
+    }
 }

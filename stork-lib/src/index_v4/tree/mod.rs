@@ -8,6 +8,10 @@ use serde::{Deserialize, Serialize};
 use arena::Arena;
 use node::Node;
 
+pub trait NodeValueTrait: Debug + Clone + Hash + Eq + Ord {}
+
+impl<T> NodeValueTrait for T where T: Debug + Clone + Hash + Eq + Ord {}
+
 /// A tree data structure (backed by an Arena) where each node's value is a
 /// `HashSet` of generic U values.
 ///
@@ -52,7 +56,7 @@ use node::Node;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Tree<U>
 where
-    U: Debug + Clone + Hash + Eq,
+    U: NodeValueTrait,
 {
     min_char_insertion_length: usize,
     arena: Arena<Node<U>>,
@@ -60,7 +64,7 @@ where
 
 impl<U> Default for Tree<U>
 where
-    U: Debug + Clone + Hash + Eq,
+    U: NodeValueTrait,
 {
     fn default() -> Self {
         Tree {
@@ -72,27 +76,32 @@ where
 
 impl<U> Tree<U>
 where
-    U: Debug + Clone + Hash + Eq,
+    U: NodeValueTrait,
 {
     pub(crate) fn push_value_for_string(&mut self, word: &str, value: U) {
         let mut current_index = self.arena.root.unwrap();
 
         // Traverse down the tree, per character
-        for (count, char) in word.chars().enumerate() {
+        let word_len = word.len();
+        for (idx, char) in word.chars().enumerate() {
+            // word_len - idx, with u8-based safety
+            let chars_remaining = word_len.try_into().unwrap_or(u8::MAX)
+                - idx.try_into().unwrap_or(u8::max_value())
+                - 1; // TODO: Make sure unchecked subtraction isn't going to cause panics
             let current_node = self.arena.node_at(current_index).unwrap();
 
             match current_node.get_child(&char).cloned() {
                 Some(next_index) => {
                     let next_node = self.arena.node_at_mut(next_index).unwrap();
-                    if count >= self.min_char_insertion_length {
-                        next_node.set_value(value.clone());
+                    if idx >= self.min_char_insertion_length {
+                        next_node.set_value(value.clone(), chars_remaining);
                     }
                     current_index = next_index;
                 }
                 None => {
                     let mut new_node: Node<U> = Node::new();
-                    if count >= self.min_char_insertion_length {
-                        new_node.set_value(value.clone());
+                    if idx >= self.min_char_insertion_length {
+                        new_node.set_value(value.clone(), chars_remaining);
                     }
                     let next_index = self.arena.add_node(new_node);
                     self.arena
@@ -104,10 +113,10 @@ where
             };
         }
         let node = self.arena.node_at_mut(current_index).unwrap();
-        node.set_value(value);
+        node.set_value(value, 0);
     }
 
-    pub(crate) fn get_values_for_string(&self, word: &str) -> Option<Vec<U>> {
+    pub(crate) fn get_values_for_string(&self, word: &str) -> Option<Vec<(u8, U)>> {
         if let Some(curr) = self.arena.root.as_ref() {
             let mut curr = curr;
             for char in word.chars() {
@@ -124,6 +133,12 @@ where
             self.arena
                 .node_at(curr.to_owned())
                 .map(|node| node.get_values())
+                .map(|categorized_values| {
+                    categorized_values
+                        .iter()
+                        .map(|nv| (nv.chars_remaining, nv.value.to_owned())) // TODO: Can I rm these hot-path clones?
+                        .collect::<Vec<(u8, U)>>()
+                })
         } else {
             None
         }
@@ -143,16 +158,21 @@ mod tests {
 
         assert_eq!(tree.get_values_for_string("t").unwrap().is_empty(), true);
         assert_eq!(tree.get_values_for_string("te").unwrap().is_empty(), true);
+
         assert_eq!(
-            tree.get_values_for_string("tes").map(|mut v| {
-                v.sort_unstable();
-                v
+            tree.get_values_for_string("tes").map(|mut vec| {
+                vec.sort_by_key(|tuple| tuple.1);
+                vec
             }),
-            Some(vec![1, 2])
+            Some(vec![(6, 2), (1, 1)]).map(|mut vec| {
+                vec.sort_by_key(|tuple| tuple.1);
+                vec
+            })
         );
-        assert_eq!(tree.get_values_for_string("tess"), Some(vec![2]));
-        assert_eq!(tree.get_values_for_string("test"), Some(vec![1]));
-        assert_eq!(tree.get_values_for_string("tesseract"), Some(vec![2]));
+
+        assert_eq!(tree.get_values_for_string("tess"), Some(vec![(5, 2)]));
+        assert_eq!(tree.get_values_for_string("test"), Some(vec![(0, 1)]));
+        assert_eq!(tree.get_values_for_string("tesseract"), Some(vec![(0, 2)]));
     }
 
     #[test]

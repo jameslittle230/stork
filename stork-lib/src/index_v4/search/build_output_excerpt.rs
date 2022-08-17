@@ -2,9 +2,12 @@ use std::collections::HashMap;
 
 use crate::search_output;
 
+use super::{Document, DocumentContentsExcerpt};
+
 pub(super) fn build(
-    excerpt: &super::DocumentContentsExcerpt,
-    document: &super::Document,
+    excerpt: &DocumentContentsExcerpt,
+    document: &Document,
+    chars_remaining: u8,
 ) -> super::OutputExcerpt {
     let (before_offset, after_offset) = crate::string_utils::get_words_surrounding_offset(
         &document.contents,
@@ -20,7 +23,10 @@ pub(super) fn build(
             beginning: before_offset.len(),
             end: before_offset.len() + after_segmented.first().unwrap().word.len(),
         }],
-        score: 10,
+        score: match chars_remaining {
+            0 => 50,
+            _ => 40_usize.saturating_sub(chars_remaining.into()),
+        },
         internal_annotations: vec![
             Some(super::InternalWordAnnotation::Debug(format!(
                 "char_offset: {}",
