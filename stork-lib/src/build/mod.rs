@@ -13,6 +13,7 @@ use crate::{build_output, config, envelope, fields::Fields, index_v4};
 
 use self::parse_document::DocumentParseValue;
 
+use bytes::Bytes;
 use rust_stemmers::Stemmer;
 
 pub(crate) fn build_index(
@@ -182,11 +183,17 @@ pub(crate) fn build_index(
         }
     }
 
+    let primary_data = match config.local.debug_output {
+        true => Bytes::from(serde_json::to_string_pretty(&index).unwrap()),
+        false => {
+            envelope::Envelope::wrap(envelope::Prefix::StorkV4, vec![index.to_bytes()]).to_bytes()
+        }
+    };
     Ok(build_output::success::Value {
-        primary_data: envelope::Envelope::wrap(envelope::Prefix::StorkV4, vec![index.to_bytes()])
-            .to_bytes(),
-        sidecar_data: vec![],
+        primary_data,
+        sidecar_data: vec![], // TODO: Shard indexes
         statistics: build_output::success::BuildStatistics {
+            // TODO: Fill out statistics
             entries_count: 0,
             tokens_count: 0,
             index_size_bytes: 0,
