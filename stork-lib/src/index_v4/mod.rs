@@ -100,7 +100,7 @@ pub(crate) struct DocumentContentsExcerpt {
     pub(crate) document_id: DocumentIndex,
     pub(crate) contents_character_offset: CharacterOffset,
     pub(crate) url_suffix: Option<String>,
-    pub(crate) debug: Option<String>,
+    // pub(crate) debug: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]

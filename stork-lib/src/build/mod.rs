@@ -127,7 +127,7 @@ pub(crate) fn build_index(
                         document_id,
                         contents_character_offset: word.annotation.byte_offset,
                         url_suffix: word.annotation.url_suffix.clone(),
-                        debug: Some(vec![file_config.title.clone(), word.word.clone()].join(" - ")),
+                        // debug: Some(vec![file_config.title.clone(), word.word.clone()].join(" - ")),
                     },
                 ));
 
@@ -189,6 +189,7 @@ pub(crate) fn build_index(
             envelope::Envelope::wrap(envelope::Prefix::StorkV4, vec![index.to_bytes()]).to_bytes()
         }
     };
+
     Ok(build_output::success::Value {
         primary_data,
         sidecar_data: vec![], // TODO: Shard indexes
