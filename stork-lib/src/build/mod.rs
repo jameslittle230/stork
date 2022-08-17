@@ -18,9 +18,9 @@ use rust_stemmers::Stemmer;
 
 pub(crate) fn build_index(
     config: &config::Config,
-    progress: Option<&dyn Fn(build_output::progress::Report)>,
-) -> Result<build_output::success::Value, build_output::error::InternalBuildError> {
-    let mut warnings: Vec<build_output::warning::BuildWarning> = Vec::new();
+    progress: Option<&dyn Fn(build_output::ProgressReport)>,
+) -> Result<build_output::BuildSuccessValue, build_output::errors::InternalBuildError> {
+    let mut warnings: Vec<build_output::BuildWarning> = Vec::new();
 
     let mut index = index_v4::IndexDiskRepresentation::default();
 
@@ -32,9 +32,9 @@ pub(crate) fn build_index(
     for (document_id, file_config) in config.input.files.iter().enumerate() {
         if let Some(progress_fn) = progress {
             if should_report_progress {
-                progress_fn(build_output::progress::Report {
+                progress_fn(build_output::ProgressReport {
                     total_document_count: config.input.files.len(),
-                    state: build_output::progress::State::StartedDocument {
+                    state: build_output::ProgressState::StartedDocument {
                         index: document_id,
                         title: file_config.title.clone(),
                     },
@@ -176,9 +176,9 @@ pub(crate) fn build_index(
 
     if should_report_progress {
         if let Some(report_progress) = progress {
-            report_progress(build_output::progress::Report {
+            report_progress(build_output::ProgressReport {
                 total_document_count: config.input.files.len(),
-                state: build_output::progress::State::Finished,
+                state: build_output::ProgressState::Finished,
             });
         }
     }
@@ -190,10 +190,10 @@ pub(crate) fn build_index(
         }
     };
 
-    Ok(build_output::success::Value {
+    Ok(build_output::BuildSuccessValue {
         primary_data,
         sidecar_data: vec![], // TODO: Shard indexes
-        statistics: build_output::success::BuildStatistics {
+        statistics: build_output::BuildStatistics {
             // TODO: Fill out statistics
             entries_count: 0,
             tokens_count: 0,

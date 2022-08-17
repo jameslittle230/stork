@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use indicatif::{ProgressBar, ProgressStyle};
-use stork_lib::build_output::progress;
+use stork_lib as lib;
 use strunc::Strunc;
 
 /// An API surrounding Indicatif's `ProgressBar`, giving the bar an opinionated
@@ -57,7 +57,7 @@ impl Bar {
         }
     }
 
-    pub(crate) fn tick(&self, report: progress::Report) {
+    pub(crate) fn tick(&self, report: lib::build_output::ProgressReport) {
         if !self.internals.borrow().first_tick {
             self.progress_bar
                 .enable_steady_tick(std::time::Duration::from_millis(100));
@@ -71,14 +71,14 @@ impl Bar {
         }
 
         match report.state {
-            progress::State::StartedDocument { index, title } => {
+            lib::build_output::ProgressState::StartedDocument { index, title } => {
                 self.progress_bar.set_position(index as u64);
                 self.progress_bar.set_message(title.strunc().to_string());
             }
-            progress::State::Finished => self
+            lib::build_output::ProgressState::Finished => self
                 .progress_bar
                 .finish_with_message(colored::Colorize::green("Done :)").to_string()),
-            progress::State::Failed => self
+            lib::build_output::ProgressState::Failed => self
                 .progress_bar
                 .abandon_with_message(colored::Colorize::red("Failed :(").to_string()),
         }

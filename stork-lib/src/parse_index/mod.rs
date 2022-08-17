@@ -7,8 +7,7 @@ use crate::envelope;
 // use crate::index_v3::Index as V3IndexType;
 use crate::index_v4::IndexDiskRepresentation as V4IndexType;
 
-mod error;
-pub use error::IndexParseError;
+pub mod errors;
 
 /// An index-version-agnostic wrapper type to represent a usable search index.
 pub struct ParsedIndex {
@@ -22,13 +21,13 @@ pub(crate) enum IndexType {
     V4Index(V4IndexType),
 }
 
-pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, error::IndexParseError> {
+pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, errors::IndexParseError> {
     let envelope = envelope::Envelope::try_from(bytes)?;
 
     match envelope.prefix {
         envelope::Prefix::StorkV2 => {
             // if !cfg!(feature = "search-v2") {
-            return Err(error::IndexParseError::NotCompiledWithFeature(
+            return Err(errors::IndexParseError::NotCompiledWithFeature(
                 "search-v2".to_string(),
             ));
             // } else {
@@ -42,7 +41,7 @@ pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, error::IndexParseError>
 
         envelope::Prefix::StorkV3 => {
             // if !cfg!(feature = "search-v2") {
-            return Err(error::IndexParseError::NotCompiledWithFeature(
+            return Err(errors::IndexParseError::NotCompiledWithFeature(
                 "search-v3".to_string(),
             ));
             // } else {
@@ -56,7 +55,7 @@ pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, error::IndexParseError>
         envelope::Prefix::StorkV4 => {
             // Index v5: Put this behind a feature conditional
             return V4IndexType::try_from(envelope.bytes.first().unwrap())
-                .map_err(|e| error::IndexParseError::V4IndexDeserializeError(e))
+                .map_err(|e| errors::IndexParseError::V4IndexDeserializeError(e))
                 .map(|index| ParsedIndex {
                     value: IndexType::V4Index(index),
                 });
@@ -67,6 +66,6 @@ pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, error::IndexParseError>
 pub(super) fn add_sidecar_bytes_to_index(
     index: &mut ParsedIndex,
     bytes: Bytes,
-) -> Result<(), error::IndexParseError> {
+) -> Result<(), errors::IndexParseError> {
     todo!()
 }

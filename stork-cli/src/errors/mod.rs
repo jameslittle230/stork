@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum CommandLineError {
     #[error("Couldn't read the configuration file: {0}")]
-    ConfigReadError(#[from] lib::config::ConfigReadError),
+    ConfigReadError(#[from] lib::config::errors::ConfigReadError),
 
     #[error("Couldn't read file `{0}`. Got error `{1}`")]
     FileReadError(String, io::Error),
@@ -21,10 +21,10 @@ pub enum CommandLineError {
     InteractiveStdinNotAllowed,
 
     #[error("{0}")]
-    IndexParseError(#[from] lib::parse_index::IndexParseError),
+    IndexParseError(#[from] lib::parse_index::errors::IndexParseError),
 
     #[error("{0}")]
-    BuildError(#[from] lib::build_output::error::BuildError),
+    BuildError(#[from] lib::build_output::errors::BuildError),
 
     #[error("Invalid port `{0}`. Got error `{1}`")]
     InvalidPort(String, clap::parser::MatchesError),

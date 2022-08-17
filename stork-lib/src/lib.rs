@@ -1,8 +1,13 @@
 #![allow(unused_variables)] // TODO: Remove and fix
-#![allow(dead_code)] // TODO: Remove and fix
-
-// #![warn(missing_docs)] // TODO: Uncomment and document when needed
+#![allow(dead_code)]
+// TODO: Remove and fix
+#![warn(missing_docs)]
+// TODO: Uncomment and document when needed
 // #![warn(clippy::pedantic)] // TODO: Uncomment and fix
+
+//! The internal logic for building and searching [Stork](https://stork-search.net) search indexes.
+//!
+//! _write more words here_
 
 pub mod build_output;
 pub mod config;
@@ -38,16 +43,16 @@ pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
 /// ```
 pub fn build_index(
     config: &config::Config,
-    progress: Option<&dyn Fn(build_output::progress::Report)>,
-) -> Result<build_output::success::Value, build_output::error::BuildError> {
-    build::build_index(config, progress).map_err(build_output::error::BuildError::from)
+    progress: Option<&dyn Fn(build_output::ProgressReport)>,
+) -> Result<build_output::BuildSuccessValue, build_output::errors::BuildError> {
+    build::build_index(config, progress).map_err(build_output::errors::BuildError::from)
 }
 
 /// Given some bytes, this function will try to unwrap it from its envelope and
 /// parse it as a search index, returning that index if it's successful.
 pub fn parse_bytes_as_index(
     bytes: Bytes,
-) -> Result<parse_index::ParsedIndex, parse_index::IndexParseError> {
+) -> Result<parse_index::ParsedIndex, parse_index::errors::IndexParseError> {
     parse_index::parse(bytes)
 }
 
@@ -59,7 +64,7 @@ pub fn parse_bytes_as_index(
 pub fn add_sidecar_bytes_to_index(
     index: &mut parse_index::ParsedIndex,
     bytes: Bytes,
-) -> Result<(), parse_index::IndexParseError> {
+) -> Result<(), parse_index::errors::IndexParseError> {
     parse_index::add_sidecar_bytes_to_index(index, bytes)
 }
 
@@ -67,7 +72,7 @@ pub fn add_sidecar_bytes_to_index(
 pub fn search(
     index: parse_index::ParsedIndex,
     query: &str,
-) -> Result<search_output::SearchResult, search_output::error::SearchError> {
+) -> Result<search_output::SearchResult, search_output::errors::SearchError> {
     // TODO: remove infallable from return result type
     match index.value {
         // parse_index::IndexType::V2Index(v2_index) => {

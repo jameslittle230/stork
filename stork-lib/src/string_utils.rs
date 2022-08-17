@@ -6,7 +6,7 @@ pub(crate) fn pluralize_with_count(count: usize, singular: &str, plural: &str) -
     format!("{} {}", count, if count == 1 { singular } else { plural })
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct IndexedWord {
     pub(crate) word: String,
     pub(crate) byte_offset: usize,
@@ -14,7 +14,7 @@ pub(crate) struct IndexedWord {
 
 pub(crate) fn split_into_normalized_words(string: &str) -> Vec<IndexedWord> {
     string
-        .unicode_word_indices()
+        .unicode_word_indices() // TODO: Figure out if and how I should split on more characters, like apostrophes
         .filter_map(|(index, word)| match word.trim().is_empty() {
             false => Some(IndexedWord {
                 word: word
@@ -69,7 +69,7 @@ pub(crate) fn get_words_surrounding_offset(
 mod tests {
     use pretty_assertions::assert_eq;
 
-    use super::{get_words_surrounding_offset, split_into_normalized_words};
+    use super::{get_words_surrounding_offset, split_into_normalized_words, IndexedWord};
 
     #[test]
     fn it_only_gets_n_surrounding_words() {
@@ -84,6 +84,42 @@ mod tests {
         assert_eq!(
             get_words_surrounding_offset("a b---c----d---e-----f g h", 11, 2),
             ("b---c----".to_string(), "d---e".to_string())
+        )
+    }
+
+    #[test]
+    #[ignore = "It doesn't work - see above todo"]
+    fn it_splits_apostraphes_into_two_words() {
+        assert_eq!(
+            split_into_normalized_words("o'neill"),
+            vec![
+                IndexedWord {
+                    word: "o".to_string(),
+                    byte_offset: 0
+                },
+                IndexedWord {
+                    word: "neill".to_string(),
+                    byte_offset: 2
+                }
+            ]
+        )
+    }
+
+    #[test]
+    #[ignore = "It doesn't work - see above todo"]
+    fn it_splits_apostraphes_into_two_words_with_special_apostrophe() {
+        assert_eq!(
+            split_into_normalized_words("o’neill"),
+            vec![
+                IndexedWord {
+                    word: "o".to_string(),
+                    byte_offset: 0
+                },
+                IndexedWord {
+                    word: "neill".to_string(),
+                    byte_offset: 2
+                }
+            ]
         )
     }
 

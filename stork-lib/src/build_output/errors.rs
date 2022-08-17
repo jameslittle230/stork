@@ -1,3 +1,5 @@
+//! Errors that can occur during the index build process.
+
 use thiserror::Error;
 
 use crate::string_utils::pluralize_with_count;

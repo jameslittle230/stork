@@ -5,29 +5,23 @@ use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
+mod file;
+mod frontmatter;
 mod input;
-pub use input::{InputConfig, TitleBoost};
-
+mod local;
 mod output;
-pub use output::OutputConfig;
-
+mod srt;
 mod stemming;
+
+pub use self::frontmatter::FrontmatterConfig;
+pub use file::{DataSource, File, Filetype};
+pub use input::{InputConfig, TitleBoost};
+pub use local::LocalConfig;
+pub use output::OutputConfig;
+pub use srt::{SRTConfig, SRTTimestampFormat};
 pub use stemming::StemmingConfig;
 
-mod frontmatter;
-pub use self::frontmatter::FrontmatterConfig;
-
-mod file;
-pub use file::{DataSource, File, Filetype};
-
-mod srt;
-pub use srt::{SRTConfig, SRTTimestampFormat};
-
-mod errors;
-pub use errors::ConfigReadError;
-
-mod local;
-pub use local::LocalConfig;
+pub mod errors;
 
 #[derive(Serialize, Deserialize, Debug, SmartDefault, PartialEq)]
 #[serde(deny_unknown_fields, default)]
@@ -40,7 +34,7 @@ pub struct Config {
 }
 
 impl TryFrom<Bytes> for Config {
-    type Error = ConfigReadError;
+    type Error = errors::ConfigReadError;
 
     fn try_from(bytes: Bytes) -> Result<Self, Self::Error> {
         let string = bytes.to_str()?;
@@ -49,11 +43,11 @@ impl TryFrom<Bytes> for Config {
 }
 
 impl TryFrom<&str> for Config {
-    type Error = ConfigReadError;
+    type Error = errors::ConfigReadError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         if value.is_empty() {
-            return Err(ConfigReadError::EmptyString);
+            return Err(errors::ConfigReadError::EmptyString);
         }
 
         // TODO: Can I infer what filetype I'm seeing and pass that info into this function so I'm not literally trying to decode two things at once?
@@ -73,12 +67,12 @@ impl TryFrom<&str> for Config {
                     if toml_line > json_error.line()
                         || (toml_line == json_error.line() && toml_col > json_error.column())
                     {
-                        Err(ConfigReadError::UnparseableTomlInput(toml_error))
+                        Err(errors::ConfigReadError::UnparseableTomlInput(toml_error))
                     } else {
-                        Err(ConfigReadError::UnparseableJsonInput(json_error))
+                        Err(errors::ConfigReadError::UnparseableJsonInput(json_error))
                     }
                 } else {
-                    Err(ConfigReadError::UnparseableJsonInput(json_error))
+                    Err(errors::ConfigReadError::UnparseableJsonInput(json_error))
                 }
             }
         }
@@ -96,7 +90,7 @@ mod tests {
     fn empty_string_via_tryfrom_returns_error() {
         let contents = r#""#;
         let error = Config::try_from(contents).unwrap_err();
-        assert_eq!(error, ConfigReadError::EmptyString);
+        assert_eq!(error, errors::ConfigReadError::EmptyString);
     }
 
     fn get_default_config() -> Config {

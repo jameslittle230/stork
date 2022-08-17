@@ -2,7 +2,7 @@ use crate::fields::Fields;
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-pub mod error;
+pub mod errors;
 
 /// The set of data needed to display search results to a user.
 #[derive(Serialize, Deserialize, Debug, Default, PartialEq)]
