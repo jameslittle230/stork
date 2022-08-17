@@ -7,12 +7,13 @@ use super::{Document, DocumentContentsExcerpt};
 pub(super) fn build(
     excerpt: &DocumentContentsExcerpt,
     document: &Document,
+    surrounding_word_count: u8,
     chars_remaining: u8,
 ) -> super::OutputExcerpt {
     let (before_offset, after_offset) = crate::string_utils::get_words_surrounding_offset(
         &document.contents,
         excerpt.contents_character_offset,
-        8, // TODO: Take the config value that the user passed in
+        surrounding_word_count.into(),
     );
 
     let after_segmented = crate::string_utils::split_into_normalized_words(&after_offset);

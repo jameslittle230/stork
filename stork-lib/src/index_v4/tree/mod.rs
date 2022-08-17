@@ -1,7 +1,7 @@
 mod arena;
 mod node;
 
-use std::{collections::BTreeMap, fmt::Debug, hash::Hash};
+use std::{fmt::Debug, hash::Hash};
 
 use serde::{Deserialize, Serialize};
 

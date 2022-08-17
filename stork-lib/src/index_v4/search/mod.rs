@@ -1,14 +1,13 @@
 mod build_output_excerpt;
 mod title_highlight_ranges;
 
-use std::{collections::HashMap, default};
-
-use unicode_segmentation::UnicodeSegmentation;
+use std::collections::HashMap;
 
 use super::{Document, DocumentContentsExcerpt, IndexDiskRepresentation, QueryResult};
 
-use crate::search_output::{
-    Document as OutputDocument, Excerpt as OutputExcerpt, Result as OutputResult,
+use crate::{
+    search_output::{Document as OutputDocument, Excerpt as OutputExcerpt, Result as OutputResult},
+    string_utils,
 };
 
 use crate::search_output::{HighlightRange, InternalWordAnnotation, SearchResult};
@@ -42,8 +41,12 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
                 QueryResult::DocumentContentsExcerpt(excerpt) => {
                     let document = index.documents.get(&excerpt.document_id).unwrap();
                     let output_document: OutputDocument = document.into();
-                    let output_excerpt =
-                        build_output_excerpt::build(excerpt, document, categorization);
+                    let output_excerpt = build_output_excerpt::build(
+                        excerpt,
+                        document,
+                        index.settings.excerpt_buffer,
+                        categorization,
+                    );
 
                     excerpts_by_document
                         .entry(output_document)
@@ -74,9 +77,12 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
 
                     if last_resort_index == None {
                         last_resort_index = Some(crate::search_output::Excerpt {
-                            text: document.contents
-                                [0..document.contents.unicode_word_indices().nth(21).unwrap().0]
-                                .to_string(),
+                            text: string_utils::get_words_surrounding_offset(
+                                &document.contents,
+                                0,
+                                (index.settings.excerpt_buffer * 2).into(),
+                            )
+                            .1,
                             score: 0,
                             highlight_ranges: vec![],
                             internal_annotations: vec![],
