@@ -211,7 +211,7 @@ mod tests {
         let bytes = Bytes::try_from("this is not an index".as_bytes()).unwrap();
         assert_eq!(
             Envelope::try_from(bytes).unwrap_err(),
-            EnvelopeDecodeError::BadPrefixSize(8_388_070_249_163_485_984)
+            EnvelopeDecodeError::BadPrefixSize(116) // 't' -> 0x74 -> 0d116
         );
     }
 
