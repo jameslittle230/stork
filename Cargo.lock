@@ -1625,7 +1625,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "stork-lib"
-version = "1.4.2"
+version = "2.0.0"
 dependencies = [
  "bincode",
  "bstr",
@@ -1656,7 +1656,7 @@ dependencies = [
 
 [[package]]
 name = "stork-search"
-version = "1.4.2"
+version = "2.0.0"
 dependencies = [
  "atty",
  "bytes",
@@ -1678,7 +1678,7 @@ dependencies = [
 
 [[package]]
 name = "stork-wasm"
-version = "1.4.2"
+version = "2.0.0"
 dependencies = [
  "bytes",
  "console_error_panic_hook",
