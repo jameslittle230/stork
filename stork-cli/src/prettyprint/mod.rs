@@ -4,11 +4,36 @@ use colored::Colorize;
 use stork_lib::search_output::{HighlightRange, SearchResult};
 use textwrap::termwidth;
 
+fn highlight_title(string: &str, ranges: &Vec<HighlightRange>) -> String {
+    let mut highlighted = String::new();
+
+    let mut r = ranges.clone();
+    r.sort_by_key(|range| range.beginning);
+
+    let mut last_end = 0;
+    for range in r {
+        highlighted.push_str(&string[last_end..range.beginning].green().bold().to_string());
+        highlighted.push_str(
+            &string[range.beginning..range.end]
+                .black()
+                .bold()
+                .on_yellow()
+                .to_string(),
+        );
+        last_end = range.end;
+    }
+    highlighted.push_str(&string[last_end..].green().bold().to_string());
+    highlighted
+}
+
 fn highlight_string(string: &str, ranges: &Vec<HighlightRange>) -> String {
     let mut highlighted = String::new();
 
+    let mut r = ranges.clone();
+    r.sort_by_key(|range| range.beginning);
+
     let mut last_end = 0;
-    for range in ranges {
+    for range in r {
         highlighted.push_str(&string[last_end..range.beginning]);
         highlighted.push_str(&string[range.beginning..range.end].yellow().to_string());
         last_end = range.end;
@@ -27,7 +52,7 @@ pub fn print(results: &SearchResult) -> String {
     results.results.iter().for_each(|result| {
         output.push_str(&format!(
             "{}\n<{}{}>",
-            result.entry.title.bold().green(), // TODO: Figure out how to highlight the sections of titles that should be highlighted
+            highlight_title(&result.entry.title, &result.title_highlight_ranges), // TODO: Figure out how to highlight the sections of titles that should be highlighted
             results.url_prefix,
             result.entry.url
         ));
@@ -35,7 +60,10 @@ pub fn print(results: &SearchResult) -> String {
             output.push_str(&format!(
                 "\n{}",
                 textwrap::fill(
-                    &highlight_string(&excerpt.text, &excerpt.highlight_ranges),
+                    &highlight_string(
+                        &format!("{} {}", &excerpt.text, excerpt.score),
+                        &excerpt.highlight_ranges
+                    ),
                     &textwrap_options
                 )
             ));
