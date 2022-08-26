@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::search_output;
+use crate::{search_output, stopwords};
 
 use super::{Document, DocumentContentsExcerpt};
 
@@ -17,16 +17,22 @@ pub(super) fn build(
     );
 
     let after_segmented = crate::string_utils::split_into_normalized_words(&after_offset);
+    let target_word = after_segmented.first().unwrap().word.clone();
 
     super::OutputExcerpt {
         text: before_offset.clone() + &after_offset,
         highlight_ranges: vec![search_output::HighlightRange {
             beginning: before_offset.len(),
-            end: before_offset.len() + after_segmented.first().unwrap().word.len(),
+            end: before_offset.len() + target_word.len(),
         }],
-        score: match chars_remaining {
-            0 => 50,
-            _ => 40_usize.saturating_sub(chars_remaining.into()),
+        score: match (
+            stopwords::STOPWORDS.contains(&target_word.as_str()),
+            chars_remaining,
+        ) {
+            (false, 0) => 55,
+            (false, _) => 45_usize.saturating_sub(chars_remaining.into()),
+            (true, 0) => 20,
+            (true, _) => 20_usize.saturating_sub(chars_remaining.into()),
         },
         internal_annotations: vec![
             Some(super::InternalWordAnnotation::Debug(format!(

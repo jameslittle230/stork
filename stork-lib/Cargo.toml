@@ -51,6 +51,8 @@ strum = "0.24.1"
 strum_macros = "0.24.2"
 bstr = "0.2.17"
 split-iter = "0.1.0"
+itertools = "0.10.3"
+vec1 = "1.8.0"
 
 [dev-dependencies]
 criterion = "0.3"

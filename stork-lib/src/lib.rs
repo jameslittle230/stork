@@ -11,6 +11,7 @@
 
 pub mod build_output;
 pub mod config;
+pub mod merge_search_results;
 pub mod parse_index;
 pub mod search_output;
 
