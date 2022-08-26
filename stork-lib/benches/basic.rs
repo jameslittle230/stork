@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::{convert::TryFrom, path::PathBuf, process::exit, time::Duration};
-use stork_lib::config::Config;
+use stork_lib::build_config::Config;
 
 fn config_from_path(path: &str) -> Config {
     if !std::path::Path::join(&std::env::current_dir().unwrap(), ".stork-project-root").exists() {

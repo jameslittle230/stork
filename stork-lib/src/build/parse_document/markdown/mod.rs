@@ -3,7 +3,7 @@ use pulldown_cmark::{html as PulldownHtml, Parser as PulldownParser};
 use super::annotated_word::AnnotatedWord;
 
 pub(crate) fn generate(
-    config: &crate::config::Config,
+    config: &crate::build_config::Config,
     file_index: usize,
     contents: &str,
 ) -> Result<(String, Vec<AnnotatedWord>), super::html::HtmlParseError> {

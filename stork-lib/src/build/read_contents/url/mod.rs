@@ -1,4 +1,4 @@
-use crate::config;
+use crate::build_config;
 use mime::Mime;
 use std::io::Read;
 use thiserror::Error;
@@ -18,7 +18,7 @@ pub(crate) enum UrlReadError {
     UnknownContentType,
 }
 
-pub(crate) fn read(url: &str) -> Result<(String, Option<config::Filetype>), UrlReadError> {
+pub(crate) fn read(url: &str) -> Result<(String, Option<build_config::Filetype>), UrlReadError> {
     if cfg!(not(feature = "web-scraping")) {
         Err(UrlReadError::FeatureNotEnabled)
     } else {
@@ -41,8 +41,8 @@ pub(crate) fn read(url: &str) -> Result<(String, Option<config::Filetype>), UrlR
             .map_err(|_| UrlReadError::UnknownContentType)?;
 
         let filetype = match (mime.type_(), mime.subtype()) {
-            (mime::TEXT, mime::PLAIN) => Some(config::Filetype::PlainText),
-            (mime::TEXT, mime::HTML) => Some(config::Filetype::HTML),
+            (mime::TEXT, mime::PLAIN) => Some(build_config::Filetype::PlainText),
+            (mime::TEXT, mime::HTML) => Some(build_config::Filetype::HTML),
             // TODO: Add more well-known mime types? Markdown? SRT?
             _ => None,
         };

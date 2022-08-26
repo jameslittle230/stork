@@ -1,5 +1,5 @@
 use crate::{
-    config::{DataSource, Filetype},
+    build_config::{DataSource, Filetype},
     fields::Fields,
 };
 
@@ -25,7 +25,7 @@ pub(crate) struct FileReadValue {
 }
 
 pub(crate) fn read_contents(
-    config: &crate::config::Config,
+    config: &crate::build_config::Config,
     file_index: usize,
 ) -> Result<FileReadValue, AttributedDocumentProblem> {
     let file_config = config.input.files.get(file_index).unwrap();

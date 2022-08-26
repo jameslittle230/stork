@@ -1,4 +1,5 @@
 mod build_output_excerpt;
+mod line_item;
 mod title_highlight_ranges;
 
 use std::collections::HashMap;
@@ -6,20 +7,21 @@ use std::collections::HashMap;
 use super::{Document, DocumentContentsExcerpt, IndexDiskRepresentation, QueryResult};
 
 use crate::{
-    config::TitleBoost,
-    merge_search_results,
+    build_config::TitleBoost,
     search_output::{Document as OutputDocument, Excerpt as OutputExcerpt, Result as OutputResult},
-    string_utils::{self, IndexedWord},
+    search_query,
+    search_value::{SearchValue, V4SearchValue},
+    string_utils,
 };
 
 use crate::search_output::{HighlightRange, InternalWordAnnotation, SearchResult};
 
 fn title_score_multiplier(title_boost: &TitleBoost) -> usize {
     match title_boost {
-        crate::config::TitleBoost::Minimal => 50,
-        crate::config::TitleBoost::Moderate => 100,
-        crate::config::TitleBoost::Large => 175,
-        crate::config::TitleBoost::Ridiculous => 350,
+        crate::build_config::TitleBoost::Minimal => 50,
+        crate::build_config::TitleBoost::Moderate => 100,
+        crate::build_config::TitleBoost::Large => 175,
+        crate::build_config::TitleBoost::Ridiculous => 350,
     }
 }
 
@@ -45,97 +47,120 @@ struct DocumentSearchOutput {
     title_highlight_ranges: Vec<HighlightRange>,
 }
 
-pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResult {
-    let query_words = string_utils::split_into_normalized_words(query);
+pub(crate) fn get_search_values(
+    index: &IndexDiskRepresentation,
+    search_term: &search_query::SearchTerm,
+) -> Vec<SearchValue> {
+    let mut query_results = vec![];
 
+    match search_term {
+        search_query::SearchTerm::InexactWord(word) => {
+            if let Some(vec) = index.query_tree.get_values_for_string(word) {
+                for (chars_remaining, result_index) in vec {
+                    if let Some(result) = index.query_results.get(result_index) {
+                        query_results.push(SearchValue {
+                            v4_value: Some(crate::search_value::V4SearchValue {
+                                result: result.clone(),
+                                chars_remaining,
+                            }),
+                        });
+                    }
+                }
+            }
+        }
+        search_query::SearchTerm::ExactPhrase(_) => panic!("Exact phrases not ready yet"), // TODO
+    }
+
+    query_results
+}
+
+pub(crate) fn resolve_search_values(
+    index: &IndexDiskRepresentation,
+    search_values: Vec<SearchValue>,
+) -> SearchResult {
     let mut per_document_search_output: HashMap<OutputDocument, DocumentSearchOutput> =
         HashMap::new();
 
-    let mut last_resort_index: Option<crate::search_output::Excerpt> = None;
+    let mut last_resort_excerpts: HashMap<String, crate::search_output::Excerpt> = HashMap::new();
 
-    for query_result_indices in
-        query_words
-            .into_iter()
-            .filter_map(|IndexedWord { word, byte_offset }| {
-                index.query_tree.get_values_for_string(&word)
-            })
-    {
-        for (chars_remaining, query_result_index) in query_result_indices {
-            let query_result = index.query_results.get(query_result_index).unwrap();
+    for value in search_values {
+        let V4SearchValue {
+            result,
+            chars_remaining,
+        } = value.v4_value.unwrap();
 
-            match query_result {
-                QueryResult::DocumentContentsExcerpt(excerpt) => {
-                    let document = index.documents.get(&excerpt.document_id).unwrap();
-                    let output_document: OutputDocument = document.into();
+        match result {
+            QueryResult::DocumentContentsExcerpt(excerpt) => {
+                let document = index.documents.get(&excerpt.document_id).unwrap();
+                let output_document: OutputDocument = document.into();
 
-                    let output_excerpt = build_output_excerpt::build(
-                        excerpt,
-                        document,
-                        index.settings.excerpt_buffer,
-                        chars_remaining, // The number of characters between the search term and the word's length
-                    );
+                let output_excerpt = build_output_excerpt::build(
+                    &excerpt,
+                    document,
+                    index.settings.excerpt_buffer,
+                    chars_remaining, // The number of characters between the search term and the word's length
+                );
 
-                    let extended_output_excerpt = ExtendedOutputExcerpt {
-                        output_excerpt,
-                        document_contents_excerpt: excerpt.clone(),
-                    };
+                let extended_output_excerpt = ExtendedOutputExcerpt {
+                    output_excerpt,
+                    document_contents_excerpt: excerpt.clone(),
+                };
 
-                    per_document_search_output
-                        .entry(output_document)
-                        .and_modify(
-                            |DocumentSearchOutput {
-                                 contents_excerpts,
-                                 title_highlight_ranges: _,
-                             }| {
-                                contents_excerpts.push(extended_output_excerpt.clone())
-                            },
-                        )
-                        .or_insert_with(|| DocumentSearchOutput {
-                            contents_excerpts: vec![extended_output_excerpt.clone()],
-                            title_highlight_ranges: vec![],
-                        });
-                }
-
-                QueryResult::TitleExcerpt(excerpt) => {
-                    let document = index.documents.get(&excerpt.document_id).unwrap();
-                    let output_document: OutputDocument = document.into();
-                    let mut title_highlight_ranges = title_highlight_ranges::get(excerpt, document);
-
-                    per_document_search_output
-                        .entry(output_document)
-                        .and_modify(
-                            |DocumentSearchOutput {
-                                 contents_excerpts,
-                                 title_highlight_ranges: ranges,
-                             }| {
-                                ranges.append(&mut title_highlight_ranges);
-                            },
-                        )
-                        .or_insert_with(|| DocumentSearchOutput {
-                            contents_excerpts: vec![],
-                            title_highlight_ranges,
-                        });
-
-                    if last_resort_index == None {
-                        last_resort_index = Some(crate::search_output::Excerpt {
-                            text: string_utils::get_words_surrounding_offset(
-                                &document.contents,
-                                0,
-                                (index.settings.excerpt_buffer * 2).into(),
-                            )
-                            .1,
-                            score: 0,
-                            highlight_ranges: vec![],
-                            internal_annotations: vec![],
-                            fields: HashMap::new(),
-                        })
-                    }
-                }
-
-                QueryResult::MetadataValue(_) => {
-                    panic!("Need to handle metadata value in search!")
-                } // TODO
+                per_document_search_output
+                    .entry(output_document)
+                    .and_modify(
+                        |DocumentSearchOutput {
+                             contents_excerpts,
+                             title_highlight_ranges: _,
+                         }| {
+                            contents_excerpts.push(extended_output_excerpt.clone())
+                        },
+                    )
+                    .or_insert_with(|| DocumentSearchOutput {
+                        contents_excerpts: vec![extended_output_excerpt.clone()],
+                        title_highlight_ranges: vec![],
+                    });
             }
+
+            QueryResult::TitleExcerpt(excerpt) => {
+                let document = index.documents.get(&excerpt.document_id).unwrap();
+                let output_document: OutputDocument = document.into();
+                let mut title_highlight_ranges = title_highlight_ranges::get(&excerpt, document);
+
+                per_document_search_output
+                    .entry(output_document)
+                    .and_modify(
+                        |DocumentSearchOutput {
+                             contents_excerpts,
+                             title_highlight_ranges: ranges,
+                         }| {
+                            ranges.append(&mut title_highlight_ranges);
+                        },
+                    )
+                    .or_insert_with(|| DocumentSearchOutput {
+                        contents_excerpts: vec![],
+                        title_highlight_ranges,
+                    });
+
+                let _ = last_resort_excerpts
+                    .entry(document.title.clone()) // TODO: Key this on an ID, not on the title, since titles can be identical
+                    .or_insert_with(|| crate::search_output::Excerpt {
+                        text: string_utils::get_words_surrounding_offset(
+                            &document.contents,
+                            0,
+                            (index.settings.excerpt_buffer * 2).into(),
+                        )
+                        .1,
+                        score: 50,
+                        highlight_ranges: vec![],
+                        internal_annotations: vec![],
+                        fields: HashMap::new(),
+                    });
+            }
+
+            QueryResult::MetadataValue(_) => {
+                panic!("Need to handle metadata value in search!")
+            } // TODO
         }
     }
 
@@ -143,7 +168,7 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
 
     let mut results: Vec<OutputResult> = per_document_search_output
         .iter()
-        .map(
+        .filter_map(
             |(
                 output_document,
                 DocumentSearchOutput {
@@ -151,25 +176,25 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
                     title_highlight_ranges,
                 },
             )| {
-                let mut excerpt_data_vec: Vec<merge_search_results::ExcerptData> =
-                    contents_excerpts
-                        .iter()
-                        .map(|ee| merge_search_results::ExcerptData {
-                            text: ee.output_excerpt.text.clone(),
-                            highlight_ranges: vec1::Vec1::try_from_vec(
-                                ee.output_excerpt.highlight_ranges.clone(),
-                            )
-                            .unwrap(),
-                            content_offset: ee.document_contents_excerpt.contents_character_offset,
-                            score: ee.output_excerpt.score,
-                            fields: ee.output_excerpt.fields.clone(),
-                            internal_annotations: ee.output_excerpt.internal_annotations.clone(),
-                            url_suffix: ee.document_contents_excerpt.url_suffix.clone(),
-                        })
-                        .collect();
+                let mut excerpt_data_vec: Vec<line_item::SearchLineItem> = contents_excerpts
+                    .iter()
+                    .map(|ee| line_item::SearchLineItem {
+                        text: ee.output_excerpt.text.clone(),
+                        highlight_ranges: vec1::Vec1::try_from_vec(
+                            // TODO: Are there any cases where this conversion fails?
+                            ee.output_excerpt.highlight_ranges.clone(),
+                        )
+                        .unwrap(),
+                        content_offset: ee.document_contents_excerpt.contents_character_offset,
+                        score: ee.output_excerpt.score,
+                        fields: ee.output_excerpt.fields.clone(),
+                        internal_annotations: ee.output_excerpt.internal_annotations.clone(),
+                        url_suffix: ee.document_contents_excerpt.url_suffix.clone(),
+                    })
+                    .collect();
 
                 let mut excerpts: Vec<OutputExcerpt> =
-                    merge_search_results::merge_all_excerpts(&mut excerpt_data_vec)
+                    line_item::merge::merge_all_excerpts(&mut excerpt_data_vec)
                         .iter()
                         .map(|data| OutputExcerpt {
                             text: data.text.clone(),
@@ -178,17 +203,22 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
                             internal_annotations: data.internal_annotations.clone(),
                             fields: data.fields.clone(),
                         })
+                        // .filter(|e| e.score > 20) // TODO: Don't filter if the query words are all stopwords
                         .collect();
 
                 excerpts.sort_by_key(|e| e.score);
                 excerpts.reverse();
                 excerpts.truncate(10);
 
-                // TODO: Does this fail if multiple documents need to use the last resort index? And shouldn't it be named `last_resort_excerpt` instead? I must have been tired while writing that.
-                if let Some(last_resort) = last_resort_index.to_owned() {
-                    if excerpts.is_empty() {
-                        excerpts.push(last_resort)
+                if let Some(last_resort) = last_resort_excerpts.get(&output_document.title) {
+                    if excerpts.is_empty() && !title_highlight_ranges.is_empty() {
+                        excerpts.push(last_resort.clone())
                     }
+                }
+
+                // excerpts will be empty if the only excerpts were those for stopwords
+                if excerpts.is_empty() {
+                    return None;
                 }
 
                 // (highest individual score / 4) * (sqrt(number of matching excerpts))
@@ -201,18 +231,18 @@ pub(crate) fn search(index: &IndexDiskRepresentation, query: &str) -> SearchResu
                     * (title_highlight_ranges.len() as f32).powf(0.5))
                     as usize;
 
-                if (title_score_component > 0) {
+                if title_score_component > 0 {
                     dbg!(excerpt_score_component, title_score_component);
                 }
 
                 let score = (excerpt_score_component * 10) + title_score_component;
 
-                OutputResult {
+                Some(OutputResult {
                     entry: output_document.clone(),
                     excerpts,
                     title_highlight_ranges: title_highlight_ranges.clone(),
                     score,
-                }
+                })
             },
         )
         .collect();

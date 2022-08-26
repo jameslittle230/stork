@@ -9,7 +9,7 @@ use std::fmt::Display;
 pub(crate) mod parse_document;
 pub(crate) mod read_contents;
 
-use crate::{build_output, config, envelope, fields::Fields, index_v4};
+use crate::{build_config, build_output, envelope, fields::Fields, index_v4};
 
 use self::parse_document::DocumentParseValue;
 
@@ -17,7 +17,7 @@ use bytes::Bytes;
 use rust_stemmers::Stemmer;
 
 pub(crate) fn build_index(
-    config: &config::Config,
+    config: &build_config::Config,
     progress: Option<&dyn Fn(build_output::ProgressReport)>,
 ) -> Result<build_output::BuildSuccessValue, build_output::errors::InternalBuildError> {
     let mut warnings: Vec<build_output::BuildWarning> = Vec::new();
@@ -102,8 +102,8 @@ pub(crate) fn build_index(
                 .clone()
                 .unwrap_or_else(|| config.input.stemming.clone())
             {
-                crate::config::StemmingConfig::None => {}
-                crate::config::StemmingConfig::Language(alg) => {
+                crate::build_config::StemmingConfig::None => {}
+                crate::build_config::StemmingConfig::Language(alg) => {
                     let stem = Stemmer::create(*alg).stem(&title_word.word).to_string();
                     word_document_map
                         .entry(stem.clone())
@@ -145,8 +145,8 @@ pub(crate) fn build_index(
                 .clone()
                 .unwrap_or_else(|| config.input.stemming.clone())
             {
-                crate::config::StemmingConfig::None => {}
-                crate::config::StemmingConfig::Language(alg) => {
+                crate::build_config::StemmingConfig::None => {}
+                crate::build_config::StemmingConfig::Language(alg) => {
                     let stem = Stemmer::create(*alg).stem(&word.word).to_string();
                     word_document_map
                         .entry(stem.clone())
@@ -203,13 +203,13 @@ pub(crate) fn build_index(
     })
 }
 
-fn should_report_progress(config: &config::Config) -> bool {
+fn should_report_progress(config: &build_config::Config) -> bool {
     config.input.files.len() > 1000
         || config
             .input
             .files
             .iter()
-            .any(|file| matches!(file.source(), crate::config::DataSource::URL(_)))
+            .any(|file| matches!(file.source(), crate::build_config::DataSource::URL(_)))
 }
 
 fn make_output_document(document: &DocumentParseValue) -> index_v4::Document {

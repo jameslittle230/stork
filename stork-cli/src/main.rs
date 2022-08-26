@@ -47,7 +47,7 @@ fn build(submatches: &ArgMatches) -> CommandOutput {
     let output_path = submatches.get_one::<String>("output").unwrap();
     let debug_flag = submatches.is_present("debug");
 
-    let mut config: lib::config::Config = io::read(config_path)?.try_into()?;
+    let mut config: lib::build_config::Config = io::read(config_path)?.try_into()?;
     config.local.debug_output = debug_flag;
 
     let bar = progress::Bar::new();
@@ -87,7 +87,7 @@ fn search(submatches: &ArgMatches) -> CommandOutput {
     let read_time = Instant::now();
 
     let index = lib::parse_bytes_as_index(index_bytes)?;
-    let results = lib::search(index, query).unwrap();
+    let results = lib::search(&index, query).unwrap();
 
     let end_time = Instant::now();
 
@@ -125,7 +125,7 @@ fn test(submatches: &ArgMatches) -> CommandOutput {
         .to_owned();
 
     if let Some(config_path) = submatches.value_of("config") {
-        let config: lib::config::Config = io::read(config_path)?.try_into()?;
+        let config: lib::build_config::Config = io::read(config_path)?.try_into()?;
         let bar = progress::Bar::new();
         let build_output = lib::build_index(&config, Some(&|report| bar.tick(report)))?;
         test_server::serve(&build_output.primary_data, port)

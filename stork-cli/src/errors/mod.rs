@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum CommandLineError {
     #[error("Couldn't read the configuration file: {0}")]
-    ConfigReadError(#[from] lib::config::errors::ConfigReadError),
+    ConfigReadError(#[from] lib::build_config::errors::ConfigReadError),
 
     #[error("Couldn't read file `{0}`. Got error `{1}`")]
     FileReadError(String, io::Error),

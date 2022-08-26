@@ -1,7 +1,7 @@
 #![allow(unused_variables)] // TODO: Remove and fix
 #![allow(dead_code)]
 // TODO: Remove and fix
-#![warn(missing_docs)]
+// #![warn(missing_docs)]
 // TODO: Uncomment and document when needed
 // #![warn(clippy::pedantic)] // TODO: Uncomment and fix
 
@@ -9,11 +9,12 @@
 //!
 //! _write more words here_
 
+pub mod build_config;
 pub mod build_output;
-pub mod config;
-pub mod merge_search_results;
 pub mod parse_index;
 pub mod search_output;
+pub mod search_query;
+pub mod search_value;
 
 use bytes::Bytes;
 
@@ -43,7 +44,7 @@ pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
 /// let search_results = search(&index, "second derivative")
 /// ```
 pub fn build_index(
-    config: &config::Config,
+    config: &build_config::Config,
     progress: Option<&dyn Fn(build_output::ProgressReport)>,
 ) -> Result<build_output::BuildSuccessValue, build_output::errors::BuildError> {
     build::build_index(config, progress).map_err(build_output::errors::BuildError::from)
@@ -69,13 +70,55 @@ pub fn add_sidecar_bytes_to_index(
     parse_index::add_sidecar_bytes_to_index(index, bytes)
 }
 
-/// Given a search index and a query, this function will return search results.
-pub fn search(
+/// Takes a string and parses it into a vector of `SearchTerm`s.
+///
+/// `SearchTerm`s can be used as cache keys for lists of `SearchValue`s.
+pub fn parse_search_query_string(string: &str) -> Vec<search_query::SearchTerm> {
+    string_utils::split_into_normalized_words(string)
+        .iter()
+        .map(|indexed_word| search_query::SearchTerm::InexactWord(indexed_word.word.clone()))
+        .collect()
+}
+
+/// Given a `SearchTerm` and an index, this function returns a list of `SearchValue`s.
+///
+/// This list can be cached by the provided `SearchTerm` for faster search resolution.
+pub fn get_search_values(
+    index: &parse_index::ParsedIndex,
+    term: &search_query::SearchTerm,
+) -> Vec<search_value::SearchValue> {
+    match &index.value {
+        parse_index::IndexType::V4Index(v4_index) => {
+            index_v4::search::get_search_values(v4_index, term)
+        }
+    }
+}
+
+/// Given a lot of `SearchValue`s and an index, this function returns renderable search results.
+pub fn merge_search_values(
     index: parse_index::ParsedIndex,
+    value_lists: Vec<Vec<search_value::SearchValue>>,
+) -> search_output::SearchResult {
+    let search_values: Vec<search_value::SearchValue> = value_lists.into_iter().flatten().collect();
+    match index.value {
+        parse_index::IndexType::V4Index(v4_index) => {
+            index_v4::search::resolve_search_values(&v4_index, search_values)
+        }
+    }
+}
+
+/// A helper method to perform a search. This method vends renderable search results
+/// given an index and query string.
+///
+/// If you don't need to cache intermediate results, you can use this shorthand
+/// `search` method which internally calls `parse_search_query_string`,
+/// `get_search_values`, and `merge_line_items`.
+pub fn search(
+    index: &parse_index::ParsedIndex,
     query: &str,
 ) -> Result<search_output::SearchResult, search_output::errors::SearchError> {
     // TODO: remove infallable from return result type
-    match index.value {
+    match &index.value {
         // parse_index::IndexType::V2Index(v2_index) => {
         //     return Err(errors::SearchError::NotCompiledWithFeature);
         //     // index_v2::search(&v2_index, query)
@@ -84,6 +127,15 @@ pub fn search(
         //     return Err(errors::SearchError::NotCompiledWithFeature);
         //     // index_v3::search(&v3_index, query)
         // }
-        parse_index::IndexType::V4Index(v4_index) => Ok(index_v4::search(&v4_index, query)),
+        parse_index::IndexType::V4Index(v4_index) => {
+            let terms = parse_search_query_string(query);
+
+            let values: Vec<search_value::SearchValue> = terms
+                .iter()
+                .flat_map(|term| get_search_values(index, term))
+                .collect();
+
+            Ok(index_v4::search::resolve_search_values(v4_index, values))
+        }
     }
 }

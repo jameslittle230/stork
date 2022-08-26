@@ -1,5 +1,10 @@
 #![allow(clippy::module_name_repetitions)]
 
+//! The object to define the content sources and configuration values for building a search index.
+//!
+//! There are two components to a search index configuration: the `InputConfig` and the `OutputConfig`.
+//!
+
 use bstr::ByteSlice;
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};

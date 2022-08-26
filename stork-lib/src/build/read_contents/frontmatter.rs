@@ -3,7 +3,7 @@
 use frontmatter::{parse_and_find_content, Yaml};
 use std::collections::HashMap;
 
-use crate::{config::FrontmatterConfig, fields::Fields};
+use crate::{build_config::FrontmatterConfig, fields::Fields};
 
 pub fn parse(handling: &FrontmatterConfig, contents: &str) -> (Fields, String) {
     let default_output = (HashMap::new(), contents.to_string());

@@ -4,7 +4,7 @@ use super::annotated_word::AnnotatedWord;
 
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn generate(
-    _config: &crate::config::Config,
+    _config: &crate::build_config::Config,
     _file_index: usize,
     contents: &str,
 ) -> (String, Vec<AnnotatedWord>) {

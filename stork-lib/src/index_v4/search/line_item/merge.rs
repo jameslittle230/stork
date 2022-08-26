@@ -1,23 +1,8 @@
-use crate::{
-    fields::Fields,
-    search_output::{HighlightRange, InternalWordAnnotation},
-};
-
 use itertools::Itertools;
-use vec1::Vec1;
 
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) struct ExcerptData {
-    pub(crate) text: String,
-    pub(crate) highlight_ranges: Vec1<HighlightRange>,
-    pub(crate) content_offset: usize,
-    pub(crate) score: usize,
-    pub(crate) fields: Fields,
-    pub(crate) internal_annotations: Vec<InternalWordAnnotation>,
-    pub(crate) url_suffix: Option<String>,
-}
+use super::SearchLineItem;
 
-fn merge_two_excerpts(e1: &ExcerptData, e2: &ExcerptData) -> Option<ExcerptData> {
+fn merge_two_excerpts(e1: &SearchLineItem, e2: &SearchLineItem) -> Option<SearchLineItem> {
     // dbg!(e1, e2);
     // The character offset (within the document) of the excerpt's first _highlighted_ word.
     let e1_offset = e1.content_offset;
@@ -90,7 +75,7 @@ fn merge_two_excerpts(e1: &ExcerptData, e2: &ExcerptData) -> Option<ExcerptData>
     // be what you want!
     (e1.score + e2.score)
         .checked_sub(highlight_range_score_demotion)
-        .map(|score| ExcerptData {
+        .map(|score| SearchLineItem {
             text: merged_text,
             highlight_ranges: merged_highlight_ranges,
             content_offset: e1.content_offset,
@@ -101,10 +86,10 @@ fn merge_two_excerpts(e1: &ExcerptData, e2: &ExcerptData) -> Option<ExcerptData>
         })
 }
 
-pub(crate) fn merge_all_excerpts(extended_excerpts: &mut [ExcerptData]) -> Vec<ExcerptData> {
+pub(crate) fn merge_all_excerpts(extended_excerpts: &mut [SearchLineItem]) -> Vec<SearchLineItem> {
     extended_excerpts.sort_by_key(|excerpt| excerpt.content_offset);
 
-    let mut excerpts: Vec<ExcerptData> = Vec::new();
+    let mut excerpts: Vec<SearchLineItem> = Vec::new();
     excerpts = extended_excerpts
         .iter()
         .fold(excerpts, |mut accumulator, element| {
@@ -143,7 +128,7 @@ mod tests {
 
     #[test]
     fn it_merges_two_similar_excerpts() {
-        let e1 = ExcerptData {
+        let e1 = SearchLineItem {
             text: "base times height, is one half times the second derivative of the area function, evaluated at".to_string(),
             highlight_ranges: vec1![
                 HighlightRange {
@@ -158,7 +143,7 @@ mod tests {
             url_suffix: None,
         };
 
-        let e2 = ExcerptData {
+        let e2 = SearchLineItem {
 
             text: "times height, is one half times the second derivative of the area function, evaluated at a".to_string(),
             highlight_ranges: vec1![
@@ -174,7 +159,7 @@ mod tests {
             url_suffix: None,
         };
 
-        let expected = ExcerptData {
+        let expected = SearchLineItem {
             text: "base times height, is one half times the second derivative of the area function, evaluated at a".to_string(),
             highlight_ranges: vec1![
                 HighlightRange {
@@ -198,8 +183,8 @@ mod tests {
 
     #[test]
     fn it_fails_a_merge_when_results_are_too_far_away() {
-        let e1 = ExcerptData {
-    text: "series, I make frequent reference to higher order derivatives. And, if you’re already comfortable with second derivatives, third derivatives and such, great! Feel free".to_string(),
+        let e1 = SearchLineItem {
+    text: "series, I make frequent reference to higher order derivatives. And, if you're already comfortable with second derivatives, third derivatives and such, great! Feel free".to_string(),
     highlight_ranges: vec1![
         HighlightRange {
             beginning: 50,
@@ -220,8 +205,8 @@ mod tests {
     internal_annotations: vec![],
     url_suffix: None,
 };
-        let e2 = ExcerptData {
-    text: "if you’re already comfortable with second derivatives, third derivatives and such, great! Feel free to skip".to_string(),
+        let e2 = SearchLineItem {
+    text: "if you're already comfortable with second derivatives, third derivatives and such, great! Feel free to skip".to_string(),
     highlight_ranges: vec1![
         HighlightRange {
             beginning: 63,
@@ -240,13 +225,13 @@ mod tests {
 
     #[test]
     fn it_can_merge_two_strings_at_offset_zero() {
-        let e1 = ExcerptData {
+        let e1 = SearchLineItem {
             text: "In the next chapter, about Taylor series, I make frequent reference to higher"
                 .to_string(),
             highlight_ranges: vec1![HighlightRange {
                 beginning: 27,
                 end: 33,
-            },],
+            }],
             content_offset: 27,
             score: 38,
             fields: HashMap::new(),
@@ -254,7 +239,7 @@ mod tests {
             url_suffix: None,
         };
 
-        let e2 = ExcerptData {
+        let e2 = SearchLineItem {
     text: "In the next chapter, about Taylor series, I make frequent reference to higher order".to_string(),
     highlight_ranges: vec1![
         HighlightRange {
@@ -269,7 +254,7 @@ mod tests {
     url_suffix: None,
 };
 
-        let expected = ExcerptData {
+        let expected = SearchLineItem {
     text: "In the next chapter, about Taylor series, I make frequent reference to higher order".to_string(),
     highlight_ranges: vec1![
         HighlightRange {

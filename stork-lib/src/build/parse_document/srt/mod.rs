@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::config::{SRTConfig, SRTTimestampFormat};
+use crate::build_config::{SRTConfig, SRTTimestampFormat};
 use crate::string_utils::split_into_normalized_words;
 
 use super::annotated_word::AnnotatedWord;
@@ -12,7 +12,7 @@ pub(crate) enum SRTParseError {
 }
 
 pub(crate) fn generate(
-    config: &crate::config::Config,
+    config: &crate::build_config::Config,
     file_index: usize,
     contents: &str,
 ) -> Result<(String, Vec<AnnotatedWord>), SRTParseError> {
@@ -22,7 +22,7 @@ pub(crate) fn generate(
 
 fn generate_from_subs(
     subs: Vec<srtparse::Item>,
-    config: &crate::config::Config,
+    config: &crate::build_config::Config,
 ) -> Result<(String, Vec<AnnotatedWord>), SRTParseError> {
     const SUB_SEPARATOR: &str = " ";
     let sub_sep_count: usize = SUB_SEPARATOR.len();
@@ -106,7 +106,7 @@ mod tests {
             },
         ];
         let (computed_string, computed_annotated_words) =
-            generate_from_subs(subs, &crate::config::Config::default()).unwrap();
+            generate_from_subs(subs, &crate::build_config::Config::default()).unwrap();
 
         assert_eq!(
             "a bb-[ccc]; dddd eeeee,ffff ggg hh i          jj",

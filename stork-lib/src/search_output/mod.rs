@@ -1,3 +1,5 @@
+//! Data structures for displaying search results.
+
 use crate::fields::Fields;
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};

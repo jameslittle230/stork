@@ -9,9 +9,9 @@ use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::config::{OutputConfig, TitleBoost};
+use crate::build_config::{OutputConfig, TitleBoost};
 
-pub(crate) use search::search;
+pub(crate) use search::resolve_search_values;
 pub(crate) use tree::Tree;
 
 pub(crate) type DocumentIndex = usize;

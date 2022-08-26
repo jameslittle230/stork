@@ -4,7 +4,7 @@ use rust_stemmers::Algorithm as StemAlgorithm;
 
 use super::read_contents::FileReadValue;
 use crate::build_output::document_problem::{AttributedDocumentProblem, DocumentProblem};
-use crate::{config::Filetype, fields::Fields, string_utils::split_into_normalized_words};
+use crate::{build_config::Filetype, fields::Fields, string_utils::split_into_normalized_words};
 
 use annotated_word::AnnotatedWord;
 
@@ -27,7 +27,7 @@ pub(super) struct DocumentParseValue {
 }
 
 pub(super) fn parse_document(
-    config: &crate::config::Config,
+    config: &crate::build_config::Config,
     file_index: usize,
     FileReadValue {
         contents,

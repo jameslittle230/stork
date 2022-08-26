@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::config;
+use crate::build_config;
 
 use std::io::Read;
 use std::{fs, io, path};
@@ -13,8 +13,8 @@ pub(crate) enum FileReadError {
 
 pub(crate) fn read(
     path: &str,
-    config: &crate::config::Config,
-) -> Result<(String, Option<config::Filetype>), FileReadError> {
+    config: &crate::build_config::Config,
+) -> Result<(String, Option<build_config::Filetype>), FileReadError> {
     let base_directory_path = path::Path::new(&config.input.base_directory);
     let full_pathname = base_directory_path.join(&path);
 
@@ -30,13 +30,13 @@ pub(crate) fn read(
     Ok((buffer, filetype_from_extension))
 }
 
-fn get_filetype_from_path(path: &path::Path) -> Option<config::Filetype> {
+fn get_filetype_from_path(path: &path::Path) -> Option<build_config::Filetype> {
     let ext_str = path.extension()?.to_str()?;
     match String::from(ext_str).to_ascii_lowercase().as_ref() {
-        "html" | "htm" => Some(config::Filetype::HTML),
-        "srt" => Some(config::Filetype::SRTSubtitle),
-        "txt" => Some(config::Filetype::PlainText),
-        "markdown" | "mdown" | "md" => Some(config::Filetype::Markdown),
+        "html" | "htm" => Some(build_config::Filetype::HTML),
+        "srt" => Some(build_config::Filetype::SRTSubtitle),
+        "txt" => Some(build_config::Filetype::PlainText),
+        "markdown" | "mdown" | "md" => Some(build_config::Filetype::Markdown),
         _ => None,
     }
 }

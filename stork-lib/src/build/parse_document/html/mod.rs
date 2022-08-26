@@ -12,7 +12,7 @@ pub(crate) enum HtmlParseError {
 }
 
 pub(crate) fn generate(
-    config: &crate::config::Config,
+    config: &crate::build_config::Config,
     file_index: usize,
     contents: &str,
 ) -> Result<(String, Vec<AnnotatedWord>), HtmlParseError> {
