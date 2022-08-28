@@ -24,28 +24,26 @@ fn build_federalist(c: &mut Criterion) {
     });
 }
 
-// TODO: Restore this benchmark
 fn search_federalist_for_liberty(c: &mut Criterion) {
     let config = config_from_path("./stork-lib/benches/federalist.toml");
-    todo!();
-    // let bytes = stork_lib::build_index(&config).unwrap().bytes;
-    // let _ = stork_lib::register_index("liberty", bytes);
+    let bytes = stork_lib::build_index(&config, None).unwrap().primary_data;
+    let index = stork_lib::parse_bytes_as_index(bytes).unwrap();
 
-    // let mut group = c.benchmark_group("search/federalist");
-    // group.measurement_time(Duration::from_secs(10));
+    let mut group = c.benchmark_group("search/federalist");
+    group.measurement_time(Duration::from_secs(10));
 
-    // let queries = vec![
-    //     "liberty",
-    //     // "lib",
-    //     // "liber old world",
-    //     // "some long query that won't return results but let's see how it does",
-    // ];
+    let queries = vec![
+        "liberty",
+        "lib",
+        "liber old world",
+        "some long query that won't return results but let's see how it does",
+    ];
 
-    // for query in &queries {
-    //     group.bench_function(query.to_owned(), |b| {
-    //         b.iter(|| stork_lib::search_from_cache("liberty", query.to_owned()))
-    //     });
-    // }
+    for query in &queries {
+        group.bench_function(query.to_owned(), |b| {
+            b.iter(|| stork_lib::search(&index, query.to_owned()))
+        });
+    }
 }
 
 criterion_group!(benches, build_federalist, search_federalist_for_liberty);

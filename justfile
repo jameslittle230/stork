@@ -24,6 +24,9 @@ lint: _yarn format
     cargo clippy --fix --all-targets --all-features -- -D warnings
     yarn eslint js/**/*.ts
 
+benchmark bench_name="":
+    cargo criterion --all-features --package stork-lib --plotting-backend=disabled {{bench_name}}
+
 clean:
     rm -rf dist
     rm -rf pkg
@@ -123,7 +126,7 @@ upload ref="":
     python3 scripts/upload_build_artifacts.py
 
 bench bench_name="":
-    cargo criterion --package stork-lib --plotting-backend=disabled --message-format=json {{bench_name}}
+    cargo criterion --all-features --package stork-lib --plotting-backend=disabled --message-format=json {{bench_name}}
 
 solo-generate-stats:
     python3 scripts/generate_stats.py

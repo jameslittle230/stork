@@ -24,6 +24,3 @@ files = [
     { path = "federalist-19.txt", url = "0019", title = "The Insufficiency of the Present Confederation to Preserve the Union pt 5" },
     { path = "federalist-20.txt", url = "0020", title = "The Insufficiency of the Present Confederation to Preserve the Union pt 6" }
 ]
-
-[output]
-debug = false

@@ -4,7 +4,7 @@ use super::warning::BuildWarning;
 
 /// The data returned from Stork when a search index is successfully built.
 /// This data is agnostic to which index type has been built.
-pub struct Value {
+pub struct BuildSuccessValue {
     pub primary_data: Bytes,
     pub sidecar_data: Vec<Bytes>,
     pub statistics: BuildStatistics,
