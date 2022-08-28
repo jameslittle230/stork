@@ -28,8 +28,8 @@ mod string_utils;
 // #[cfg(feature = "search-v2")]
 // mod index_v2;
 
-// #[cfg(feature = "search-v3")]
-// mod index_v3;
+#[cfg(feature = "search-v3")]
+mod index_v3;
 
 #[cfg(not(feature = "build"))]
 pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
@@ -86,10 +86,13 @@ pub fn parse_search_query_string(string: &str) -> Vec<search_query::SearchTerm> 
 pub fn get_search_values(
     index: &parse_index::ParsedIndex,
     term: &search_query::SearchTerm,
-) -> Vec<search_value::SearchValue> {
+) -> Result<Vec<search_value::SearchValue>, search_output::errors::SearchError> {
     match &index.value {
+        parse_index::IndexType::V3Index(_) => {
+            Err(search_output::errors::SearchError::MethodNotAvailableForIndex)
+        }
         parse_index::IndexType::V4Index(v4_index) => {
-            index_v4::search::get_search_values(v4_index, term)
+            Ok(index_v4::search::get_search_values(v4_index, term))
         }
     }
 }
@@ -98,12 +101,16 @@ pub fn get_search_values(
 pub fn merge_search_values(
     index: parse_index::ParsedIndex,
     value_lists: Vec<Vec<search_value::SearchValue>>,
-) -> search_output::SearchResult {
+) -> Result<search_output::SearchResult, search_output::errors::SearchError> {
     let search_values: Vec<search_value::SearchValue> = value_lists.into_iter().flatten().collect();
     match index.value {
-        parse_index::IndexType::V4Index(v4_index) => {
-            index_v4::search::resolve_search_values(&v4_index, search_values)
+        parse_index::IndexType::V3Index(_) => {
+            Err(search_output::errors::SearchError::MethodNotAvailableForIndex)
         }
+        parse_index::IndexType::V4Index(v4_index) => Ok(index_v4::search::resolve_search_values(
+            &v4_index,
+            search_values,
+        )),
     }
 }
 
@@ -117,22 +124,19 @@ pub fn search(
     index: &parse_index::ParsedIndex,
     query: &str,
 ) -> Result<search_output::SearchResult, search_output::errors::SearchError> {
-    // TODO: remove infallable from return result type
     match &index.value {
         // parse_index::IndexType::V2Index(v2_index) => {
         //     return Err(errors::SearchError::NotCompiledWithFeature);
         //     // index_v2::search(&v2_index, query)
         // }
-        // parse_index::IndexType::V3Index(v3_index) => {
-        //     return Err(errors::SearchError::NotCompiledWithFeature);
-        //     // index_v3::search(&v3_index, query)
-        // }
+        parse_index::IndexType::V3Index(v3_index) => Ok(index_v3::search(v3_index, query)),
+
         parse_index::IndexType::V4Index(v4_index) => {
             let terms = parse_search_query_string(query);
 
-            let values: Vec<search_value::SearchValue> = terms
+            let values = terms
                 .iter()
-                .flat_map(|term| get_search_values(index, term))
+                .flat_map(|term| get_search_values(index, term).unwrap()) // TODO: Fix this unwrap
                 .collect();
 
             Ok(index_v4::search::resolve_search_values(v4_index, values))

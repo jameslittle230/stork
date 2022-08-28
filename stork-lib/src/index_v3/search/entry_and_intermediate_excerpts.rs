@@ -6,9 +6,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    config::TitleBoost,
+    build_config::TitleBoost,
     index_v3::{Entry, PassthroughConfig, WordListSource},
-    Excerpt, HighlightRange, Result,
+    search_output::{self, Excerpt, HighlightRange, Result},
 };
 
 use super::intermediate_excerpt::IntermediateExcerpt;
@@ -188,7 +188,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
         };
 
         Result {
-            entry: crate::Document::from(entry),
+            entry: search_output::Document::from(entry),
             excerpts,
             title_highlight_ranges,
             score: result_score,

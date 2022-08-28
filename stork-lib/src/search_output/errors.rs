@@ -4,4 +4,7 @@ use thiserror::Error;
 pub enum SearchError {
     #[error("")]
     NotCompiledWithFeature,
+
+    #[error("")]
+    MethodNotAvailableForIndex,
 }

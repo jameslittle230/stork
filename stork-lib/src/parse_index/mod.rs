@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 
 use crate::envelope;
 // use crate::index_v2::Index as V2IndexType;
-// use crate::index_v3::Index as V3IndexType;
+use crate::index_v3::Index as V3IndexType;
 use crate::index_v4::IndexDiskRepresentation as V4IndexType;
 
 pub mod errors;
@@ -17,7 +17,7 @@ pub struct ParsedIndex {
 /// A private enum
 pub(crate) enum IndexType {
     // V2Index(V2IndexType),
-    // V3Index(V3IndexType),
+    V3Index(V3IndexType),
     V4Index(V4IndexType),
 }
 
@@ -41,15 +41,15 @@ pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, errors::IndexParseError
 
         envelope::Prefix::StorkV3 => {
             // if !cfg!(feature = "search-v2") {
-            return Err(errors::IndexParseError::NotCompiledWithFeature(
-                "search-v3".to_string(),
-            ));
+            // return Err(errors::IndexParseError::NotCompiledWithFeature(
+            //     "search-v3".to_string(),
+            // ));
             // } else {
-            //     return V3IndexType::try_from(envelope.bytes.first().unwrap())
-            //         .map_err(|e| IndexParseError::V3IndexDeserializeError(e))
-            //         .map(|index| ParsedIndex {
-            //             value: IndexType::V3Index(index),
-            //         });
+            return V3IndexType::try_from(envelope.bytes.first().unwrap())
+                .map_err(|e| errors::IndexParseError::V3IndexDeserializeError(e))
+                .map(|index| ParsedIndex {
+                    value: IndexType::V3Index(index),
+                });
             // }
         }
         envelope::Prefix::StorkV4 => {

@@ -15,7 +15,7 @@ pub use search::search;
 
 use crate::fields::Fields;
 use crate::{
-    config::{OutputConfig, TitleBoost},
+    build_config::{OutputConfig, TitleBoost},
     search_output,
 };
 
@@ -139,8 +139,8 @@ pub(crate) struct AnnotatedWord {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::Config;
-    use crate::config::{DataSource, File, Filetype, InputConfig};
+    use crate::build_config::Config;
+    use crate::build_config::{DataSource, File, Filetype, InputConfig};
 
     use super::*;
     use pretty_assertions::assert_eq;

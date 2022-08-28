@@ -1,8 +1,9 @@
 use std::cmp::Ordering;
 
 use crate::{
+    fields::Fields,
     index_v3::{EntryIndex, Score, WordListSource},
-    Fields, InternalWordAnnotation,
+    search_output::InternalWordAnnotation,
 };
 
 #[derive(Clone, Debug, Default)]
