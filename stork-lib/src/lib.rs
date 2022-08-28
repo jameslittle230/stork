@@ -132,14 +132,15 @@ pub fn search(
         parse_index::IndexType::V3Index(v3_index) => Ok(index_v3::search(v3_index, query)),
 
         parse_index::IndexType::V4Index(v4_index) => {
-            let terms = parse_search_query_string(query);
+            Ok(index_v4::search::search(v4_index, query))
+            // let terms = parse_search_query_string(query);
 
-            let values = terms
-                .iter()
-                .flat_map(|term| get_search_values(index, term).unwrap()) // TODO: Fix this unwrap
-                .collect();
+            // let values = terms
+            //     .iter()
+            //     .flat_map(|term| get_search_values(index, term).unwrap()) // TODO: Fix this unwrap
+            //     .collect();
 
-            Ok(index_v4::search::resolve_search_values(v4_index, values))
+            // Ok(index_v4::search::resolve_search_values(v4_index, values))
         }
     }
 }
