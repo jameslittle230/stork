@@ -8,10 +8,12 @@ mod progress;
 #[cfg(feature = "test-server")]
 mod test_server;
 mod timings;
+
 use clap::ArgMatches;
 use colored::Colorize;
 use num_format::{Locale, ToFormattedString};
 use std::time::Instant;
+
 use stork_lib as lib;
 
 type CommandOutput = Result<(), errors::CommandLineError>;
@@ -50,6 +52,8 @@ fn build(submatches: &ArgMatches) -> CommandOutput {
     let mut config: lib::build_config::Config = io::read(config_path)?.try_into()?;
     config.local.debug_output = debug_flag;
 
+    let read_config_time = Instant::now();
+
     let bar = progress::Bar::new();
     let build_output = lib::build_index(&config, Some(&|report| bar.tick(report)))?;
 
@@ -67,7 +71,14 @@ fn build(submatches: &ArgMatches) -> CommandOutput {
 
     if submatches.is_present("timing") {
         print_timings![
-            (build_time.duration_since(start_time), "to build index"),
+            (
+                read_config_time.duration_since(start_time),
+                "to read config"
+            ),
+            (
+                build_time.duration_since(read_config_time),
+                "to build index"
+            ),
             (end_time.duration_since(build_time), "to write file"),
             (end_time.duration_since(start_time), "total")
         ];
@@ -83,13 +94,13 @@ fn search(submatches: &ArgMatches) -> CommandOutput {
     let query = submatches.value_of("query").unwrap();
 
     let index_bytes = io::read(path)?;
+    let index = lib::parse_bytes_as_index(index_bytes)?;
 
     let read_time = Instant::now();
 
-    let index = lib::parse_bytes_as_index(index_bytes)?;
     let results = lib::search(&index, query).unwrap();
 
-    let end_time = Instant::now();
+    let search_time = Instant::now();
 
     let stdout = match submatches.value_of("format").unwrap() {
         "json" => serde_json::to_string_pretty(&results)?,
@@ -99,10 +110,16 @@ fn search(submatches: &ArgMatches) -> CommandOutput {
 
     println!("{stdout}");
 
+    let end_time = Instant::now();
+
     if submatches.is_present("timing") {
         print_timings![
             (read_time.duration_since(start_time), "to read index file"),
-            (end_time.duration_since(read_time), "to get search results"),
+            (
+                search_time.duration_since(read_time),
+                "to get search results"
+            ),
+            (end_time.duration_since(search_time), "to print results"),
             (end_time.duration_since(start_time), "total")
         ];
     }

@@ -9,8 +9,8 @@ impl fmt::Display for TimingStatistic {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{:.3?}s {}",
-            self.duration.as_secs_f32(),
+            "{:.3?} ms {}",
+            self.duration.as_micros() as f64 / 1000.0,
             self.description
         )
     }
