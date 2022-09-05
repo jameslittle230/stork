@@ -3,7 +3,6 @@ use itertools::Itertools;
 use super::SearchLineItem;
 
 fn merge_two_excerpts(e1: &SearchLineItem, e2: &SearchLineItem) -> Option<SearchLineItem> {
-    // dbg!(e1, e2);
     // The character offset (within the document) of the excerpt's first _highlighted_ word.
     let e1_offset = e1.content_offset;
 

@@ -5,19 +5,15 @@ pub(crate) type ArenaIndex = usize;
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct Arena<T> {
     values: Vec<Option<T>>,
-    pub(crate) root: Option<ArenaIndex>,
+    pub(crate) root: ArenaIndex,
 }
 
 impl<T> Arena<T> {
     pub(crate) fn new(node: T) -> Self {
         Self {
             values: vec![Some(node)],
-            root: Some(0),
+            root: 0,
         }
-    }
-
-    pub(crate) fn set_root(&mut self, root: Option<ArenaIndex>) {
-        self.root = root;
     }
 
     pub(crate) fn add_node(&mut self, node: T) -> ArenaIndex {

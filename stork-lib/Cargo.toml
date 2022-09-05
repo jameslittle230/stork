@@ -32,7 +32,7 @@ display = ["num-format"]
 bytes = "1.1.0"
 thiserror = "1.0.29"
 rust-stemmers = "1.2.0"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive", "rc"] }
 smart-default = "0.6.0"
 serde_json = "1.0.72"
 toml = "0.5.8"

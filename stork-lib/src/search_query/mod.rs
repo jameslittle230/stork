@@ -2,6 +2,7 @@
 
 pub enum SearchTerm {
     InexactWord(String),
+    ExactWord(String),
     ExactPhrase(String),
     // ExclusionTerm(String),
 }

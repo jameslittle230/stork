@@ -53,22 +53,28 @@ pub(crate) fn get_search_values(
 ) -> Vec<SearchValue> {
     let mut query_results = vec![];
 
-    match search_term {
-        search_query::SearchTerm::InexactWord(word) => {
-            if let Some(vec) = index.query_tree.get_values_for_string(word) {
-                for (chars_remaining, result_index) in vec {
-                    if let Some(result) = index.query_results.get(result_index) {
-                        query_results.push(SearchValue {
-                            v4_value: Some(crate::search_value::V4SearchValue {
-                                result: result.clone(),
-                                chars_remaining,
-                            }),
-                        });
-                    }
-                }
+    let values = match search_term {
+        search_query::SearchTerm::InexactWord(word) => index
+            .query_tree
+            .get_values_for_string(word, super::tree::GetValuesOption::All),
+
+        search_query::SearchTerm::ExactWord(word) => index
+            .query_tree
+            .get_values_for_string(word, super::tree::GetValuesOption::Exact),
+        _ => panic!("TODO"),
+    };
+
+    if let Some(vec) = values {
+        for (chars_remaining, result_index) in vec {
+            if let Some(result) = index.query_results.get(result_index) {
+                query_results.push(SearchValue {
+                    v4_value: Some(crate::search_value::V4SearchValue {
+                        result: result.clone(),
+                        chars_remaining,
+                    }),
+                });
             }
         }
-        search_query::SearchTerm::ExactPhrase(_) => panic!("Exact phrases not ready yet"), // TODO
     }
 
     query_results
@@ -142,6 +148,7 @@ pub(crate) fn resolve_search_values(
                         title_highlight_ranges,
                     });
 
+                // TODO: Check to see if this document has any actual excerpts
                 let _ = last_resort_excerpts
                     .entry(document.title.clone()) // TODO: Key this on an ID, not on the title, since titles can be identical
                     .or_insert_with(|| crate::search_output::Excerpt {
@@ -230,10 +237,6 @@ pub(crate) fn resolve_search_values(
                 let title_score_component = (title_score_multiplier as f32
                     * (title_highlight_ranges.len() as f32).powf(0.5))
                     as usize;
-
-                if title_score_component > 0 {
-                    dbg!(excerpt_score_component, title_score_component);
-                }
 
                 let score = (excerpt_score_component * 10) + title_score_component;
 

@@ -1,6 +1,8 @@
-use std::collections::{BTreeMap, HashSet};
 use std::fmt::Debug;
-use std::hash::Hash;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    path::Iter,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +15,7 @@ pub(super) struct Node<U>
 where
     U: super::NodeValueTrait,
 {
-    value: HashSet<NodeValue<U>>,
+    values: HashSet<U>,
     children: BTreeMap<char, ArenaIndex>,
 }
 
@@ -21,8 +23,8 @@ impl<U> Node<U>
 where
     U: super::NodeValueTrait,
 {
-    fn sorted_value(&self) -> Vec<&NodeValue<U>> {
-        let mut vec = self.value.iter().collect::<Vec<&NodeValue<U>>>();
+    fn sorted_value(&self) -> Vec<&U> {
+        let mut vec = self.values.iter().collect::<Vec<&U>>();
         vec.sort();
         vec
     }
@@ -37,26 +39,13 @@ where
     }
 }
 
-// impl<U> PartialOrd for Node<U>
-// where
-//     U: Debug + Clone + Hash + Eq,
-// {
-//     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-//         match self.value.partial_cmp(&other.value) {
-//             Some(core::cmp::Ordering::Equal) => {}
-//             ord => return ord,
-//         }
-//         self.children.partial_cmp(&other.children)
-//     }
-// }
-
 impl<U> Node<U>
 where
     U: super::NodeValueTrait,
 {
     pub(super) fn new() -> Self {
         Self {
-            value: HashSet::new(),
+            values: HashSet::new(),
             children: BTreeMap::new(),
         }
     }
@@ -68,44 +57,15 @@ where
         self.children.insert(key, child_index);
     }
 
-    pub(super) fn set_value(&mut self, value: U, chars_remaining: u8) {
-        self.value.replace(NodeValue {
-            chars_remaining,
-            value,
-        });
+    pub(super) fn set_value(&mut self, value: U) {
+        self.values.replace(value);
     }
 
-    pub(super) fn get_values(&self) -> Vec<NodeValue<U>> {
-        self.value
-            .clone()
-            .into_iter()
-            .collect::<Vec<NodeValue<U>>>()
+    pub(super) fn get_values(&self) -> Vec<U> {
+        self.values.clone().into_iter().collect()
     }
-}
 
-#[derive(Debug, Clone, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub(super) struct NodeValue<U>
-where
-    U: super::NodeValueTrait,
-{
-    pub(super) chars_remaining: u8,
-    pub(super) value: U,
-}
-
-impl<U> PartialEq for NodeValue<U>
-where
-    U: super::NodeValueTrait,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
-
-impl<U> Hash for NodeValue<U>
-where
-    U: super::NodeValueTrait,
-{
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.value.hash(state);
+    pub(super) fn get_all_children(&self) -> Vec<ArenaIndex> {
+        return self.children.values().cloned().collect();
     }
 }
