@@ -7,7 +7,10 @@
 
 //! The internal logic for building and searching [Stork](https://stork-search.net) search indexes.
 //!
-//! _write more words here_
+//! ```
+//! let config =
+//! let asdf = build_index()
+//! ```
 
 pub mod build_config;
 pub mod build_output;
@@ -21,7 +24,6 @@ use bytes::Bytes;
 mod build;
 mod envelope;
 mod fields;
-mod index_v4;
 mod stopwords;
 mod string_utils;
 
@@ -31,10 +33,8 @@ mod string_utils;
 #[cfg(feature = "search-v3")]
 mod index_v3;
 
-#[cfg(not(feature = "build"))]
-pub fn build_index(_config: &Config) -> core::result::Result<(), BuildError> {
-    Err(BuildError::BinaryNotBuiltWithFeature)
-}
+// #[cfg(feature = "search-v4")]
+mod index_v4;
 
 /// Builds an index from a configuration struct.
 ///
@@ -88,6 +88,7 @@ pub fn get_search_values(
     term: &search_query::SearchTerm,
 ) -> Result<Vec<search_value::SearchValue>, search_output::errors::SearchError> {
     match &index.value {
+        #[cfg(feature = "search-v3")]
         parse_index::IndexType::V3Index(_) => {
             Err(search_output::errors::SearchError::MethodNotAvailableForIndex)
         }
@@ -99,16 +100,17 @@ pub fn get_search_values(
 
 /// Given a lot of `SearchValue`s and an index, this function returns renderable search results.
 pub fn merge_search_values(
-    index: parse_index::ParsedIndex,
+    index: &parse_index::ParsedIndex,
     value_lists: Vec<Vec<search_value::SearchValue>>,
 ) -> Result<search_output::SearchResult, search_output::errors::SearchError> {
     let search_values: Vec<search_value::SearchValue> = value_lists.into_iter().flatten().collect();
-    match index.value {
+    match &index.value {
+        #[cfg(feature = "search-v3")]
         parse_index::IndexType::V3Index(_) => {
             Err(search_output::errors::SearchError::MethodNotAvailableForIndex)
         }
         parse_index::IndexType::V4Index(v4_index) => Ok(index_v4::search::resolve_search_values(
-            &v4_index,
+            v4_index,
             search_values,
         )),
     }
@@ -129,6 +131,7 @@ pub fn search(
         //     return Err(errors::SearchError::NotCompiledWithFeature);
         //     // index_v2::search(&v2_index, query)
         // }
+        #[cfg(feature = "search-v3")]
         parse_index::IndexType::V3Index(v3_index) => Ok(index_v3::search(v3_index, query)),
 
         parse_index::IndexType::V4Index(v4_index) => {

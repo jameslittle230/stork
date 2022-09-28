@@ -12,6 +12,7 @@ pub enum IndexParseError {
     #[error("")]
     V2IndexDeserializeError(String),
 
+    #[cfg(feature = "search-v3")]
     #[error("")]
     V3IndexDeserializeError(rmp_serde::decode::Error),
 

@@ -1,12 +1,7 @@
 mod arena;
 mod node;
 
-use std::{
-    collections::{HashSet, VecDeque},
-    fmt::Debug,
-    hash::Hash,
-    rc::Rc,
-};
+use std::{collections::VecDeque, fmt::Debug, hash::Hash};
 
 use serde::{Deserialize, Serialize};
 
@@ -66,7 +61,7 @@ where
     #[serde(skip)]
     min_char_insertion_length: usize,
 
-    arena: Rc<Arena<Node<U>>>,
+    arena: Arena<Node<U>>,
 }
 
 impl<U> Default for Tree<U>
@@ -76,7 +71,7 @@ where
     fn default() -> Self {
         Tree {
             min_char_insertion_length: 2,
-            arena: Rc::new(Arena::new(Node::new())),
+            arena: Arena::new(Node::new()),
         }
     }
 }
@@ -96,16 +91,12 @@ where
 
             match current_node.get_child(&char).cloned() {
                 Some(next_index) => {
-                    let next_node = Rc::get_mut(&mut self.arena)
-                        .unwrap()
-                        .node_at_mut(next_index)
-                        .unwrap();
+                    let next_node = &mut self.arena.node_at_mut(next_index).unwrap();
                     current_index = next_index;
                 }
                 None => {
-                    let next_index = Rc::get_mut(&mut self.arena).unwrap().add_node(Node::new());
-                    Rc::get_mut(&mut self.arena)
-                        .unwrap()
+                    let next_index = self.arena.add_node(Node::new());
+                    self.arena
                         .node_at_mut(current_index)
                         .unwrap()
                         .push_child(char, next_index);
@@ -113,10 +104,7 @@ where
                 }
             };
         }
-        let node = Rc::get_mut(&mut self.arena)
-            .unwrap()
-            .node_at_mut(current_index)
-            .unwrap();
+        let node = self.arena.node_at_mut(current_index).unwrap();
         node.set_value(value);
     }
 
@@ -170,7 +158,7 @@ struct NodeValuesWalk<U>
 where
     U: NodeValueTrait,
 {
-    arena: Rc<Arena<Node<U>>>,
+    arena: Arena<Node<U>>,
     values_on_deck: VecDeque<(u8, U)>,
     nodes_to_inspect: VecDeque<(u8, arena::ArenaIndex)>,
     current_depth: u8,
@@ -180,7 +168,7 @@ impl<U> NodeValuesWalk<U>
 where
     U: NodeValueTrait,
 {
-    fn from(arena: Rc<Arena<Node<U>>>, node_index: usize) -> Self {
+    fn from(arena: Arena<Node<U>>, node_index: usize) -> Self {
         Self {
             arena,
             values_on_deck: VecDeque::new(),

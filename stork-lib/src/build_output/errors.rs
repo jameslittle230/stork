@@ -33,6 +33,7 @@ pub(crate) enum InternalBuildError {
 
     /// Some users might choose to have any document error fail the entire build.
     /// If they configure this, their build will fail with this build error variant.
+
     #[error(
         "{} found while indexing files. If you want to fail silently and still build an index, remove `break_on_file_error` from your config.", 
         pluralize_with_count(.0.len(), "error", "errors"),

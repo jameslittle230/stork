@@ -14,6 +14,17 @@ module.exports = {
   },
   plugins: ["prettier"],
   rules: {
+    "no-unused-vars": "off",
+    "no-empty-function": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn", // or "error"
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_"
+      }
+    ],
     "prettier/prettier": [
       "error",
       {},
@@ -27,11 +38,7 @@ module.exports = {
       files: ["*.ts"],
       parser: "@typescript-eslint/parser",
       plugins: ["@typescript-eslint"],
-      extends: [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
-        "prettier/@typescript-eslint"
-      ]
+      extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"]
     }
   ]
 };

@@ -1,6 +1,3 @@
-import { wasm_search } from "stork-search";
-import StorkError from "./storkError";
-
 export interface HighlightRange {
   beginning: number;
   end: number;
@@ -33,36 +30,36 @@ export interface SearchData {
   url_prefix: string;
 }
 
-export function resolveSearch(name: string, query: string): SearchData {
-  let searchOutput = null;
-  let data = null;
+// export function resolveSearch(name: string, query: string): SearchData {
+//   let searchOutput = null;
+//   let data = null;
 
-  try {
-    searchOutput = wasm_search(name, query);
-    // If wasm_search returns an error, it will return a JSON blob. Look for
-    // data.error to see if this is the case.
-    data = JSON.parse(searchOutput);
-  } catch (e) {
-    // Data has come back improperly, even beyond an error in Rust-land.
-    // analytics.log(e)
-    throw new StorkError(
-      "Could not parse data from wasm_search. If you see this, please file a bug: https://jil.im/storkbug " +
-        searchOutput
-    );
-  }
+//   try {
+//     searchOutput = wasm_search(name, query);
+//     // If wasm_search returns an error, it will return a JSON blob. Look for
+//     // data.error to see if this is the case.
+//     data = JSON.parse(searchOutput);
+//   } catch (e) {
+//     // Data has come back improperly, even beyond an error in Rust-land.
+//     // analytics.log(e)
+//     throw new StorkError(
+//       "Could not parse data from wasm_search. If you see this, please file a bug: https://jil.im/storkbug " +
+//         searchOutput
+//     );
+//   }
 
-  if (!data) {
-    throw new StorkError("Data was an empty object");
-  }
+//   if (!data) {
+//     throw new StorkError("Data was an empty object");
+//   }
 
-  if (data.error) {
-    throw new StorkError(`Could not perform search: the WASM binary failed to return search results.
-    You might not be serving your search index properly.
-    If you think this is an error, please file a bug: https://jil.im/storkbug
-    
-    The WASM binary came back with:
-    ${data.error}`);
-  }
+//   if (data.error) {
+//     throw new StorkError(`Could not perform search: the WASM binary failed to return search results.
+//     You might not be serving your search index properly.
+//     If you think this is an error, please file a bug: https://jil.im/storkbug
 
-  return data;
-}
+//     The WASM binary came back with:
+//     ${data.error}`);
+//   }
+
+//   return data;
+// }

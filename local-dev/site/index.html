@@ -1,6 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stork Test Page</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="/basic.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>"
+    />
+  </head>
+  <body>
+    <h1>Stork Test Page</h1>
+    <iframe
+      src="nav.html"
+      frameborder="0"
+      style="height: 2.5em; width: 100%"
+    ></iframe>
+    <p class="title">Init, downloadIndex, and attach</p>
+    <div class="stork-wrapper">
+      <input
+        data-stork="federalist"
+        placeholder="liberty"
+        class="stork-input"
+      />
+      <div data-stork="federalist-output" class="stork-output"></div>
+    </div>
+
+    <script>
+      if (window.location.origin !== "http://127.0.0.1:8025") {
+        window.location.replace("http://127.0.0.1:8025");
+      }
+    </script>
+
+    <script src="http://127.0.0.1:8025/stork.js"></script>
+
+    <script>
+      window.__stork_debug_log = 1;
+
+      console.log("Starting Stork");
+
+      stork.initialize("http://127.0.0.1:8025/stork.wasm").then(value => {
+        console.log("WASM initialized", value);
+      });
+
+      stork
+        // .downloadIndex("federalist", "http://127.0.0.1:8025/federalist.st")
+        .downloadIndex(
+          "federalist",
+          "https://files.stork-search.net/federalist.st"
+        )
+        .then(() => {
+          console.log("Index loaded");
+        });
+
+      stork.attach("federalist");
+      console.log("Attached to DOM");
+    </script>
+  </body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
     <meta charset="utf-8" />
     <title>Stork Test Page</title>
     <link rel="stylesheet" href="/dark.css" />
@@ -75,7 +139,7 @@
         <div data-stork="federalist-prod-output" class="stork-output"></div>
       </div>
 
-      <div class="color-wash" style="background-color: #222; color: white;">
+      <div class="color-wash" style="background-color: #222; color: white">
         <div class="stork-wrapper-dark">
           <p class="subtitle">Dark Theme</p>
           <input
@@ -196,40 +260,40 @@
           console.error(e);
         });
 
-      stork
-        .downloadIndex("federalist", "/federalist.st", { forceOverwrite: true })
-        .then(() => {
-          console.log("Finished downloading index");
-        })
-        .catch(e => {
-          console.error(e);
-        });
+      // stork
+      //   .downloadIndex("federalist", "/federalist.st", { forceOverwrite: true })
+      //   .then(() => {
+      //     console.log("Finished downloading index");
+      //   })
+      //   .catch(e => {
+      //     console.error(e);
+      //   });
 
-      stork.attach("federalist"); // hook into HTML on page
+      // stork.attach("federalist"); // hook into HTML on page
 
-      window.setTimeout(() => {
-        console.log("Attaching a second time...");
-        stork.attach("federalist"); // hook into HTML on page
-      }, 2500);
+      // window.setTimeout(() => {
+      //   console.log("Attaching a second time...");
+      //   stork.attach("federalist"); // hook into HTML on page
+      // }, 2500);
 
-      stork.register("federalist-dark", "/federalist.st");
-      stork.register("federalist-flat", "/federalist.st");
-      stork.register("federalist-edible", "/federalist.st");
-      stork.register("federalist-edible-dark", "/federalist.st");
-      stork.register("federalist-zero", "/federalist-zero.st");
+      // stork.register("federalist-dark", "/federalist.st");
+      // stork.register("federalist-flat", "/federalist.st");
+      // stork.register("federalist-edible", "/federalist.st");
+      // stork.register("federalist-edible-dark", "/federalist.st");
+      // stork.register("federalist-zero", "/federalist-zero.st");
 
-      stork.register(
-        "federalist-prod",
-        "https://files.stork-search.net/federalist.st",
-        { showCloseButton: false }
-      );
+      // stork.register(
+      //   "federalist-prod",
+      //   "https://files.stork-search.net/federalist.st",
+      //   { showCloseButton: false }
+      // );
 
-      stork.register("beepboop", "/beepboop.st", {
-        resultNoun: { singular: "boop", plural: "boops" }
-      });
+      // stork.register("beepboop", "/beepboop.st", {
+      //   resultNoun: { singular: "boop", plural: "boops" }
+      // });
 
-      stork.register("doesnotexist", "/doesNotExist.st");
-      stork.register("bad", "/federalist.st");
+      // stork.register("doesnotexist", "/doesNotExist.st");
+      // stork.register("bad", "/federalist.st");
     </script>
   </body>
-</html>
+</html> -->

@@ -12,12 +12,10 @@ keywords = ["wasm", "webassembly", "search", "javascript"]
 categories = ["wasm"]
 
 [features]
-default = ["search-v2", "search-v3", "build-web-scraping", "test-server"]
+default = ["search-v2", "search-v3", "test-server"]
 test-server = ["hyper", "tokio"]
 search-v2 = ["stork-lib/search-v2"]
 search-v3 = ["stork-lib/search-v3"]
-build = ["search-v3", "stork-lib/build"]
-build-web-scraping = ["build", "stork-lib/web-scraping"]
 
 [dependencies]
 atty = "0.2.14"
@@ -29,7 +27,7 @@ indicatif = "0.17.0"
 num-format = "0.4.0"
 serde = "1.0.130"
 serde_json = "1.0.68"
-stork-lib = { path = "../stork-lib", version = "2.0.0", default-features = false }
+stork-lib = { path = "../stork-lib", version = "2.0.0" }
 strunc = "0.1.1"
 textwrap = { version = "0.14.2", features = ["terminal_size"] }
 thiserror = "1.0.29"

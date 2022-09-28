@@ -1,7 +1,4 @@
-export function create(
-  name: string,
-  attributes: Record<string, Array<string>>
-): HTMLElement {
+export function create(name: string, attributes: Record<string, Array<string>>): HTMLElement {
   const elem = document.createElement(name);
   if (attributes.classNames) {
     elem.setAttribute("class", attributes.classNames.join(" "));
@@ -9,11 +6,7 @@ export function create(
   return elem;
 }
 
-export function add(
-  elem: HTMLElement,
-  location: InsertPosition,
-  reference: HTMLElement
-): void {
+export function add(elem: HTMLElement, location: InsertPosition, reference: HTMLElement): void {
   reference.insertAdjacentElement(location, elem);
 }
 
@@ -32,10 +25,7 @@ export function setText(elem: HTMLElement | null, text: string): void {
   }
 }
 
-export function existsBeyondContainerBounds(
-  elem: HTMLElement,
-  container: HTMLElement
-): boolean {
+export function existsBeyondContainerBounds(elem: HTMLElement, container: HTMLElement): boolean {
   const elemBoundingBox = elem.getBoundingClientRect();
   const containerBoundingBox = container.getBoundingClientRect();
 

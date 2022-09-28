@@ -20,6 +20,7 @@
   "homepage": "https://stork-search.net",
   "devDependencies": {
     "@open-wc/webpack-import-meta-loader": "^0.4.1",
+    "@trivago/prettier-plugin-sort-imports": "^3.3.0",
     "@types/jest": "^25.2.3",
     "@types/jsdom": "^16.2.3",
     "@typescript-eslint/eslint-plugin": "5.23.0",
@@ -45,6 +46,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "checkeasy": "^1.1.0",
     "stork-search": "./stork-wasm/pkg"
   }
 }

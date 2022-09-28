@@ -1,4 +1,4 @@
-import { register, initialize } from "./main";
+// import { register, initialize } from "./main";
 jest.mock("stork-search");
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,12 +31,12 @@ describe("main tests", () => {
     // m_init.mockClear();
 
     // Initialize with example URL
-    initialize("https://example.com/stork.wasm");
+    // initialize("https://example.com/stork.wasm");
 
     // Call register, which if called alone would call init with
     // the default URL, but should not call init again because
     // init has already been called
-    register("something", "./something.st");
+    // register("something", "./something.st");
     expect(init).toHaveBeenCalledTimes(1);
     expect(init).toHaveBeenLastCalledWith("https://example.com/stork.wasm");
   });

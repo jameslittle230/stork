@@ -1,5 +1,5 @@
 import { highlight } from "./pencil";
-import { Result } from "./searchData";
+import { Result } from "../js/searchData";
 
 export interface ListItemDisplayOptions {
   selected: boolean;

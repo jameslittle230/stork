@@ -1,7 +1,7 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const { version } = require("./package.json");
+const { version } = require("../../package.json");
 const { DefinePlugin } = require("webpack");
 
 module.exports = {
@@ -12,7 +12,7 @@ module.exports = {
     index: "./js/main.ts"
   },
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "..", "dist"),
     filename: "stork.js",
     library: "stork"
   },
@@ -28,7 +28,14 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, "stork-wasm", "pkg", "stork_bg.wasm"),
+          from: path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "stork-wasm",
+            "pkg",
+            "stork_bg.wasm"
+          ),
           to: "stork.wasm"
         }
       ]

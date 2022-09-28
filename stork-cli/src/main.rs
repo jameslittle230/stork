@@ -18,13 +18,6 @@ use stork_lib as lib;
 
 type CommandOutput = Result<(), errors::CommandLineError>;
 
-#[cfg(not(feature = "build"))]
-fn main() -> CommandOutput {
-    eprintln!("This binary requires the `build` feature to be enabled.");
-    Err(CommandLineError::NotCompiledWithFeature("build"))
-}
-
-#[cfg(feature = "build")]
 fn main() -> CommandOutput {
     let app_matches = app::app().get_matches();
 

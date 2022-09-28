@@ -1,14 +1,7 @@
-import { Result } from "./searchData";
-
-import {
-  create,
-  add,
-  clear,
-  setText,
-  existsBeyondContainerBounds
-} from "./dom";
+import { add, clear, create, existsBeyondContainerBounds, setText } from "./dom";
 import { Entity, EntityState } from "./entity";
 import { ListItemDisplayOptions, resultToListItem } from "./resultToListItem";
+import { Result } from "./searchData";
 
 interface ElementMap {
   input: HTMLInputElement;
@@ -64,7 +57,7 @@ export class EntityDom {
       }
     ];
 
-    const [input, output] = data.map(d => {
+    const [input, output] = data.map((d) => {
       const element = document.querySelector(d.selector);
       if (!element) {
         throw new Error(
@@ -132,8 +125,7 @@ export class EntityDom {
       this.hoverSelectEnabled = true;
     });
 
-    this.elements.attribution.innerHTML =
-      'Powered by <a href="https://stork-search.net">Stork</a>';
+    this.elements.attribution.innerHTML = 'Powered by <a href="https://stork-search.net">Stork</a>';
 
     this.elements.closeButton.innerHTML = `
 <svg height="0.8em" viewBox="0 0 23 24" xmlns="http://www.w3.org/2000/svg">
@@ -153,10 +145,7 @@ export class EntityDom {
       this.elements.input.value = "";
       this.elements.input.focus();
       this.render(hiddenInterfaceRenderState);
-      const [m, n] = [
-        this.entity.config.onInputCleared,
-        this.entity.config.onResultsHidden
-      ];
+      const [m, n] = [this.entity.config.onInputCleared, this.entity.config.onResultsHidden];
       m ? m() : null;
       n ? n() : null;
     });
@@ -239,7 +228,7 @@ export class EntityDom {
           }
         });
 
-        listItem.addEventListener("click", e => {
+        listItem.addEventListener("click", (e) => {
           e.preventDefault();
           this.selectResult();
         });
@@ -257,21 +246,18 @@ export class EntityDom {
     if (this.highlightedResult != null) {
       const result = this.entity.results[this.highlightedResult];
       if (this.entity.config.onResultSelected) {
-        Promise.resolve(
-          this.entity.config.onResultSelected(this.getQuery(), result)
-        ).finally(() => {
-          window.location.assign(result.entry.url);
-        });
+        Promise.resolve(this.entity.config.onResultSelected(this.getQuery(), result)).finally(
+          () => {
+            window.location.assign(result.entry.url);
+          }
+        );
       } else {
         window.location.assign(result.entry.url);
       }
     }
   }
 
-  changeHighlightedResult(options: {
-    to: number;
-    shouldScrollTo: boolean;
-  }): number {
+  changeHighlightedResult(options: { to: number; shouldScrollTo: boolean }): number {
     const previousValue = this.highlightedResult;
 
     const resolvedIdx = Math.max(
@@ -280,8 +266,7 @@ export class EntityDom {
     );
 
     this.highlightedResult = resolvedIdx;
-    this.scrollAnchorPoint =
-      (previousValue || 0) < resolvedIdx ? "end" : "start";
+    this.scrollAnchorPoint = (previousValue || 0) < resolvedIdx ? "end" : "start";
 
     let targetForScrollTo = null;
 
@@ -304,12 +289,7 @@ export class EntityDom {
     if (options.shouldScrollTo) {
       this.hoverSelectEnabled = false;
       if (targetForScrollTo) {
-        if (
-          existsBeyondContainerBounds(
-            targetForScrollTo as HTMLElement,
-            this.elements.list
-          )
-        ) {
+        if (existsBeyondContainerBounds(targetForScrollTo as HTMLElement, this.elements.list)) {
           (targetForScrollTo as HTMLElement).scrollIntoView({
             behavior: "smooth",
             block: this.scrollAnchorPoint,
@@ -333,10 +313,7 @@ export class EntityDom {
         if (this.highlightedResult == null) {
           this.changeHighlightedResult({ to: 0, shouldScrollTo: true });
         } else {
-          const target = Math.min(
-            this.highlightedResult + 1,
-            this.entity.results.length - 1
-          );
+          const target = Math.min(this.highlightedResult + 1, this.entity.results.length - 1);
           this.changeHighlightedResult({ to: target, shouldScrollTo: true });
         }
         break;

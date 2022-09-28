@@ -86,7 +86,6 @@ pub struct Container {
 }
 
 impl Container {
-    #[cfg(feature = "build")]
     pub(crate) fn new() -> Self {
         Self::default()
     }
@@ -99,7 +98,6 @@ pub(crate) struct SearchResult {
 }
 
 impl SearchResult {
-    #[cfg(feature = "build")]
     pub(crate) fn new() -> SearchResult {
         SearchResult {
             excerpts: vec![],

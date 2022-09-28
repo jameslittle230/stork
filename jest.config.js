@@ -3,7 +3,7 @@ module.exports = {
   transform: {
     "^.+\\.jsx?$": "<rootDir>/node_modules/ts-jest/dist/index.js"
   },
-  testEnvironment: "<rootDir>/js/test-environment.js",
+  testEnvironment: "<rootDir>/js/tests/test-environment.js",
   modulePathIgnorePatterns: ["<rootDir>/target/*"],
   collectCoverage: true,
   collectCoverageFrom: ["js/**/*.ts"],
