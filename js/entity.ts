@@ -1,24 +1,28 @@
 import { Configuration } from "./config";
 import EntityDomManager from "./entityDomManager";
-import EntityLoader, { EntityLoadValue } from "./entityLoader";
+import IndexLoader, { IndexLoadValue } from "./indexLoader";
+import LoadManager from "./loadManager";
 import { log } from "./util/storkLog";
 import WasmLoader from "./wasmLoader";
 
-export type EntityState = "initialized" | "loading" | "ready" | "error";
+export type EntityDomDelegate = {
+  performSearch: (query: string) => object[];
+};
 
-export default class Entity {
+export default class Entity implements EntityDomDelegate {
   readonly name: string;
   readonly url: string;
   readonly config: Configuration;
-  readonly loadPromise: Promise<EntityLoadValue>;
+  readonly indexLoadPromise: Promise<IndexLoadValue>;
 
   private domManager: EntityDomManager;
+  private loadManager: LoadManager;
 
   constructor(
     name: string,
     url: string,
     config: Configuration,
-    entityLoader: EntityLoader,
+    entityLoader: IndexLoader,
     wasmLoader: WasmLoader
   ) {
     log(`Entity ${name} constructed`);
@@ -26,23 +30,40 @@ export default class Entity {
     this.url = url;
     this.config = config;
 
-    this.domManager = new EntityDomManager(this.name, this.config);
+    this.domManager = new EntityDomManager(this.name, this.config, this.delegate);
+    this.loadManager = new LoadManager(["index", "wasm"]);
 
-    this.loadPromise = entityLoader
+    this.indexLoadPromise = entityLoader
       .load(url, (percentage) => {
         this.domManager.setProgress(percentage);
       })
       .then((v) => {
-        log(`Completed index load, got ${v.byteLength} bytes`);
+        log(`Index load complete, got ${v.byteLength} bytes`);
+        this.domManager.setProgress(1);
+        this.loadManager.setState("index", "success");
         return v;
+      })
+      .catch((_e) => {
+        this.loadManager.setState("index", "failure");
+        return {}; // TODO
       });
 
     wasmLoader.queueAfterWasmLoaded(`${this.name} entity domManager report success`, () => {
-      this.domManager.setWasmLoadState("success");
+      this.loadManager.setState("wasm", "success");
+      this.domManager.setWasmLoadIsComplete(true);
     });
 
     wasmLoader.queueAfterWasmErrored(`${this.name} entity domManager report error`, () => {
-      this.domManager.setWasmLoadState("failure");
+      this.loadManager.setState("wasm", "failure");
+    });
+
+    this.loadManager.runAfterLoad("run entitydom search", () => {
+      log(`Index ${this.name} completely loaded, ready for search`);
+      this.domManager.performSearchFromInputValue();
+    });
+
+    this.loadManager.runOnError("set entitydom to error", () => {
+      this.domManager.setError(true);
     });
   }
 
@@ -50,8 +71,17 @@ export default class Entity {
     this.domManager.attach();
   }
 
-  search(_query: string, _options: object) {
+  performSearch(query: string, options?: object) {
+    log(`Performing search for index "${this.name}" with query "${query}"`);
     return [];
+  }
+
+  public get delegate(): EntityDomDelegate {
+    return {
+      performSearch: (q) => {
+        return this.performSearch(q);
+      }
+    };
   }
 
   // public get state(): EntityState {

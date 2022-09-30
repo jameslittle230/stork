@@ -5,8 +5,8 @@ import { wasm_stork_version } from "stork-search";
 
 import { Configuration, resolveConfig } from "./config";
 import Entity from "./entity";
-import EntityLoader, { EntityLoadValue } from "./entityLoader";
 import EntityStore from "./entityStore";
+import IndexLoader, { IndexLoadValue } from "./indexLoader";
 import { getDebugLogs, log } from "./util/storkLog";
 // import {
 //   register as registerEntity,
@@ -18,7 +18,7 @@ import WasmLoader, { WasmLoadValue } from "./wasmLoader";
 
 const wasmLoader = new WasmLoader();
 const entityStore = new EntityStore();
-const entityLoader = new EntityLoader(wasmLoader);
+const entityLoader = new IndexLoader(wasmLoader);
 
 /**
  * Loads the WASM. Promise resolves with a WasmLoadValue, which says the version
@@ -41,7 +41,7 @@ const downloadIndex = (
   const entity = new Entity(name, url, safeConfig, entityLoader, wasmLoader);
   entityStore.insert(name, entity, safeConfig);
 
-  return entity.loadPromise;
+  return entity.indexLoadPromise;
 };
 
 const appendChunk = (_name: string, _url: string): Promise<IndexStatistics> => {
@@ -56,7 +56,7 @@ const attach = (name: string): boolean => {
 
 const search = (name: string, query: string, options: object): string[] => {
   log(`Starting search with ${name} for query ${query}`);
-  entityStore.get(name).search(query, options);
+  entityStore.get(name).performSearch(query, options);
   return [];
 };
 

@@ -1,10 +1,13 @@
 import { Configuration } from "./config";
-import { add, create } from "./dom";
+import { add, clear, create } from "./dom";
+import { EntityDomDelegate } from "./entity";
 import StorkError from "./storkError";
+import { log } from "./util/storkLog";
 
 export default class EntityDomManager {
   name: string;
   config: Configuration;
+  delegate: EntityDomDelegate;
 
   input: HTMLInputElement;
   output: HTMLDivElement;
@@ -15,12 +18,16 @@ export default class EntityDomManager {
   message: HTMLElement;
   closeButton: HTMLElement;
 
+  private error = false;
   private indexDownloadProgress = 0;
-  private wasmLoadState: "incomplete" | "success" | "failure" = "incomplete";
+  private wasmDownloadIsComplete = false;
+  private visibleSearchResults: object[] = [];
 
-  constructor(name: string, config: Configuration) {
+  constructor(name: string, config: Configuration, delegate: EntityDomDelegate) {
     this.name = name;
     this.config = config;
+    this.delegate = delegate;
+    log(delegate, this.delegate);
   }
 
   attach() {
@@ -44,7 +51,9 @@ export default class EntityDomManager {
     this.message = create("div", { classNames: ["stork-message"] });
     this.closeButton = create("button", { classNames: ["stork-close-button"] });
 
-    // TODO: eventlistener stuff
+    this.input.addEventListener("input", () => {
+      this.performSearchFromInputValue();
+    });
 
     this.attribution.innerHTML = 'Powered by <a href="https://stork-search.net">Stork</a>';
 
@@ -68,25 +77,56 @@ export default class EntityDomManager {
     this.render();
   }
 
-  setWasmLoadState(state: typeof this.wasmLoadState) {
-    this.wasmLoadState = state;
+  setWasmLoadIsComplete(state: boolean) {
+    this.wasmDownloadIsComplete = state;
     this.render();
   }
 
+  setError(state: boolean) {
+    this.error = state;
+    this.render();
+  }
+
+  setSearchResults(results: object[]) {
+    this.visibleSearchResults = results;
+    this.render();
+  }
+
+  performSearchFromInputValue() {
+    if (!this.searchIsReady()) {
+      return;
+    }
+
+    const query = this.input.value;
+    const searchResults = this.delegate.performSearch(query);
+    this.setSearchResults(searchResults);
+  }
+
+  private searchIsReady() {
+    return this.indexDownloadProgress === 1 && this.wasmDownloadIsComplete && !this.error;
+  }
+
   private render() {
+    this.resetElements();
+
     if (this.config.showProgress) {
       const getFakeProgress = (): number => {
-        switch (this.wasmLoadState) {
-          case "failure":
-            return 1;
-          case "success":
-            return this.indexDownloadProgress;
-          case "incomplete":
-            return this.indexDownloadProgress * 0.9 + 0.05;
+        if (this.error) {
+          return 1;
         }
+
+        if (!this.wasmDownloadIsComplete) {
+          return this.indexDownloadProgress * 0.95 + 0.01;
+        }
+
+        return this.indexDownloadProgress * 0.95 + 0.05;
       };
 
       const progress = getFakeProgress();
+
+      if (this.error) {
+        this.input.classList.add("stork-error");
+      }
 
       if (progress < 1) {
         this.progressBar.style.width = `${progress * 100}%`;
@@ -96,14 +136,19 @@ export default class EntityDomManager {
         this.progressBar.style.opacity = "0";
       }
 
-      switch (this.wasmLoadState) {
-        case "incomplete":
-          this.progressBar.style.backgroundColor = `gray`;
-          break;
-        case "success":
-          this.progressBar.style.removeProperty("background-color");
-          break;
+      if (!this.wasmDownloadIsComplete) {
+        this.progressBar.style.backgroundColor = `gray`;
+      } else {
+        this.progressBar.style.removeProperty("background-color");
       }
     }
+  }
+
+  private resetElements() {
+    clear(this.output);
+    clear(this.list);
+    this.closeButton?.remove();
+    this.output.classList.remove("stork-output-visible");
+    this.input.classList.remove("stork-error");
   }
 }

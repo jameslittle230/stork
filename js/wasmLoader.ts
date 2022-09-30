@@ -45,24 +45,30 @@ export default class WasmLoader {
     // TODO: How to handle WASM already loaded?
 
     log(`Beginning wasmInit, fetching ${this.wasmSourceUrl}`);
-    this.wasmLoadPromise = wasmInit(this.wasmSourceUrl)
-      .then(() => {
-        const wasmVersion = wasm_stork_version();
-        if (wasmVersion != version) {
-          const message = `WASM blob version (${wasmVersion}) must match the JS package version (${version}).`;
-          log(message);
-          throw new StorkError(message);
-        }
 
-        this.wasmIsLoaded = true;
-        this.flushQueue();
-        return { sourceUrl: this.wasmSourceUrl, version: wasm_stork_version() };
-      })
-      .catch((e) => {
-        log("Error loading WASM", e);
-        this.flushErrorQueue(e);
-        throw new StorkError(`Error while loading WASM from ${this.wasmSourceUrl}`);
-      });
+    this.wasmLoadPromise = new Promise((res, rej) => {
+      // Stick this in a zero-length setTimeout to get it to run after the event loop ticks
+      setTimeout(() => {
+        wasmInit(this.wasmSourceUrl)
+          .then(() => {
+            const wasmVersion = wasm_stork_version();
+            if (wasmVersion != version) {
+              const message = `WASM blob version (${wasmVersion}) must match the JS package version (${version}).`;
+              log(message);
+              throw new StorkError(message);
+            }
+
+            this.wasmIsLoaded = true;
+            this.flushQueue();
+            res({ sourceUrl: this.wasmSourceUrl, version: wasm_stork_version() });
+          })
+          .catch((e) => {
+            log("Error loading WASM", e);
+            this.flushErrorQueue(e);
+            rej(new StorkError(`Error while loading WASM from ${this.wasmSourceUrl}`));
+          });
+      }, 0);
+    });
 
     return this.wasmLoadPromise;
   }
