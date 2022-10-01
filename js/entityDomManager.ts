@@ -22,17 +22,20 @@ export default class EntityDomManager {
   private indexDownloadProgress = 0;
   private wasmDownloadIsComplete = false;
   private visibleSearchResults: object[] = [];
+  private attachedToDom = false;
 
   constructor(name: string, config: Configuration, delegate: EntityDomDelegate) {
+    log(`Creating DomManager for ${name}`);
     this.name = name;
     this.config = config;
     this.delegate = delegate;
-    log(delegate, this.delegate);
   }
 
   attach() {
     const input = document.querySelector(`input[data-stork="${this.name}"]`);
     const output = document.querySelector(`input[data-stork="${this.name}"]`);
+
+    console.error(38, input, output);
 
     if (!input) {
       throw new StorkError("No input element found");
@@ -70,6 +73,10 @@ export default class EntityDomManager {
     if (this.config?.showProgress) {
       add(this.progressBar, "afterend", this.input);
     }
+
+    this.attachedToDom = true;
+
+    this.resetElements();
   }
 
   setProgress(number: number) {
@@ -107,6 +114,10 @@ export default class EntityDomManager {
   }
 
   private render() {
+    if (!this.attachedToDom) {
+      return;
+    }
+
     this.resetElements();
 
     if (this.config.showProgress) {
@@ -145,6 +156,10 @@ export default class EntityDomManager {
   }
 
   private resetElements() {
+    if (!this.attachedToDom) {
+      return;
+    }
+
     clear(this.output);
     clear(this.list);
     this.closeButton?.remove();

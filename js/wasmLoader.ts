@@ -73,11 +73,16 @@ export default class WasmLoader {
     return this.wasmLoadPromise;
   }
 
-  queueAfterWasmLoaded(debugName: string, fn: () => void) {
-    this.queue.push({ name: debugName, fn });
+  runAfterWasmLoaded(debugName: string, fn: () => void) {
+    if (this.wasmIsLoaded) {
+      fn();
+    } else {
+      this.queue.push({ name: debugName, fn });
+    }
   }
 
   queueAfterWasmErrored(debugName: string, fn: () => void) {
+    // TODO: Handle case where WASM is either successfully loaded or already errored
     this.errorQueue.push({ name: debugName, fn });
   }
 

@@ -10,6 +10,10 @@ export function add(elem: HTMLElement, location: InsertPosition, reference: HTML
   reference.insertAdjacentElement(location, elem);
 }
 
+/**
+ * Removes all children from the given element
+ * @param elem Parent element to clear
+ */
 export function clear(elem: HTMLElement | null): void {
   while (elem && elem.firstChild) {
     elem.removeChild(elem.firstChild);

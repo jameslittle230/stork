@@ -43,9 +43,14 @@
           console.log("WASM initialized", value);
         });
 
-        stork.downloadIndex("federalist", "http://127.0.0.1:8025/does-not-exist.st").then(() => {
-          console.log("Index loaded");
-        });
+        stork
+          .downloadIndex("federalist", "http://127.0.0.1:8025/does-not-exist.st")
+          .then(() => {
+            console.log("Index loaded");
+          })
+          .catch((e) => {
+            console.error(`Error when downloading index: ${e}`);
+          });
 
         stork.attach("federalist");
         console.log("Attached to DOM");
@@ -58,12 +63,14 @@
           console.log("WASM initialized", value);
         });
 
-        stork.downloadIndex("federalist", "https://stork-search.net/federalist.st").then(() => {
-          console.log("Index loaded");
-        });
+        stork
+          .downloadIndex("federalist", "https://files.stork-search.net/federalist.st")
+          .then(() => {
+            console.log("Index loaded");
+          });
 
         stork.attach("federalist");
-        console.log("Attached to DOM");
+        console.log("73 Attached to DOM");
       });
     </script>
   </body>

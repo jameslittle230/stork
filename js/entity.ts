@@ -43,12 +43,12 @@ export default class Entity implements EntityDomDelegate {
         this.loadManager.setState("index", "success");
         return v;
       })
-      .catch((_e) => {
+      .catch((e) => {
         this.loadManager.setState("index", "failure");
-        return {}; // TODO
+        throw e;
       });
 
-    wasmLoader.queueAfterWasmLoaded(`${this.name} entity domManager report success`, () => {
+    wasmLoader.runAfterWasmLoaded(`${this.name} entity domManager report success`, () => {
       this.loadManager.setState("wasm", "success");
       this.domManager.setWasmLoadIsComplete(true);
     });
@@ -72,6 +72,10 @@ export default class Entity implements EntityDomDelegate {
   }
 
   performSearch(query: string, options?: object) {
+    if (this.loadManager.getAggregateState() !== "success") {
+      log("Returning early from search; not ready yet.");
+    }
+
     log(`Performing search for index "${this.name}" with query "${query}"`);
     return [];
   }

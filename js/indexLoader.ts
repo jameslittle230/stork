@@ -1,3 +1,4 @@
+import StorkError from "./storkError";
 import WasmLoader from "./wasmLoader";
 
 export type IndexLoadValue = object; // TODO: Replace with IndexStatistics type
@@ -24,14 +25,14 @@ export default class IndexLoader {
           }
 
           if (status < 200 || status > 299) {
-            reject();
+            reject(new StorkError(`HTTP Error when fetching ${url}, got status ${status}`));
           } else {
             resolve(response);
           }
         });
 
-        request.addEventListener("error", () => {
-          reject();
+        request.addEventListener("error", (err) => {
+          reject(err);
         });
 
         request.addEventListener("progress", (e) => {
