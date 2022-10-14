@@ -22,7 +22,7 @@ pub(crate) fn build_index(
 ) -> Result<build_output::BuildSuccessValue, build_output::errors::InternalBuildError> {
     let mut warnings: Vec<build_output::BuildWarning> = Vec::new();
 
-    let mut index = index_v4::IndexDiskRepresentation::default();
+    let mut index = index_v4::IndexDiskRepresentation::default_from_config(&config);
 
     let mut word_document_map: BTreeMap<String, HashSet<index_v4::QueryResultIndex>> =
         BTreeMap::new();

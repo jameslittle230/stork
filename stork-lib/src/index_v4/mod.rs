@@ -9,7 +9,7 @@ use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
-use crate::build_config::{OutputConfig, TitleBoost};
+use crate::build_config::{errors::ConfigReadError, Config, OutputConfig, TitleBoost};
 
 pub(crate) use search::resolve_search_values;
 pub(crate) use tree::Tree;
@@ -22,7 +22,7 @@ pub(crate) type CharacterOffset = usize;
 /// Serializing this data structure with a specific serializer will vend a
 /// binary blob which, when packaged in a Stork Index envelope, will be a valid
 /// Stork Index file.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub(crate) struct IndexDiskRepresentation {
     /// The root of a radix tree for all words in the document. Each node
     /// in the tree (even if it has children) points to a set of query results
@@ -43,6 +43,15 @@ pub(crate) struct IndexDiskRepresentation {
 impl IndexDiskRepresentation {
     pub(crate) fn to_bytes(&self) -> Bytes {
         Bytes::from(rmp_serde::to_vec(self).unwrap())
+    }
+
+    pub(crate) fn default_from_config(config: &Config) -> Self {
+        Self {
+            query_tree: Tree::default(),
+            query_results: Vec::new(),
+            documents: BTreeMap::new(),
+            settings: Settings::new_from_config(config),
+        }
     }
 }
 
@@ -115,18 +124,30 @@ pub(crate) struct MetadataValue {
     pub(crate) metadata_entry_index: MetadataIndex, // the index into that document's metadata vec, not some global metadata vec (this doesn't exist)
 }
 
-#[derive(Debug, Clone, SmartDefault, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) struct Settings {
     pub(crate) url_prefix: String,
 
     pub(crate) title_boost: TitleBoost,
 
-    #[default(OutputConfig::default().excerpt_buffer)]
+    pub(crate) minimum_query_length: u8,
+
     pub(crate) excerpt_buffer: u8,
 
-    #[default(OutputConfig::default().excerpts_per_result)]
     pub(crate) excerpts_per_result: u8,
 
-    #[default(OutputConfig::default().displayed_results_count)]
     pub(crate) displayed_results_count: u8,
+}
+
+impl Settings {
+    pub(crate) fn new_from_config(config: &Config) -> Self {
+        Self {
+            url_prefix: config.input.url_prefix.clone(),
+            title_boost: config.input.title_boost.clone(),
+            minimum_query_length: config.output.minimum_query_length,
+            excerpt_buffer: config.output.excerpt_buffer,
+            excerpts_per_result: config.output.excerpts_per_result,
+            displayed_results_count: config.output.displayed_results_count,
+        }
+    }
 }

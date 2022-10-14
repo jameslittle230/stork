@@ -1,6 +1,7 @@
+import StorkError from "./storkError";
 import { log } from "./util/storkLog";
 
-export type LoadState = "incomplete" | "success" | "failure";
+export type LoadState = "notStarted" | "incomplete" | "success" | "failure";
 
 export default class LoadManager {
   components: Record<string, LoadState> = {};
@@ -10,7 +11,7 @@ export default class LoadManager {
 
   constructor(components: string[]) {
     components.forEach((component) => {
-      this.components[component] = "incomplete";
+      this.components[component] = "notStarted";
     });
   }
 
@@ -19,15 +20,17 @@ export default class LoadManager {
       throw new Error("");
     }
 
-    if (this.components[component] === state) {
-      log(`Tried setting ${component} to ${state} in LoadManager, but value is already set`);
-      return;
+    if (this.components[component] === "success" && state !== "success") {
+      throw new StorkError(
+        `Tried to set ${component} to "${state}" after it's already been set to "success", which is a final value`
+      );
     }
 
-    if (this.components[component] !== "incomplete") {
-      throw new Error(
-        "Tried to set state to a final value when it's already set to a different final value"
+    if (this.components[component] === state) {
+      log(
+        `Tried setting ${component} to "${state}" in LoadManager, but ${component}'s state is already "${state}"`
       );
+      return;
     }
 
     log(`Setting ${component} to ${state} in LoadManager`);
@@ -52,6 +55,8 @@ export default class LoadManager {
     const values = Object.values(this.components);
     if (values.every((v) => v === "success")) {
       return "success";
+    } else if (values.every((v) => v === "notStarted")) {
+      return "notStarted";
     } else if (values.includes("failure")) {
       return "failure";
     }
@@ -70,7 +75,11 @@ export default class LoadManager {
     log(`Flushing load function queue (${this.queue.length} functions)`);
     this.queue.forEach(({ name, fn }) => {
       log(`Running load function "${name}"`);
-      fn();
+      try {
+        fn();
+      } catch (_e) {
+        // no-op
+      }
     });
     this.queue = [];
   }

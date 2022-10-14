@@ -1,6 +1,8 @@
 import { default as wasmInit, wasm_stork_version } from "stork-search";
 
+import { LoadState } from "./loadManager";
 import StorkError from "./storkError";
+import { debugAssert } from "./util/debugAssert";
 import { log } from "./util/storkLog";
 
 const version = process.env.VERSION;
@@ -14,10 +16,19 @@ export type WasmLoadValue = {
 };
 
 export default class WasmLoader {
-  queue: { name: string; fn: () => void }[] = [];
-  errorQueue: { name: string; fn: (e: Error) => void }[] = [];
   wasmLoadPromise: Promise<WasmLoadValue> | null = null;
-  wasmIsLoaded = false;
+
+  // Once set to `success`, this should never be set to any other value
+  loadState: LoadState = "notStarted";
+
+  // When WASM is loaded successfully, these functions are called, then removed
+  // from this array.
+  queue: { name: string; fn: () => void }[] = [];
+
+  // When WASM fails to load, these functions are called, then removed from
+  // this array
+  errorQueue: { name: string; fn: (e: Error) => void }[] = [];
+
   wasmSourceUrl = DEFAULT_WASM_URL;
 
   constructor() {
@@ -25,16 +36,20 @@ export default class WasmLoader {
   }
 
   load(overrideUrl?: string): Promise<WasmLoadValue> {
-    if (this.wasmIsLoaded) {
-      log("Wasm already loaded; returning known values");
+    if (this.loadState === "success") {
+      log("Wasm is already loaded; returning known values");
       return Promise.resolve({
         sourceUrl: this.wasmSourceUrl,
         version: wasm_stork_version()
       });
     }
 
-    if (this.wasmLoadPromise) {
-      log("Wasm started loading; returning promise");
+    if (this.loadState === "incomplete") {
+      log("Called wasmLoader.load while existing load is in progress; returning in-flight promise");
+      debugAssert(this.wasmLoadPromise);
+      if (!this.wasmLoadPromise) {
+        return Promise.reject("bad state");
+      }
       return this.wasmLoadPromise;
     }
 
@@ -42,46 +57,50 @@ export default class WasmLoader {
       this.wasmSourceUrl = overrideUrl;
     }
 
-    // TODO: How to handle WASM already loaded?
-
     log(`Beginning wasmInit, fetching ${this.wasmSourceUrl}`);
 
-    this.wasmLoadPromise = new Promise((res, rej) => {
-      // Stick this in a zero-length setTimeout to get it to run after the event loop ticks
+    return new Promise((res) => {
+      // Stick this in a zero-length setTimeout to get it to run
+      // after the event loop ticks
       setTimeout(() => {
+        // TODO: Call fetch here and pass the binary directly so that we can provide
+        // better diagnostics if the fetch 404s
         wasmInit(this.wasmSourceUrl)
           .then(() => {
             const wasmVersion = wasm_stork_version();
+
             if (wasmVersion != version) {
               const message = `WASM blob version (${wasmVersion}) must match the JS package version (${version}).`;
               log(message);
               throw new StorkError(message);
             }
 
-            this.wasmIsLoaded = true;
+            this.loadState = "success";
             this.flushQueue();
-            res({ sourceUrl: this.wasmSourceUrl, version: wasm_stork_version() });
+
+            res({ sourceUrl: this.wasmSourceUrl, version: wasmVersion });
           })
           .catch((e) => {
-            log("Error loading WASM", e);
+            log("Error loading WASM.", e);
+
+            this.loadState = "failure";
             this.flushErrorQueue(e);
-            rej(new StorkError(`Error while loading WASM from ${this.wasmSourceUrl}`));
+
+            throw new StorkError(`Error while loading WASM from ${this.wasmSourceUrl}`);
           });
       }, 0);
     });
-
-    return this.wasmLoadPromise;
   }
 
   runAfterWasmLoaded(debugName: string, fn: () => void) {
-    if (this.wasmIsLoaded) {
+    if (this.loadState === "success") {
       fn();
     } else {
       this.queue.push({ name: debugName, fn });
     }
   }
 
-  queueAfterWasmErrored(debugName: string, fn: () => void) {
+  runAfterWasmError(debugName: string, fn: () => void) {
     // TODO: Handle case where WASM is either successfully loaded or already errored
     this.errorQueue.push({ name: debugName, fn });
   }
@@ -90,7 +109,7 @@ export default class WasmLoader {
     return {
       wasmSourceUrl: this.wasmSourceUrl,
       wasmLoadPromise: this.wasmLoadPromise,
-      wasmIsLoaded: this.wasmIsLoaded,
+      wasmLoadState: this.loadState,
       loadQueue: this.queue.map(({ name }) => name),
       errorQueue: this.queue.map(({ name }) => name)
     };
@@ -99,7 +118,12 @@ export default class WasmLoader {
   private flushQueue() {
     log(`Flushing WASM load function queue (${this.queue.length} functions)`);
     this.queue.forEach(({ fn }) => {
-      fn();
+      debugAssert(this.loadState === "success");
+      try {
+        fn();
+      } catch (_e) {
+        // no-op
+      }
     });
     this.queue = [];
   }
@@ -107,6 +131,7 @@ export default class WasmLoader {
   private flushErrorQueue(e: Error) {
     log(`Flushing WASM error function queue (${this.errorQueue.length} functions)`);
     this.errorQueue.forEach(({ fn }) => {
+      debugAssert(this.loadState === "failure");
       fn(e);
     });
     this.errorQueue = [];

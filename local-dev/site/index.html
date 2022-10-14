@@ -14,7 +14,7 @@
   </head>
   <body>
     <h1>Stork Test Page</h1>
-    <iframe src="nav.html" frameborder="0" style="height: 2.5em; width: 100%"></iframe>
+    <iframe src="nav.html"></iframe>
     <p class="title">Init, downloadIndex, and attach on button press</p>
     <p><button id="load">Load Stork</button></p>
     <div class="stork-wrapper">
@@ -40,11 +40,9 @@
           console.log("WASM initialized", value);
         });
 
-        stork
-          .downloadIndex("federalist", "https://files.stork-search.net/federalist.st")
-          .then(() => {
-            console.log("Index loaded");
-          });
+        stork.downloadIndex("federalist", "http://127.0.0.1:8025/federalist.st").then(() => {
+          console.log("Index loaded");
+        });
 
         stork.attach("federalist");
         console.log("Attached to DOM");

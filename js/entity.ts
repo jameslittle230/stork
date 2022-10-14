@@ -1,3 +1,5 @@
+import { load_index, perform_search } from "stork-search";
+
 import { Configuration } from "./config";
 import EntityDomManager from "./entityDomManager";
 import IndexLoader, { IndexLoadValue } from "./indexLoader";
@@ -17,12 +19,14 @@ export default class Entity implements EntityDomDelegate {
 
   private domManager: EntityDomManager;
   private loadManager: LoadManager;
+  private indexLoader: IndexLoader;
+  private wasmLoader: WasmLoader;
 
   constructor(
     name: string,
     url: string,
     config: Configuration,
-    entityLoader: IndexLoader,
+    indexLoader: IndexLoader,
     wasmLoader: WasmLoader
   ) {
     log(`Entity ${name} constructed`);
@@ -30,31 +34,26 @@ export default class Entity implements EntityDomDelegate {
     this.url = url;
     this.config = config;
 
-    this.domManager = new EntityDomManager(this.name, this.config, this.delegate);
+    this.indexLoader = indexLoader;
+    this.wasmLoader = wasmLoader;
     this.loadManager = new LoadManager(["index", "wasm"]);
 
-    this.indexLoadPromise = entityLoader
-      .load(url, (percentage) => {
-        this.domManager.setProgress(percentage);
-      })
-      .then((v) => {
-        log(`Index load complete, got ${v.byteLength} bytes`);
-        this.domManager.setProgress(1);
-        this.loadManager.setState("index", "success");
-        return v;
-      })
-      .catch((e) => {
-        this.loadManager.setState("index", "failure");
-        throw e;
-      });
+    // This needs to exist regardless of whether we've called `attach()` or not,
+    // since this is responsible for managing a lot of display state that needs
+    // to be kept up-to-date even before we've attached and started displaying
+    // that state.
+    this.domManager = new EntityDomManager(this.name, this.config, this.delegate);
+  }
 
-    wasmLoader.runAfterWasmLoaded(`${this.name} entity domManager report success`, () => {
+  load(): Promise<IndexLoadValue> {
+    this.wasmLoader.runAfterWasmLoaded(`${this.name} entity domManager report success`, () => {
       this.loadManager.setState("wasm", "success");
       this.domManager.setWasmLoadIsComplete(true);
     });
 
-    wasmLoader.queueAfterWasmErrored(`${this.name} entity domManager report error`, () => {
+    this.wasmLoader.runAfterWasmError(`${this.name} entity domManager report error`, () => {
       this.loadManager.setState("wasm", "failure");
+      // -> this.loadManager.runOnError
     });
 
     this.loadManager.runAfterLoad("run entitydom search", () => {
@@ -65,19 +64,50 @@ export default class Entity implements EntityDomDelegate {
     this.loadManager.runOnError("set entitydom to error", () => {
       this.domManager.setError(true);
     });
+
+    return this.indexLoader
+      .load(this.url, (percentage) => {
+        this.domManager.setProgress(percentage);
+      })
+      .then((buffer) => {
+        this.wasmLoader.runAfterWasmLoaded(`Load index ${this.name}`, () => {
+          this.domManager.setProgress(1);
+          log(`Index download complete! Got ${buffer.byteLength} bytes`);
+
+          try {
+            load_index(this.name, new Uint8Array(buffer));
+            log(`Index loaded in WASM, setting loadManager state to success`);
+            this.loadManager.setState("index", "success");
+          } catch (e) {
+            this.loadManager.setState("index", "failure");
+            log(
+              `Index failed to load in WASM, setting loadManager state to failure. Got error ${e}`
+            );
+          }
+        });
+        return buffer;
+      })
+      .catch((e) => {
+        this.loadManager.setState("index", "failure");
+        throw e;
+      });
   }
 
   attach() {
     this.domManager.attach();
   }
 
-  performSearch(query: string, options?: object) {
+  performSearch(query: string) {
+    console.log(this.loadManager);
     if (this.loadManager.getAggregateState() !== "success") {
       log("Returning early from search; not ready yet.");
+      return;
     }
 
     log(`Performing search for index "${this.name}" with query "${query}"`);
-    return [];
+    const val = JSON.parse(perform_search(this.name, query));
+    console.log(val);
+    return val;
   }
 
   public get delegate(): EntityDomDelegate {

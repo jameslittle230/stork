@@ -20,7 +20,7 @@ export const resolveConfig = (object: unknown) => {
     showScores: checkeasy.defaultValue(false, checkeasy.boolean()),
     showCloseButton: checkeasy.defaultValue(true, checkeasy.boolean()),
     minimumQueryLength: checkeasy.defaultValue(3, checkeasy.int()),
-    forceOverwrite: checkeasy.defaultValue(false, checkeasy.boolean()),
+    forceRefreshIndex: checkeasy.defaultValue(false, checkeasy.boolean()),
     resultNoun: checkeasy.defaultValue(
       { singular: "file", plural: "files" },
       checkeasy.object({

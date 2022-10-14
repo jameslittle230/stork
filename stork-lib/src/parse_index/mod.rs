@@ -1,4 +1,5 @@
 use bytes::Bytes;
+use serde::Serialize;
 
 use std::convert::TryFrom;
 
@@ -18,6 +19,7 @@ pub struct ParsedIndex {
     pub(crate) value: IndexType,
 }
 
+#[derive(Debug, Clone, Serialize)]
 pub struct IndexStatistics {
     // TODO: Implement this struct
 }
@@ -67,7 +69,7 @@ pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, errors::IndexParseError
         #[cfg(feature = "search-v3")]
         envelope::Prefix::StorkV3 => {
             return V3IndexType::try_from(envelope.bytes.first().unwrap())
-                .map_err(|e| errors::IndexParseError::V3IndexDeserializeError(e))
+                .map_err(errors::IndexParseError::V3IndexDeserializeError)
                 .map(|index| ParsedIndex {
                     value: IndexType::V3Index(index),
                 });
@@ -76,7 +78,7 @@ pub(super) fn parse(bytes: Bytes) -> Result<ParsedIndex, errors::IndexParseError
         envelope::Prefix::StorkV4 => {
             // Index v5: Put this behind a feature conditional
             return V4IndexType::try_from(envelope.bytes.first().unwrap())
-                .map_err(|e| errors::IndexParseError::V4IndexDeserializeError(e))
+                .map_err(errors::IndexParseError::V4IndexDeserializeError)
                 .map(|index| ParsedIndex {
                     value: IndexType::V4Index(index),
                 });

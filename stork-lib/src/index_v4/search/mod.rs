@@ -53,6 +53,10 @@ pub(crate) fn get_search_values(
 ) -> Vec<SearchValue> {
     let mut query_results = vec![];
 
+    if !search_term.is_valid(&index.settings) {
+        return vec![];
+    }
+
     let values = match search_term {
         search_query::SearchTerm::InexactWord(word) => index
             .query_tree
@@ -61,7 +65,6 @@ pub(crate) fn get_search_values(
         search_query::SearchTerm::ExactWord(word) => index
             .query_tree
             .get_values_for_string(word, super::tree::GetValuesOption::Exact),
-        _ => panic!("TODO"),
     };
 
     if let Some(vec) = values {

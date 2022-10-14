@@ -8,7 +8,7 @@ pub(crate) struct V4SearchValue {
 
 /// An opaque struct that contains data about a search result. These values can
 /// be cached piecewise by `SearchTerm`, and can be resolved later.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SearchValue {
     pub(crate) v4_value: Option<V4SearchValue>,
 }

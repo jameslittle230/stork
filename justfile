@@ -55,7 +55,11 @@ dev-init: _yarn
     git submodule update
 
 dev: dev-init _build-dev _copy-dev-files
-    mprocs "just _dev-watch" "just _dev-serve"
+    mprocs "just _dev-watch-build" "just _dev-serve" "just _dev-watch-test"
+
+rebuild-dev-indexes:
+    rm -rf local-dev/test-indexes/*.st
+    just _build-dev-indexes
 
 
 ######################################
@@ -83,6 +87,7 @@ _build-rust-dev:
     cargo build --all-features
 
 _build-js-dev: _build-wasm-dev
+    yarn upgrade stork-search
     yarn webpack --config js/webpack/webpack.dev.js
 
 _build-wasm-dev:
@@ -103,13 +108,15 @@ _copy-dev-files: _build-dev-indexes
 
 _dev-once: dev-init _build-dev _copy-dev-files
 
-_dev-watch:
+_dev-watch-build:
     git ls-files | entr -s "just _build-dev && just _copy-dev-files"
 
 _dev-serve:
     @echo "Open http://127.0.0.1:8025"
     python3 -m http.server --directory ./local-dev/dist 8025
 
+_dev-watch-test:
+    git ls-files | entr -s "just test"
 
 
 ######################################

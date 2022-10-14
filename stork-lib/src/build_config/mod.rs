@@ -174,6 +174,7 @@ mod tests {
                 excerpt_buffer: 8,
                 excerpts_per_result: 5,
                 displayed_results_count: 10,
+                minimum_query_length: 3,
             },
             local: LocalConfig { debug_output: false },
         }

@@ -28,14 +28,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         {
-          from: path.resolve(
-            __dirname,
-            "..",
-            "..",
-            "stork-wasm",
-            "pkg",
-            "stork_bg.wasm"
-          ),
+          from: path.resolve(__dirname, "..", "..", "stork-wasm", "pkg", "stork_bg.wasm"),
           to: "stork.wasm"
         }
       ]

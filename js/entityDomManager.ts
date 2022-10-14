@@ -9,14 +9,14 @@ export default class EntityDomManager {
   config: Configuration;
   delegate: EntityDomDelegate;
 
-  input: HTMLInputElement;
-  output: HTMLDivElement;
+  input: HTMLInputElement | null;
+  output: HTMLDivElement | null;
 
-  list: HTMLElement;
-  attribution: HTMLElement;
-  progressBar: HTMLElement;
-  message: HTMLElement;
-  closeButton: HTMLElement;
+  list: HTMLElement | null;
+  attribution: HTMLElement | null;
+  progressBar: HTMLElement | null;
+  message: HTMLElement | null;
+  closeButton: HTMLElement | null;
 
   private error = false;
   private indexDownloadProgress = 0;
@@ -33,9 +33,7 @@ export default class EntityDomManager {
 
   attach() {
     const input = document.querySelector(`input[data-stork="${this.name}"]`);
-    const output = document.querySelector(`input[data-stork="${this.name}"]`);
-
-    console.error(38, input, output);
+    const output = document.querySelector(`div[data-stork="${this.name}-output"]`);
 
     if (!input) {
       throw new StorkError("No input element found");
@@ -100,12 +98,14 @@ export default class EntityDomManager {
   }
 
   performSearchFromInputValue() {
-    if (!this.searchIsReady()) {
+    if (!this.searchIsReady() || !this.input) {
       return;
     }
 
     const query = this.input.value;
+    console.time("search");
     const searchResults = this.delegate.performSearch(query);
+    console.timeEnd("search");
     this.setSearchResults(searchResults);
   }
 
@@ -114,13 +114,13 @@ export default class EntityDomManager {
   }
 
   private render() {
-    if (!this.attachedToDom) {
+    if (!this.input || !this.output) {
       return;
     }
 
     this.resetElements();
 
-    if (this.config.showProgress) {
+    if (this.config.showProgress && this.progressBar) {
       const getFakeProgress = (): number => {
         if (this.error) {
           return 1;
@@ -163,7 +163,7 @@ export default class EntityDomManager {
     clear(this.output);
     clear(this.list);
     this.closeButton?.remove();
-    this.output.classList.remove("stork-output-visible");
-    this.input.classList.remove("stork-error");
+    this.output?.classList.remove("stork-output-visible");
+    this.input?.classList.remove("stork-error");
   }
 }

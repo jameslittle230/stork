@@ -8,6 +8,9 @@ pub struct OutputConfig {
     #[default = false]
     pub save_nearest_html_id: bool,
 
+    #[default = 3]
+    pub minimum_query_length: u8,
+
     #[default = 8]
     pub excerpt_buffer: u8,
 

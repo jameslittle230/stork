@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stork Test Page</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="/basic.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>"
+    />
+  </head>
+  <body>
+    <h1>Stork Test Page</h1>
+    <iframe src="nav.html"></iframe>
+    <p class="title">Load failure, then load success</p>
+    <div class="stack-x">
+      <div class="stack-y">
+        <button id="btn-1">1: Initialize - 200</button>
+        <button id="btn-2">2: Initialize - 404</button>
+        <button id="btn-3">3: Download Index - 200</button>
+        <button id="btn-4">4: Download Index - 404</button>
+        <button id="btn-5">5: Attach</button>
+        <button id="btn-6">6: Attach (Wrong name)</button>
+      </div>
+      <div class="stork-wrapper">
+        <input data-stork="federalist" placeholder="liberty" class="stork-input" />
+        <div data-stork="federalist-output" class="stork-output"></div>
+      </div>
+    </div>
+
+    <script>
+      if (window.location.origin !== "http://127.0.0.1:8025") {
+        window.location.replace("http://127.0.0.1:8025");
+      }
+    </script>
+
+    <script src="http://127.0.0.1:8025/stork.js"></script>
+
+    <script>
+      window.__stork_debug_log = 1;
+
+      document.getElementById("btn-1").addEventListener("click", () => {
+        stork.initialize("http://127.0.0.1:8025/stork.wasm").then((value) => {
+          console.log("WASM initialized", value);
+        });
+      });
+
+      document.getElementById("btn-2").addEventListener("click", () => {
+        stork.initialize("http://127.0.0.1:8025/does-not-exist.wasm").then((value) => {
+          console.log("WASM initialized", value);
+        });
+      });
+
+      document.getElementById("btn-3").addEventListener("click", () => {
+        stork
+          .downloadIndex("federalist", "http://127.0.0.1:8025/federalist.st")
+          .then(() => {
+            console.log("Index loaded");
+          })
+          .catch((e) => {
+            console.error(`Error when downloading index: ${e}`);
+          });
+      });
+
+      document.getElementById("btn-4").addEventListener("click", () => {
+        stork
+          .downloadIndex("federalist", "http://127.0.0.1:8025/does-not-exist.st")
+          .then(() => {
+            console.log("Index loaded");
+          })
+          .catch((e) => {
+            console.error(`Error when downloading index: ${e}`);
+          });
+      });
+
+      document.getElementById("btn-5").addEventListener("click", () => {
+        stork.attach("federalist");
+      });
+
+      document.getElementById("btn-6").addEventListener("click", () => {
+        stork.attach("does-not-exist");
+      });
+    </script>
+  </body>
+</html>

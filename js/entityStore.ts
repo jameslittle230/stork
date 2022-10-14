@@ -5,8 +5,13 @@ import StorkError from "./storkError";
 export default class EntityStore {
   store: Record<string, Entity> = {};
 
-  insert(name: string, entity: Entity, _config: Configuration) {
-    // TODO: Handle user-configurable overwrite
+  insert(name: string, entity: Entity, config: Configuration) {
+    if (this.store[name] && !config.forceRefreshIndex) {
+      throw new StorkError(
+        "Called downloadIndex() with an identifier that already exists. Did you mean to set forceRefreshIndex to true?"
+      );
+    }
+
     this.store[name] = entity;
   }
 
