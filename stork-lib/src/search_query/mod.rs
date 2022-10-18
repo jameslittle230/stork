@@ -1,8 +1,10 @@
 //! Contains a module for modeling a search query, as well as parsing strings into search query models.
 
+use serde::Serialize;
+
 use crate::index_v4::Settings;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize)]
 pub enum SearchTerm {
     InexactWord(String),
     ExactWord(String),

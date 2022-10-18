@@ -4,11 +4,14 @@ import { Configuration } from "./config";
 import EntityDomManager from "./entityDomManager";
 import IndexLoader, { IndexLoadValue } from "./indexLoader";
 import LoadManager from "./loadManager";
+import { Result, SearchValue } from "./searchData";
 import { log } from "./util/storkLog";
 import WasmLoader from "./wasmLoader";
 
+type WrappedValue<T> = { success: true; value: T } | { success: false };
+
 export type EntityDomDelegate = {
-  performSearch: (query: string) => object[];
+  performSearch: (query: string) => WrappedValue<SearchValue>;
 };
 
 export default class Entity implements EntityDomDelegate {
@@ -101,13 +104,18 @@ export default class Entity implements EntityDomDelegate {
     console.log(this.loadManager);
     if (this.loadManager.getAggregateState() !== "success") {
       log("Returning early from search; not ready yet.");
-      return;
+      return { success: false };
     }
 
     log(`Performing search for index "${this.name}" with query "${query}"`);
-    const val = JSON.parse(perform_search(this.name, query));
-    console.log(val);
-    return val;
+    try {
+      const val = JSON.parse(perform_search(this.name, query));
+      console.log(val);
+      return val;
+    } catch (e) {
+      log(e);
+      return { success: false };
+    }
   }
 
   public get delegate(): EntityDomDelegate {

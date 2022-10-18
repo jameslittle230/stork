@@ -1,6 +1,7 @@
 use anyhow::Context;
 use bytes::Bytes;
 use serde::Serialize;
+use serde_json::json;
 use std::{collections::HashMap, sync::Mutex};
 
 use lazy_static::lazy_static;
@@ -45,7 +46,7 @@ where
     }
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Serialize)]
 struct SearchValueCacheKey {
     index_name: String,
     search_term: SearchTerm,
@@ -55,6 +56,29 @@ lazy_static! {
     static ref INDEX_CACHE: Mutex<HashMap<String, ParsedIndex>> = Mutex::new(HashMap::new());
     static ref SEARCH_VALUE_CACHE: Mutex<HashMap<SearchValueCacheKey, Vec<SearchValue>>> =
         Mutex::new(HashMap::new());
+}
+
+#[wasm_bindgen]
+pub fn debug() -> String {
+    let index_cache = INDEX_CACHE.lock().unwrap();
+    let index_cache_debug = index_cache
+        .keys()
+        .filter_map(|k| {
+            let (key, index) = index_cache.get_key_value(k)?;
+            Some((key.clone(), index.stats()))
+        })
+        .collect::<Vec<(String, IndexStatistics)>>();
+
+    let search_value_cache = SEARCH_VALUE_CACHE.lock().unwrap();
+    let search_value_cache_debug = search_value_cache
+        .keys()
+        .filter_map(|k| {
+            let (key, index) = search_value_cache.get_key_value(k)?;
+            Some((key, index.len()))
+        })
+        .collect::<Vec<(&SearchValueCacheKey, usize)>>();
+
+    serde_json::to_string(&json!({ "index_cache": index_cache_debug, "search_value_cache": search_value_cache_debug })).unwrap()
 }
 
 #[wasm_bindgen]

@@ -1,6 +1,8 @@
 import { Configuration } from "./config";
-import { add, clear, create } from "./dom";
+import { add, clear, create, setText } from "./dom";
 import { EntityDomDelegate } from "./entity";
+import { ListItemDisplayOptions, resultToListItem } from "./resultToListItem";
+import { Result } from "./searchData";
 import StorkError from "./storkError";
 import { log } from "./util/storkLog";
 
@@ -15,14 +17,17 @@ export default class EntityDomManager {
   list: HTMLElement | null;
   attribution: HTMLElement | null;
   progressBar: HTMLElement | null;
-  message: HTMLElement | null;
+  messageElem: HTMLElement | null;
   closeButton: HTMLElement | null;
 
   private error = false;
   private indexDownloadProgress = 0;
   private wasmDownloadIsComplete = false;
-  private visibleSearchResults: object[] = [];
+  private visibleSearchResults: Result[] = [];
   private attachedToDom = false;
+  private highlightedResultIndex?: number;
+  private hoverSelectEnabled = false;
+  private message?: string;
 
   constructor(name: string, config: Configuration, delegate: EntityDomDelegate) {
     log(`Creating DomManager for ${name}`);
@@ -49,7 +54,7 @@ export default class EntityDomManager {
     this.list = create("ul", { classNames: ["stork-results"] });
     this.attribution = create("div", { classNames: ["stork-attribution"] });
     this.progressBar = create("div", { classNames: ["stork-progress"] });
-    this.message = create("div", { classNames: ["stork-message"] });
+    this.messageElem = create("div", { classNames: ["stork-message"] });
     this.closeButton = create("button", { classNames: ["stork-close-button"] });
 
     this.input.addEventListener("input", () => {
@@ -92,8 +97,9 @@ export default class EntityDomManager {
     this.render();
   }
 
-  setSearchResults(results: object[]) {
+  setSearchResults(results: Result[], totalHitCount: number, duration: number) {
     this.visibleSearchResults = results;
+    this.message = `${totalHitCount} results in ${duration} ms`;
     this.render();
   }
 
@@ -103,10 +109,19 @@ export default class EntityDomManager {
     }
 
     const query = this.input.value;
+    const begin = performance.now();
     console.time("search");
-    const searchResults = this.delegate.performSearch(query);
+    const result = this.delegate.performSearch(query);
+    const end = performance.now();
     console.timeEnd("search");
-    this.setSearchResults(searchResults);
+    if (result.success) {
+      const { value } = result;
+      const { results, total_hit_count } = value;
+      this.setSearchResults(results, total_hit_count, end - begin);
+    } else {
+      this.setSearchResults([], 0, 0);
+    }
+    // const { results, url_prefix } = value;
   }
 
   private searchIsReady() {
@@ -114,7 +129,7 @@ export default class EntityDomManager {
   }
 
   private render() {
-    if (!this.input || !this.output) {
+    if (!this.input || !this.output || !this.list || !this.attribution || !this.messageElem) {
       return;
     }
 
@@ -153,6 +168,68 @@ export default class EntityDomManager {
         this.progressBar.style.removeProperty("background-color");
       }
     }
+
+    if (this.message) {
+      this.output.classList.add("stork-output-visible");
+      add(this.messageElem, "beforeend", this.output);
+      console.log(this.message);
+      setText(this.messageElem, this.message);
+    }
+
+    if (this.visibleSearchResults.length > 0) {
+      this.output.classList.add("stork-output-visible");
+      add(this.list, "beforeend", this.output);
+
+      for (let i = 0; i < this.visibleSearchResults.length; i++) {
+        const result = this.visibleSearchResults[i];
+        const generateOptions: ListItemDisplayOptions = {
+          selected: i === this.highlightedResultIndex,
+          showScores: false
+        };
+
+        const listItem = resultToListItem(result, generateOptions);
+        add(listItem as HTMLElement, "beforeend", this.list);
+
+        listItem.addEventListener("mousemove", () => {
+          if (this.hoverSelectEnabled) {
+            if (i !== this.highlightedResultIndex) {
+              this.changeHighlightedResult({ to: i, shouldScrollTo: false });
+            }
+          }
+        });
+
+        listItem.addEventListener("mouseleave", () => {
+          if (this.hoverSelectEnabled) {
+            if (i === this.highlightedResultIndex) {
+              this.changeHighlightedResult({ to: -1, shouldScrollTo: false });
+            }
+          }
+        });
+
+        listItem.addEventListener("click", (e) => {
+          e.preventDefault();
+          this.selectResult();
+        });
+      }
+
+      add(this.attribution, "beforeend", this.output);
+    }
+  }
+
+  private changeHighlightedResult(options: { to: number; shouldScrollTo: boolean }): number {
+    return options.to;
+  }
+
+  private selectResult() {
+    if (!this.highlightedResultIndex) {
+      return;
+    }
+
+    const result = this.visibleSearchResults[this.highlightedResultIndex];
+
+    // todo: call user config function
+
+    window.location.assign(result.entry.url);
   }
 
   private resetElements() {
@@ -162,6 +239,7 @@ export default class EntityDomManager {
 
     clear(this.output);
     clear(this.list);
+    this.messageElem?.remove();
     this.closeButton?.remove();
     this.output?.classList.remove("stork-output-visible");
     this.input?.classList.remove("stork-error");

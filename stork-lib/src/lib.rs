@@ -6,11 +6,6 @@
 // #![warn(clippy::pedantic)] // TODO: Uncomment and fix
 
 //! The internal logic for building and searching [Stork](https://stork-search.net) search indexes.
-//!
-//! ```
-//! let config =
-//! let asdf = build_index()
-//! ```
 
 pub mod build_config;
 pub mod build_output;

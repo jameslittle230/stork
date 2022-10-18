@@ -24,7 +24,7 @@ export interface Result {
   title_highlight_ranges?: Array<HighlightRange>;
 }
 
-export interface SearchData {
+export interface SearchValue {
   results: Array<Result>;
   total_hit_count: number;
   url_prefix: string;
