@@ -1,7 +1,7 @@
 use std::cmp::min;
 
 use colored::Colorize;
-use stork_lib::search_output::{HighlightRange, SearchResult};
+use stork_lib::search_output::{HighlightRange, SearchOutput};
 use textwrap::termwidth;
 
 fn highlight_title(string: &str, ranges: &Vec<HighlightRange>) -> String {
@@ -42,18 +42,18 @@ fn highlight_string(string: &str, ranges: &Vec<HighlightRange>) -> String {
     highlighted
 }
 
-pub fn print(results: &SearchResult) -> String {
+pub fn print(search_output: &SearchOutput) -> String {
     let mut output = String::new();
 
     let textwrap_options = textwrap::Options::new(min(120, termwidth()))
         .initial_indent("    - ")
         .subsequent_indent("      ");
 
-    results.results.iter().for_each(|result| {
+    search_output.results.iter().for_each(|result| {
         output.push_str(&format!(
             "{}\n<{}{}>",
             highlight_title(&result.entry.title, &result.title_highlight_ranges), // TODO: Figure out how to highlight the sections of titles that should be highlighted
-            results.url_prefix,
+            search_output.url_prefix,
             result.entry.url
         ));
         result.excerpts.iter().for_each(|excerpt| {
@@ -73,7 +73,7 @@ pub fn print(results: &SearchResult) -> String {
 
     output.push_str(&format!(
         "{} total results available",
-        results.total_hit_count
+        search_output.total_hit_count
     ));
 
     output
@@ -90,8 +90,8 @@ mod tests {
 
     #[test]
     fn display_pretty_search_results_given_output() {
-        let results = search_output::SearchResult {
-            results: vec![search_output::Result {
+        let results = search_output::SearchOutput {
+            results: vec![search_output::SearchResult {
                 entry: search_output::Document {
                     title: "Some Document Title".to_string(),
                     url: "https://example.com".to_string(),
@@ -104,10 +104,7 @@ mod tests {
                         beginning: 0,
                         end: 1,
                     }],
-                    internal_annotations: vec![search_output::InternalWordAnnotation::UrlSuffix(
-                        "#25".to_string(),
-                    )],
-                    fields: HashMap::new(),
+                    url_suffix: Some("#25".to_string()),
                     score: 12,
                 }],
                 title_highlight_ranges: vec![search_output::HighlightRange {

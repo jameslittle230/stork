@@ -97,7 +97,7 @@ pub fn get_search_values(
 pub fn merge_search_values(
     index: &parse_index::ParsedIndex,
     value_lists: Vec<Vec<search_value::SearchValue>>,
-) -> Result<search_output::SearchResult, search_output::errors::SearchError> {
+) -> Result<search_output::SearchOutput, search_output::errors::SearchError> {
     let search_values: Vec<search_value::SearchValue> = value_lists.into_iter().flatten().collect();
     match &index.value {
         #[cfg(feature = "search-v3")]
@@ -120,7 +120,7 @@ pub fn merge_search_values(
 pub fn search(
     index: &parse_index::ParsedIndex,
     query: &str,
-) -> Result<search_output::SearchResult, search_output::errors::SearchError> {
+) -> Result<search_output::SearchOutput, search_output::errors::SearchError> {
     match &index.value {
         // parse_index::IndexType::V2Index(v2_index) => {
         //     return Err(errors::SearchError::NotCompiledWithFeature);

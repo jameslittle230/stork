@@ -8,25 +8,25 @@ use lazy_static::lazy_static;
 use stork_lib::{
     parse_bytes_as_index,
     parse_index::{IndexStatistics, ParsedIndex},
-    search_output::SearchResult,
+    search_output::{SearchOutput, SearchResult},
     search_query::SearchTerm,
     search_value::SearchValue,
 };
 use wasm_bindgen::prelude::*;
 
-// #[wasm_bindgen]
-// extern "C" {
-//     // Use `js_namespace` here to bind `console.log(..)` instead of just
-//     // `log(..)`
-//     #[wasm_bindgen(js_namespace = console)]
-//     fn log(s: &str);
-// }
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
 
-// macro_rules! clog {
-//     // Note that this is using the `log` function imported above during
-//     // `bare_bones`
-//     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-// }
+macro_rules! clog {
+    // Note that this is using the `log` function imported above during
+    // `bare_bones`
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
 
 fn output_result_as_wasm<T>(result: Result<T, anyhow::Error>) -> String
 where
@@ -46,7 +46,7 @@ where
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 struct SearchValueCacheKey {
     index_name: String,
     search_term: SearchTerm,
@@ -106,7 +106,7 @@ pub fn perform_search(name: &str, query: &str) -> String {
     output_result_as_wasm(perform_search_inner(name, query))
 }
 
-fn perform_search_inner(name: &str, query: &str) -> anyhow::Result<SearchResult> {
+fn perform_search_inner(name: &str, query: &str) -> anyhow::Result<SearchOutput> {
     let cache = INDEX_CACHE.lock().unwrap();
     let index = cache
         .get(name)
@@ -127,8 +127,18 @@ fn perform_search_inner(name: &str, query: &str) -> anyhow::Result<SearchResult>
             let mut search_value_cache = SEARCH_VALUE_CACHE.lock().unwrap();
             let cache_value = search_value_cache.get(&key).map(|v| v.to_owned());
 
+            if cache_value.is_some() {
+                clog!("HIT  {:?}: {}", key, cache_value.clone().unwrap().len());
+            } else {
+                clog!("MISS {:?}", key);
+            }
+
             cache_value.unwrap_or_else(|| {
-                let values = stork_lib::get_search_values(index, term).unwrap();
+                let mut values = stork_lib::get_search_values(index, term).unwrap();
+
+                if values.len() > 1000 {
+                    values = vec![]
+                }
 
                 search_value_cache.insert(
                     SearchValueCacheKey {

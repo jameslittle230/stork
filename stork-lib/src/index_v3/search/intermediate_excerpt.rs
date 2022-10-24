@@ -3,7 +3,6 @@ use std::cmp::Ordering;
 use crate::{
     fields::Fields,
     index_v3::{EntryIndex, Score, WordListSource},
-    search_output::InternalWordAnnotation,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -13,7 +12,7 @@ pub(super) struct IntermediateExcerpt {
     pub(super) score: Score,
     pub(super) source: WordListSource,
     pub(super) word_index: usize,
-    pub(super) internal_annotations: Vec<InternalWordAnnotation>,
+    pub(super) url_prefix: Option<String>,
     pub(super) fields: Fields,
 }
 

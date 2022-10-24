@@ -8,8 +8,8 @@ mod entry_and_intermediate_excerpts;
 use entry_and_intermediate_excerpts::EntryAndIntermediateExcerpts;
 
 use super::Index;
-use crate::search_output::Result;
-use crate::search_output::SearchResult as Output;
+use crate::search_output::SearchOutput as Output;
+use crate::search_output::SearchResult as Result;
 use crate::stopwords::STOPWORDS as stopwords;
 
 use super::scores::STOPWORD_SCORE;
@@ -101,7 +101,7 @@ impl ContainerWithQuery {
                     score: result.score,
                     source: super::WordListSource::Contents,
                     word_index: 0,
-                    internal_annotations: vec![],
+                    url_prefix: None,
                     fields: HashMap::new(),
                 });
             }
@@ -113,7 +113,7 @@ impl ContainerWithQuery {
                     score: result.score,
                     source: excerpt.source,
                     word_index: excerpt.word_index,
-                    internal_annotations: excerpt.internal_annotations.clone(),
+                    url_prefix: excerpt.url_prefix.clone(),
                     fields: excerpt.fields.clone(),
                 });
             }
@@ -130,7 +130,7 @@ impl ContainerWithQuery {
                             score: result.score,
                             source: super::WordListSource::Contents,
                             word_index: 0,
-                            internal_annotations: vec![],
+                            url_prefix: None,
                             fields: HashMap::new(),
                         });
                     }
@@ -140,7 +140,7 @@ impl ContainerWithQuery {
                             query: alias_target.to_string(),
                             entry_index,
                             score: *alias_score,
-                            internal_annotations: excerpt.internal_annotations,
+                            url_prefix: excerpt.url_prefix,
                             source: excerpt.source,
                             word_index: excerpt.word_index,
                             fields: excerpt.fields,

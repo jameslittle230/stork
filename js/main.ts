@@ -165,22 +165,22 @@ const register = (name: string, url: string, unsafeConfig: unknown) => {
 };
 
 const debug = (): object => {
-  let wasmDebugValue = null;
-  if (wasmDebug) {
-    try {
-      wasmDebugValue = JSON.parse(wasmDebug());
-    } catch (e) {
-      console.log("debug not ready");
-    }
-  }
+  let wasmDebugValue,
+    wasmLibraryVersion = null;
+
+  try {
+    wasmDebugValue = JSON.parse(wasmDebug());
+    wasmLibraryVersion = wasm_stork_version();
+    // eslint-disable-next-line no-empty
+  } catch (e) {}
 
   return {
+    logs: getDebugLogs(),
     wasmLoader: wasmLoader?.debug(),
     entityStore: entityStore.debug(),
-    wasm: wasmDebugValue,
     jsLibraryVersion: process.env.VERSION,
-    wasmLibraryVersion: wasm_stork_version(),
-    logs: getDebugLogs()
+    wasmLibraryVersion,
+    wasmDebugValue
   };
 };
 

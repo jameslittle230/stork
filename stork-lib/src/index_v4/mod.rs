@@ -69,10 +69,12 @@ pub(crate) struct PartialIndexDiskRepresentation {
     pub(crate) query_results: Vec<QueryResult>,
 }
 
-/// A `QueryResult` is something that can be searched for. Matches will come from
+/// A `QueryResult` is a unit value that can be found from a search. Matches will come from
 /// the contents of a document, the title of a document, or the value of metadata
 /// for one or more documents (ex: searching for "Piper" should return all documents
 /// who have a metadata value where the key is "Author" and the value is "Jessica Piper")
+///
+/// Each `QueryResult` only corresponds to a single word.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub(crate) enum QueryResult {
     DocumentContentsExcerpt(DocumentContentsExcerpt),

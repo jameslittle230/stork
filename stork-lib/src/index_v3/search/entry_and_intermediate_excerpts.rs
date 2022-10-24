@@ -3,12 +3,10 @@
 #![allow(clippy::cast_precision_loss)]
 #![allow(clippy::cast_sign_loss)]
 
-use std::collections::HashMap;
-
 use crate::{
     build_config::TitleBoost,
     index_v3::{Entry, PassthroughConfig, WordListSource},
-    search_output::{self, Excerpt, HighlightRange, Result},
+    search_output::{self, Excerpt, HighlightRange, SearchResult as Result},
 };
 
 use super::intermediate_excerpt::IntermediateExcerpt;
@@ -114,24 +112,15 @@ impl From<EntryAndIntermediateExcerpts> for Result {
                     .sum::<usize>()
                     .saturating_sub(score_modifier);
 
-                // Since we're mapping from multiple IntermediateExcerpts to one
-                // Excerpt, we have to either combine or filter data. For
-                // `fields` and `internal_annotations`, I'm taking the data from
-                // the first intermediate excerpt in the vector.
-                let fields = ies
+                let url_suffix = ies
                     .first()
-                    .map_or_else(HashMap::new, |first| first.fields.clone());
-
-                let internal_annotations = ies
-                    .first()
-                    .map_or_else(Vec::default, |first| first.internal_annotations.clone());
+                    .map_or_else(|| None, |first| first.url_prefix.clone());
 
                 Excerpt {
                     text,
                     highlight_ranges,
                     score,
-                    internal_annotations,
-                    fields,
+                    url_suffix,
                 }
             })
             .collect();
@@ -198,6 +187,8 @@ impl From<EntryAndIntermediateExcerpts> for Result {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::*;
     use crate::index_v3::Entry;
     use pretty_assertions::assert_eq;
@@ -219,7 +210,7 @@ mod tests {
                     score: 128,
                     source: WordListSource::Title,
                     word_index: 3,
-                    internal_annotations: Vec::default(),
+                    url_prefix: None,
                     fields: HashMap::default(),
                 },
                 IntermediateExcerpt {
@@ -228,7 +219,7 @@ mod tests {
                     score: 128,
                     source: WordListSource::Title,
                     word_index: 2,
-                    internal_annotations: Vec::default(),
+                    url_prefix: None,
                     fields: HashMap::default(),
                 },
             ],
@@ -248,7 +239,7 @@ mod tests {
                 score: 128,
                 source: WordListSource::Title,
                 word_index: 3,
-                internal_annotations: Vec::default(),
+                url_prefix: None,
                 fields: HashMap::default(),
             }],
         };
@@ -277,7 +268,7 @@ mod tests {
                     score: 128,
                     source: WordListSource::Title,
                     word_index: 3,
-                    internal_annotations: Vec::default(),
+                    url_prefix: None,
                     fields: HashMap::default(),
                 },
                 IntermediateExcerpt {
@@ -286,7 +277,7 @@ mod tests {
                     score: 128,
                     source: WordListSource::Title,
                     word_index: 2,
-                    internal_annotations: Vec::default(),
+                    url_prefix: None,
                     fields: HashMap::default(),
                 },
             ],
@@ -319,7 +310,7 @@ mod tests {
                     score: 128,
                     source: WordListSource::Contents,
                     word_index: 3,
-                    internal_annotations: Vec::default(),
+                    url_prefix: None,
                     fields: HashMap::default(),
                 },
                 IntermediateExcerpt {
@@ -328,7 +319,7 @@ mod tests {
                     score: 128,
                     source: WordListSource::Contents,
                     word_index: 2,
-                    internal_annotations: Vec::default(),
+                    url_prefix: None,
                     fields: HashMap::default(),
                 },
             ],
@@ -406,7 +397,7 @@ mod tests {
                 score: 128,
                 source: WordListSource::Title,
                 word_index: 2,
-                internal_annotations: Vec::default(),
+                url_prefix: None,
                 fields: HashMap::default(),
             }],
         };

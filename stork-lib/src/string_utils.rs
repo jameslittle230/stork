@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use itertools::Itertools;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub(crate) fn pluralize_with_count(count: usize, singular: &str, plural: &str) -> String {
@@ -25,6 +26,30 @@ pub(crate) fn split_into_normalized_words(string: &str) -> Vec<IndexedWord> {
             }),
             true => None,
         })
+        .collect()
+}
+
+pub(crate) fn get_text_excerpt(
+    unicode_indices: Vec<(usize, &str)>,
+    first_offset: usize,
+    second_offset: usize,
+    target_excerpt_length_chars: usize,
+) -> Vec<(usize, &str)> {
+    assert!(
+        second_offset >= first_offset,
+        "{second_offset} should be greater than {first_offset}"
+    );
+    let buffer = std::cmp::max(
+        10,
+        target_excerpt_length_chars.saturating_sub(second_offset - first_offset) / 2,
+    );
+
+    unicode_indices
+        .iter()
+        .filter(|(index, _)| {
+            index > &(first_offset.saturating_sub(buffer)) && index < &(second_offset + buffer)
+        })
+        .copied()
         .collect()
 }
 

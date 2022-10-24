@@ -114,7 +114,7 @@ pub(crate) struct Excerpt {
     pub(crate) source: WordListSource,
 
     // #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub(crate) internal_annotations: Vec<search_output::InternalWordAnnotation>,
+    pub(crate) url_prefix: Option<String>,
 
     // #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub(crate) fields: Fields,
@@ -131,7 +131,7 @@ pub(crate) enum WordListSource {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub(crate) struct AnnotatedWord {
     pub(crate) word: String,
-    pub(crate) internal_annotations: Vec<search_output::InternalWordAnnotation>,
+    pub(crate) url_prefix: Option<String>,
     pub(crate) fields: Fields,
 }
 

@@ -45,7 +45,7 @@ run-build-index input="local-dev/test-configs/federalist.toml" output="local-dev
 alias rsi := run-search-index
 
 run-search-index query index="local-dev/test-indexes/federalist.st":
-    cargo run -- search --index {{index}} --query {{query}} --timing
+    cargo run -- search --index {{index}} --query "{{query}}" --timing
 
 ######################################
 ## Development

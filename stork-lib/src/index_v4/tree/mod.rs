@@ -12,6 +12,14 @@ pub trait NodeValueTrait: Debug + Clone + Hash + Eq + Ord {}
 
 impl<T> NodeValueTrait for T where T: Debug + Clone + Hash + Eq + Ord {}
 
+pub type CharactersRemaining = u8;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TreeRetrievalValue<T: NodeValueTrait> {
+    pub value: T,
+    pub characters_remaining: CharactersRemaining,
+}
+
 /// A tree data structure (backed by an Arena) where each node's value is a
 /// `HashSet` of generic U values.
 ///
@@ -112,7 +120,7 @@ where
         &self,
         word: &str,
         leeway: GetValuesOption,
-    ) -> Option<Vec<(u8, U)>> {
+    ) -> Option<Vec<TreeRetrievalValue<U>>> {
         let mut curr = self.arena.root;
 
         for char in word.chars() {
@@ -130,15 +138,19 @@ where
             GetValuesOption::Exact => self.arena.node_at(curr).map(|node| {
                 node.get_values()
                     .into_iter()
-                    .map(|value| (0, value))
+                    .map(|value| TreeRetrievalValue {
+                        value,
+                        characters_remaining: 0,
+                    })
                     .collect()
             }),
+
             GetValuesOption::All => Some(self.walk_node_at_index(curr).collect()),
             GetValuesOption::Take(n) => Some(self.walk_node_at_index(curr).take(n).collect()),
         }
-        .map(|mut values: Vec<(u8, U)>| {
-            values.sort_by_key(|t| t.1.clone());
-            values.dedup_by_key(|t| t.1.clone());
+        .map(|mut values: Vec<TreeRetrievalValue<U>>| {
+            values.sort_by_key(|t| t.value.clone());
+            values.dedup_by_key(|t| t.value.clone());
             values
         })
     }
@@ -159,7 +171,7 @@ where
     U: NodeValueTrait,
 {
     arena: Arena<Node<U>>,
-    values_on_deck: VecDeque<(u8, U)>,
+    values_on_deck: VecDeque<TreeRetrievalValue<U>>,
     nodes_to_inspect: VecDeque<(u8, arena::ArenaIndex)>,
     current_depth: u8,
 }
@@ -182,7 +194,7 @@ impl<U> Iterator for NodeValuesWalk<U>
 where
     U: NodeValueTrait,
 {
-    type Item = (u8, U);
+    type Item = TreeRetrievalValue<U>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while self.values_on_deck.is_empty() && !self.nodes_to_inspect.is_empty() {
@@ -190,7 +202,10 @@ where
             let node = self.arena.node_at(next_inspectable_index).unwrap();
 
             for value in node.get_values() {
-                self.values_on_deck.push_back((next_depth, value))
+                self.values_on_deck.push_back(TreeRetrievalValue {
+                    value,
+                    characters_remaining: next_depth,
+                })
             }
 
             for arena_index in node.get_all_children() {
@@ -232,22 +247,38 @@ mod tests {
         assert_eq!(
             tree.get_values_for_string("tes", GetValuesOption::All)
                 .map(|mut vec| {
-                    vec.sort_by_key(|tuple| tuple.1);
+                    vec.sort_by_key(|tuple| tuple.value);
                     vec
                 }),
-            Some(vec![(6, 2), (1, 1)]).map(|mut vec| {
-                vec.sort_by_key(|tuple| tuple.1);
+            Some(vec![
+                TreeRetrievalValue {
+                    value: 2,
+                    characters_remaining: 6
+                },
+                TreeRetrievalValue {
+                    value: 1,
+                    characters_remaining: 1
+                }
+            ])
+            .map(|mut vec| {
+                vec.sort_by_key(|tuple| tuple.value);
                 vec
             })
         );
 
         assert_eq!(
             tree.get_values_for_string("test", GetValuesOption::Exact),
-            Some(vec![(0, 1)])
+            Some(vec![TreeRetrievalValue {
+                value: 1,
+                characters_remaining: 0
+            }])
         );
         assert_eq!(
             tree.get_values_for_string("tesseract", GetValuesOption::Exact),
-            Some(vec![(0, 2)])
+            Some(vec![TreeRetrievalValue {
+                value: 2,
+                characters_remaining: 0
+            }])
         );
     }
 
@@ -268,7 +299,19 @@ mod tests {
         tree.push_value_for_string("liberate", 20);
         let walked_values = tree
             .walk_node_at_index(0)
-            .collect::<Vec<(u8, ArenaIndex)>>();
-        assert_eq!(vec![(7, 10), (8, 20)], walked_values)
+            .collect::<Vec<TreeRetrievalValue<ArenaIndex>>>();
+        assert_eq!(
+            vec![
+                TreeRetrievalValue {
+                    value: 10,
+                    characters_remaining: 7
+                },
+                TreeRetrievalValue {
+                    value: 8,
+                    characters_remaining: 20
+                }
+            ],
+            walked_values
+        )
     }
 }

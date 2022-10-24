@@ -1,7 +1,11 @@
-use crate::index_v4::QueryResult;
+use crate::{
+    index_v4::{CharacterOffset, QueryResult},
+    search_query::SearchTerm,
+};
 
 #[derive(Debug, Clone)]
 pub(crate) struct V4SearchValue {
+    pub(crate) term: SearchTerm,
     pub(crate) result: QueryResult,
     pub(crate) chars_remaining: u8,
 }

@@ -101,7 +101,6 @@ export default class Entity implements EntityDomDelegate {
   }
 
   performSearch(query: string) {
-    console.log(this.loadManager);
     if (this.loadManager.getAggregateState() !== "success") {
       log("Returning early from search; not ready yet.");
       return { success: false };
@@ -109,9 +108,7 @@ export default class Entity implements EntityDomDelegate {
 
     log(`Performing search for index "${this.name}" with query "${query}"`);
     try {
-      const val = JSON.parse(perform_search(this.name, query));
-      console.log(val);
-      return val;
+      return JSON.parse(perform_search(this.name, query));
     } catch (e) {
       log(e);
       return { success: false };

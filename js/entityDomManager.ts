@@ -97,31 +97,40 @@ export default class EntityDomManager {
     this.render();
   }
 
-  setSearchResults(results: Result[], totalHitCount: number, duration: number) {
+  setSearchResults({
+    results,
+    totalHitCount,
+    duration
+  }: {
+    results: Result[];
+    totalHitCount: number;
+    duration: number;
+  }) {
     this.visibleSearchResults = results;
     this.message = `${totalHitCount} results in ${duration} ms`;
     this.render();
   }
 
   performSearchFromInputValue() {
-    if (!this.searchIsReady() || !this.input) {
-      return;
-    }
+    // Stick this in a zero-length setTimeout to get it to run
+    // after the event loop ticks
+    setTimeout(() => {
+      if (!this.searchIsReady() || !this.input) {
+        return;
+      }
 
-    const query = this.input.value;
-    const begin = performance.now();
-    console.time("search");
-    const result = this.delegate.performSearch(query);
-    const end = performance.now();
-    console.timeEnd("search");
-    if (result.success) {
-      const { value } = result;
-      const { results, total_hit_count } = value;
-      this.setSearchResults(results, total_hit_count, end - begin);
-    } else {
-      this.setSearchResults([], 0, 0);
-    }
-    // const { results, url_prefix } = value;
+      const query = this.input.value;
+      const begin = performance.now();
+      const result = this.delegate.performSearch(query);
+      const end = performance.now();
+      if (result.success) {
+        const { value } = result;
+        const { results, total_hit_count } = value;
+        this.setSearchResults({ results, totalHitCount: total_hit_count, duration: end - begin });
+      } else {
+        this.setSearchResults({ results: [], totalHitCount: 0, duration: 0 });
+      }
+    }, 0);
   }
 
   private searchIsReady() {
@@ -172,7 +181,6 @@ export default class EntityDomManager {
     if (this.message) {
       this.output.classList.add("stork-output-visible");
       add(this.messageElem, "beforeend", this.output);
-      console.log(this.message);
       setText(this.messageElem, this.message);
     }
 

@@ -8,8 +8,8 @@ pub mod errors;
 
 /// The set of data needed to display search results to a user.
 #[derive(Serialize, Deserialize, Debug, Default, PartialEq)]
-pub struct SearchResult {
-    pub results: Vec<Result>,
+pub struct SearchOutput {
+    pub results: Vec<SearchResult>,
     pub total_hit_count: usize,
     pub url_prefix: String,
 }
@@ -17,10 +17,11 @@ pub struct SearchResult {
 /// A single document in the list of matches for a search query, along with its
 /// display information and excerpts.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub struct Result {
+pub struct SearchResult {
     pub entry: Document,
     pub excerpts: Vec<Excerpt>,
     pub title_highlight_ranges: Vec<HighlightRange>,
+    // pub image: (),
     pub score: usize,
 }
 
@@ -52,19 +53,9 @@ pub struct Excerpt {
     pub text: String,
     pub highlight_ranges: Vec<HighlightRange>,
     pub score: usize,
-    pub internal_annotations: Vec<InternalWordAnnotation>,
-    pub fields: Fields,
-}
-
-/// An annotation attached to a given excerpt.
-///
-/// This should not be displayed directly to users, but instead should
-/// change some aspect of how that excerpt is rendered.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-pub enum InternalWordAnnotation {
-    #[serde(rename = "a")]
-    UrlSuffix(String),
-    Debug(String),
+    pub url_suffix: Option<String>,
+    // pub fields: Fields,
+    // pub internal_debug: (),
 }
 
 /// A range of characters in a string that should be highlighted.
