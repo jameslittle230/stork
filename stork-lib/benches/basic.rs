@@ -37,10 +37,13 @@ fn search_federalist_for_liberty(c: &mut Criterion) {
         "lib",
         "liber old world",
         "some long query that won't return results but let's see how it does",
+        "the old world", // "the" has about 4k search results
     ];
 
     for query in &queries {
-        group.bench_function(query.to_owned(), |b| {
+        let mut id = query.to_owned().replace(' ', "-");
+        id.truncate(12);
+        group.bench_function(id, |b| {
             b.iter(|| stork_lib::search(&index, query.to_owned()))
         });
     }
