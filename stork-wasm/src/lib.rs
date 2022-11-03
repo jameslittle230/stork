@@ -136,10 +136,6 @@ fn perform_search_inner(name: &str, query: &str) -> anyhow::Result<SearchOutput>
             cache_value.unwrap_or_else(|| {
                 let mut values = stork_lib::get_search_values(index, term).unwrap();
 
-                if values.len() > 1000 {
-                    values = vec![]
-                }
-
                 search_value_cache.insert(
                     SearchValueCacheKey {
                         index_name: name.to_string(),

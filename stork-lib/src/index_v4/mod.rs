@@ -7,11 +7,9 @@ use std::collections::BTreeMap;
 
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 
-use crate::build_config::{errors::ConfigReadError, Config, OutputConfig, TitleBoost};
+use crate::build_config::{Config, TitleBoost};
 
-pub(crate) use search::resolve_search_values;
 pub(crate) use tree::Tree;
 
 pub(crate) type DocumentIndex = usize;
@@ -36,7 +34,6 @@ pub(crate) struct IndexDiskRepresentation {
     pub(crate) documents: BTreeMap<DocumentIndex, Document>,
 
     pub(crate) settings: Settings,
-    // metadata_keys: Vec<String> // TODO: Fill this out
     // TODO: LSH hashmap for fuzzy searching? http://jil.im/lsh
 }
 
@@ -110,8 +107,8 @@ pub(crate) struct MetadataEntry {
 pub(crate) struct DocumentContentsExcerpt {
     pub(crate) document_id: DocumentIndex,
     pub(crate) contents_character_offset: CharacterOffset,
+    pub(crate) tfidf: usize,
     pub(crate) url_suffix: Option<String>,
-    // pub(crate) debug: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]

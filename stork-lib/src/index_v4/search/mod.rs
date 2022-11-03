@@ -4,7 +4,7 @@ mod group_document_excerpts;
 // mod line_item;
 mod title_highlight_ranges;
 
-use std::vec;
+use std::{time::Instant, vec};
 
 use itertools::Itertools;
 
@@ -13,18 +13,6 @@ use super::{tree::TreeRetrievalValue, IndexDiskRepresentation};
 use crate::{search_output::SearchOutput, search_query, search_value::SearchValue};
 
 use crate::search_output::SearchResult;
-
-// #[derive(Debug, Clone, PartialEq)]
-// struct ExtendedOutputExcerpt {
-//     output_excerpt: OutputExcerpt,
-//     document_contents_excerpt: DocumentContentsExcerpt,
-// }
-
-// #[derive(Debug, Clone, PartialEq)]
-// struct DocumentSearchOutput {
-//     contents_excerpts: Vec<ExtendedOutputExcerpt>,
-//     title_highlight_ranges: Vec<HighlightRange>,
-// }
 
 pub(crate) fn get_search_values(
     index: &IndexDiskRepresentation,
@@ -37,9 +25,17 @@ pub(crate) fn get_search_values(
     }
 
     let values = match search_term {
-        search_query::SearchTerm::InexactWord(word) => index
-            .query_tree
-            .get_values_for_string(word, super::tree::GetValuesOption::All),
+        search_query::SearchTerm::InexactWord(word) => {
+            let now = Instant::now();
+            let v = index
+                .query_tree
+                .get_values_for_string(word, super::tree::GetValuesOption::Take(1000));
+            println!(
+                "{}us to get search values for {search_term:?}",
+                now.elapsed().as_micros()
+            );
+            v
+        }
 
         search_query::SearchTerm::ExactWord(word) => index
             .query_tree
@@ -76,23 +72,41 @@ pub(crate) fn resolve_search_values(
         .map(|value| value.v4_value.as_ref().unwrap())
         .collect_vec();
 
-    let excerpts_bucketed_by_document =
-        bucket_search_values::bucket_search_values_by_document(v4_search_values);
+    let beginning = Instant::now();
+    let sorted_excerpts = bucket_search_values::bucket_search_values_by_document(v4_search_values);
+    println!(
+        "{:>5}us to bucket search values",
+        beginning.elapsed().as_micros()
+    );
 
-    let mut results: Vec<SearchResult> = excerpts_bucketed_by_document
+    let mut results: Vec<SearchResult> = sorted_excerpts
         .iter()
         .map(|(document_id, bucketed_excerpts)| {
+            let group_start = Instant::now();
             let grouped_document_excerpts = group_document_excerpts::group_document_excerpts(
-                bucketed_excerpts.document_contents_excerpts.as_ref(),
-                100,
+                bucketed_excerpts.document_contents_excerpts.clone(),
+                50,
+            );
+            println!(
+                "{:>5}us to group excerpts for document {document_id} ({} groups)",
+                group_start.elapsed().as_micros(),
+                grouped_document_excerpts.len()
             );
 
-            build_output_result::build_search_result(
+            let build_result_start = Instant::now();
+            let result = build_output_result::build_search_result(
                 index.documents.get(document_id).unwrap(),
                 grouped_document_excerpts,
                 bucketed_excerpts.title_excerpts.as_ref(),
                 &index.settings.title_boost,
-            )
+            );
+
+            println!(
+                "{:>5}us to build result for document {document_id}",
+                build_result_start.elapsed().as_micros()
+            );
+
+            result
 
             // let mut excerpt_data_vec: Vec<line_item::SearchLineItem> = contents_excerpts
             //     .iter()
@@ -159,8 +173,18 @@ pub(crate) fn resolve_search_values(
         })
         .collect();
 
+    // println!(
+    //     "{}ms total to build search results",
+    //     beginning.elapsed().as_millis()
+    // );
+
     results.sort_by_key(|r| r.score);
     results.reverse();
+
+    // println!(
+    //     "{}ms total to build, sort, and reverse search results",
+    //     beginning.elapsed().as_millis()
+    // );
 
     let total_hit_count = results.len(); // TODO: truncate
 

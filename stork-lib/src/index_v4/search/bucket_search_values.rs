@@ -5,12 +5,14 @@ use crate::{
         tree::CharactersRemaining, DocumentContentsExcerpt, DocumentIndex, QueryResult,
         TitleExcerpt,
     },
+    search_query::SearchTerm,
     search_value::V4SearchValue,
 };
 
 #[derive(Debug, Clone)]
 pub(super) struct DocumentContentsExcerptWithCharsRemaining {
     pub(super) excerpt: DocumentContentsExcerpt,
+    pub(super) search_term: SearchTerm,
     pub(super) characters_remaining: CharactersRemaining,
 }
 
@@ -48,6 +50,7 @@ pub(super) fn bucket_search_values_by_document(
                             entry.document_contents_excerpts.push(
                                 DocumentContentsExcerptWithCharsRemaining {
                                     excerpt: excerpt.clone(),
+                                    search_term: term.clone(),
                                     characters_remaining: *chars_remaining,
                                 },
                             )
@@ -56,6 +59,7 @@ pub(super) fn bucket_search_values_by_document(
                             document_contents_excerpts: vec![
                                 DocumentContentsExcerptWithCharsRemaining {
                                     excerpt: excerpt.clone(),
+                                    search_term: term.clone(),
                                     characters_remaining: *chars_remaining,
                                 },
                             ],

@@ -98,6 +98,7 @@ fn search(submatches: &ArgMatches) -> CommandOutput {
     let stdout = match submatches.value_of("format").unwrap() {
         "json" => serde_json::to_string_pretty(&results)?,
         "pretty" => prettyprint::print(&results),
+        "none" => "".to_string(),
         _ => unreachable!(),
     };
 

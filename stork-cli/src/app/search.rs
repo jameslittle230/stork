@@ -34,7 +34,7 @@ pub(super) fn search_subcommand() -> Command<'static> {
                 .display_order(100)
                 .takes_value(true)
                 .value_name("FORMAT")
-                .possible_values(&["json", "pretty"])
+                .possible_values(&["json", "pretty", "none"])
                 .default_value("pretty")
                 .help("The output format for the returned search results"),
         )
