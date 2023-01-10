@@ -23,16 +23,7 @@ jobs:
         with:
           crate: wasm-pack
 
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          version: '0.15.0'
-          args: '-- --test-threads 1'
-
-      - run: |
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-          chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN}
+      - run: just _rust-test
 
   js_tests:
     name: "Run JS Tests"
