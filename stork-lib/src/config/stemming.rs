@@ -30,7 +30,7 @@ impl TryFrom<&String> for StemmingConfig {
             return Ok(StemmingConfig::None);
         }
 
-        toml::from_str(format!("lang = \"{}\"", value).as_str())
+        toml::from_str(format!("lang = \"{value}\"").as_str())
             .map(|t: TempAlgStructure| StemmingConfig::Language(t.lang))
     }
 }
@@ -58,7 +58,7 @@ impl From<StemmingConfig> for String {
     fn from(stemming_config: StemmingConfig) -> Self {
         let mut output = String::new();
         let _result = match stemming_config {
-            StemmingConfig::Language(l) => write!(&mut output, "{:?}", l),
+            StemmingConfig::Language(l) => write!(&mut output, "{l:?}"),
             StemmingConfig::None => write!(&mut output, "none"),
         };
         output

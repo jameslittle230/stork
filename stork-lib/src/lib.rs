@@ -171,7 +171,7 @@ impl Display for IndexDescription {
   - {} bytes per entry
   - {} bytes per search term"#,
             if self.warnings.is_empty() {
-                "".to_string()
+                String::new()
             } else {
                 DocumentError::display_list(&self.warnings) + "\n"
             },

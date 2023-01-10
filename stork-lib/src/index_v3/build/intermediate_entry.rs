@@ -39,7 +39,7 @@ mod tests {
         fields.insert("k2".to_string(), "v2".to_string());
 
         let intended = Entry {
-            contents: "".to_string(),
+            contents: String::new(),
             title: "My Title".to_string(),
             url: "https://example.com".to_string(),
             fields: fields.clone(),

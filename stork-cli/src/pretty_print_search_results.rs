@@ -10,7 +10,7 @@ fn highlight_string(string: &str, ranges: &Vec<HighlightRange>) -> String {
     let mut last_end = 0;
     for range in ranges {
         highlighted.push_str(&string[last_end..range.beginning]);
-        highlighted.push_str(&string[range.beginning..range.end].yellow().to_string());
+        highlighted.push_str(&string[range.beginning..range.end].yellow());
         last_end = range.end;
     }
     highlighted.push_str(&string[last_end..]);
@@ -86,7 +86,7 @@ mod tests {
                 }],
             }],
             total_hit_count: 21,
-            url_prefix: "".to_string(),
+            url_prefix: String::new(),
         };
 
         assert_eq!(

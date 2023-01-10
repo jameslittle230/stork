@@ -46,7 +46,7 @@ fn main() {
         // Delete when releasing 2.0.0
         (_, _) => {
             fn print_nudging_string(errant_command: &str) {
-                eprintln!("{} The command line interface has been updated: please use `stork {}` instead of `stork --{}`. See `stork --help` for more.", "Warning:".yellow(), errant_command, errant_command);
+                eprintln!("{} The command line interface has been updated: please use `stork {errant_command}` instead of `stork --{errant_command}`. See `stork --help` for more.", "Warning:".yellow());
             }
 
             if let Some(config_path) = app_matches.value_of("build") {
@@ -90,7 +90,7 @@ fn main() {
     };
 
     if let Err(error) = result {
-        eprintln!("{} {}", "Error:".red(), error);
+        eprintln!("{} {error}", "Error:".red());
         exit(EXIT_FAILURE);
     }
 }
@@ -149,7 +149,7 @@ fn search_handler(submatches: &ArgMatches) -> CmdResult {
     match submatches.value_of("format") {
         Some("json") => {
             match serde_json::to_string_pretty(&results).map_err(StorkCommandLineError::from) {
-                Ok(json) => println!("{}", json),
+                Ok(json) => println!("{json}"),
                 Err(error) => {
                     return Err(error);
                 }

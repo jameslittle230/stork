@@ -85,7 +85,7 @@ mod tests {
             input: InputConfig {
                 UNUSED_surrounding_word_count: None,
                 base_directory: "test/federalist".into(),
-                url_prefix: "".into(),
+                url_prefix: String::new(),
                 title_boost: TitleBoost::Moderate,
                 stemming: StemmingConfig::Language(
                     rust_stemmers::Algorithm::English,

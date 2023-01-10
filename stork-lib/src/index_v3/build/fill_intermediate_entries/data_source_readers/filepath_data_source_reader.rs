@@ -12,7 +12,7 @@ pub(crate) fn read(
     config: &ReaderConfig,
 ) -> Result<ReadResult, WordListGenerationError> {
     let base_directory_path = Path::new(&config.global.base_directory);
-    let full_pathname = base_directory_path.join(&path);
+    let full_pathname = base_directory_path.join(path);
 
     let file = File::open(&full_pathname)
         .map_err(|_| WordListGenerationError::FileNotFound(full_pathname.clone()))?;
