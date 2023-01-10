@@ -22,6 +22,12 @@ jobs:
         uses: actions-rs/install@v0.1
         with:
           crate: wasm-pack
+      
+      - name: Set up just
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions-rs/install@v0.1
+        with:
+          crate: just
 
       - run: just _rust-test
 
