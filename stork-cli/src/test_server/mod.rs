@@ -43,10 +43,10 @@ pub fn serve(index: &Bytes, port: u16) -> Result<(), Box<dyn std::error::Error>>
         let server = Server::bind(&addr).serve(make_svc);
         let graceful = server.with_graceful_shutdown(shutdown_signal());
 
-        println!("Open <http://{}> in your web browser to visit the test page.\nPress ctrl-C to stop the server.", addr);
+        println!("Open <http://{addr}> in your web browser to visit the test page.\nPress ctrl-C to stop the server.");
 
         if let Err(e) = graceful.await {
-            eprintln!("server error: {}", e);
+            eprintln!("server error: {e}");
         }
         Ok(())
     })

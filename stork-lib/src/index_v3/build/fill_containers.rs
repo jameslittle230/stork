@@ -147,7 +147,7 @@ fn fill_other_containers_alias_maps_with_reverse_stems(
                         .or_insert_with(Container::new)
                         .aliases
                         .entry(normalized_word.to_string())
-                        .or_insert(STEM_SCORE as u8);
+                        .or_insert(STEM_SCORE);
                 }
             }
         }
@@ -209,7 +209,7 @@ mod tests {
         let intermediate_entry = NormalizedEntry {
             annotated_word_list: AnnotatedWordList { word_list: vec![] },
             title: "10 - Polymorphism".to_string(),
-            url: "".to_string(),
+            url: String::new(),
             fields: HashMap::default(),
             stem_algorithm: None,
         };

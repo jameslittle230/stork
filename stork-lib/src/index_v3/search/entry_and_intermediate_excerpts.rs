@@ -148,7 +148,7 @@ impl From<EntryAndIntermediateExcerpts> for Result {
             .iter()
             .filter(|&ie| ie.source == WordListSource::Title)
             .map(|ie| {
-                let space_offset = if ie.word_index == 0 { 0 } else { 1 };
+                let space_offset: usize = (ie.word_index != 0).into();
                 let beginning = split_title[0..ie.word_index].join(" ").len() + space_offset;
                 HighlightRange {
                     beginning,
@@ -206,7 +206,7 @@ mod tests {
     fn result_with_multiple_excerpts_sorts_higher_than_result_with_single() {
         let multiple_excerpts = EntryAndIntermediateExcerpts {
             entry: Entry {
-                contents: "".to_string(),
+                contents: String::new(),
                 title: "The quick brown fox jumps over the lazy dog".to_string(),
                 url: String::default(),
                 fields: HashMap::default(),
@@ -236,7 +236,7 @@ mod tests {
 
         let single_excerpt = EntryAndIntermediateExcerpts {
             entry: Entry {
-                contents: "".to_string(),
+                contents: String::new(),
                 title: "The quick brown fox jumps over the lazy dog".to_string(),
                 url: String::default(),
                 fields: HashMap::default(),
@@ -264,7 +264,7 @@ mod tests {
     fn title_highlight_ranges_are_sorted() {
         let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
             entry: Entry {
-                contents: "".to_string(),
+                contents: String::new(),
                 title: "The quick brown fox jumps over the lazy dog".to_string(),
                 url: String::default(),
                 fields: HashMap::default(),
@@ -293,7 +293,7 @@ mod tests {
         };
         let output_result = Result::from(entry_and_intermediate_excerpts);
         let title_highlight_ranges = output_result.title_highlight_ranges;
-        println!("{:?}", title_highlight_ranges);
+        println!("{title_highlight_ranges:?}");
         assert!(
             title_highlight_ranges[0].beginning <= title_highlight_ranges[1].beginning,
             "Title highlight ranges were not sorted! [0].beginning is {} while [1].beginning is {}",
@@ -394,7 +394,7 @@ mod tests {
     fn title_highlighting_works_when_title_has_no_spaces() {
         let entry_and_intermediate_excerpts = EntryAndIntermediateExcerpts {
             entry: Entry {
-                contents: "".to_string(),
+                contents: String::new(),
                 title: "api-methods-animate".to_string(),
                 url: String::default(),
                 fields: HashMap::default(),

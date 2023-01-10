@@ -19,7 +19,7 @@ struct WasmOutput(String);
 impl<T: Sized + Serialize, E: Display> From<Result<T, E>> for WasmOutput {
     fn from(r: Result<T, E>) -> Self {
         fn wasm_format_error<E: Display>(e: E) -> String {
-            format!("{{\"error\": \"{}\"}}", e)
+            format!("{{\"error\": \"{e}\"}}")
         }
 
         let value = match r {

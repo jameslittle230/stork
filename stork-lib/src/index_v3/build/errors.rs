@@ -34,7 +34,7 @@ pub enum WordListGenerationError {
 }
 
 fn pluralize_with_count(count: usize, singular: &str, plural: &str) -> String {
-    format!("{} {}", count, if count == 1 { singular } else { plural })
+    format!("{count} {}", if count == 1 { singular } else { plural })
 }
 
 #[derive(Debug, Error)]

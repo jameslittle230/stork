@@ -56,7 +56,7 @@ pub fn build(config: &Config) -> Result<BuildResult, IndexGenerationError> {
         .map(Entry::from)
         .map(|mut entry| {
             if config.output.excerpts_per_result == 0 {
-                entry.contents = "".to_string();
+                entry.contents = String::new();
             }
 
             entry
@@ -108,7 +108,7 @@ mod tests {
 
     fn generate_invalid_file_missing_selector() -> File {
         File {
-            explicit_source: Some(DataSource::Contents("".to_string())),
+            explicit_source: Some(DataSource::Contents(String::new())),
             title: "Missing Selector".to_string(),
             filetype: Some(Filetype::HTML),
             html_selector_override: Some(".article".to_string()),
@@ -118,7 +118,7 @@ mod tests {
 
     fn generate_invalid_file_empty_contents() -> File {
         File {
-            explicit_source: Some(DataSource::Contents("".to_string())),
+            explicit_source: Some(DataSource::Contents(String::new())),
             title: "Empty Contents".to_string(),
             filetype: Some(Filetype::PlainText),
             ..File::default()

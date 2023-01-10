@@ -173,7 +173,7 @@ mod tests {
         for input in valid_inputs {
             app()
                 .get_matches_from_safe(input.split(' '))
-                .unwrap_or_else(|e| panic!("Error with input {:?}: {}", &input, e));
+                .unwrap_or_else(|e| panic!("Error with input {:?}: {e}", &input));
         }
     }
     #[test]

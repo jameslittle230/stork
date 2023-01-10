@@ -70,7 +70,7 @@ pub fn generate(
             for elem in as_node.traverse_inclusive() {
                 if let kuchiki::iter::NodeEdge::Start(node_ref) = elem {
                     let contents: String = (|| {
-                        let mut output = "".to_string();
+                        let mut output = String::new();
                         if let Some(element_data) = node_ref.as_element() {
                             if config.output.save_nearest_html_id {
                                 if let Some(id) = element_data.attributes.borrow().get("id") {

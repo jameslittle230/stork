@@ -30,7 +30,7 @@ pub fn read_bytes_from_path(path: &str) -> Result<Bytes, StorkCommandLineError> 
 
     // TODO: Handle path == "" case
     let pathbuf = std::path::PathBuf::from(path);
-    std::fs::read(&pathbuf)
+    std::fs::read(pathbuf)
         .map(Bytes::from)
         .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
 }
@@ -46,7 +46,7 @@ pub fn read_from_path(path: &str) -> Result<String, StorkCommandLineError> {
         // handle ("", Some) or ("", None), perhaps
         _ => {
             let pathbuf = std::path::PathBuf::from(path);
-            std::fs::read_to_string(&pathbuf)
+            std::fs::read_to_string(pathbuf)
                 .map_err(|e| StorkCommandLineError::FileReadError(path.to_string(), e))
         }
     }

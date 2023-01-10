@@ -22,7 +22,7 @@ pub fn parse_frontmatter(handling: &FrontmatterConfig, buffer: &str) -> (Fields,
                     .into_iter()
                     .map(|(k, v)| {
                         (
-                            k.into_string().unwrap_or_else(|| "".to_string()),
+                            k.into_string().unwrap_or_default(),
                             v.clone().into_string().unwrap_or_else(|| {
                                 v.into_i64().map_or("error".to_string(), |i| i.to_string())
                             }),

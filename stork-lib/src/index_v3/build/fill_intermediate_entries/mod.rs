@@ -198,7 +198,7 @@ fn truncate_with_ellipsis_to_length(
             ellipsis
         };
 
-        format!("{}{}", short_message, ellipsis)
+        format!("{short_message}{ellipsis}")
     };
 
     truncated
@@ -217,7 +217,7 @@ mod tests {
     #[test]
     fn break_on_file_error_breaks() {
         let invalid_file = File {
-            explicit_source: Some(DataSource::Contents("".to_string())), // Empty word list error,
+            explicit_source: Some(DataSource::Contents(String::new())), // Empty word list error,
             ..File::default()
         };
 
@@ -243,14 +243,14 @@ mod tests {
                 &WordListGenerationError::EmptyWordList
             );
         } else {
-            panic!("Result is {:?}", r);
+            panic!("Result is {r:?}");
         }
     }
 
     #[test]
     fn false_break_on_file_error_does_not_break() {
         let invalid_file = File {
-            explicit_source: Some(DataSource::Contents("".to_string())), // Empty word list error
+            explicit_source: Some(DataSource::Contents(String::new())), // Empty word list error
             ..File::default()
         };
 

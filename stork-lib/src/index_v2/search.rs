@@ -278,6 +278,6 @@ mod tests {
         //     IndexVersion::from(ParsedIndex::try_from(index_bytes.as_slice()).unwrap()),
         //     IndexVersion::V2
         // );
-        assert_eq!(generated, expected, "{:?}", generated);
+        assert_eq!(generated, expected, "{generated:?}");
     }
 }
