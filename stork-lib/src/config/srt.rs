@@ -16,4 +16,5 @@ pub struct SRTConfig {
 pub enum SRTTimestampFormat {
     #[default]
     NumberOfSeconds,
+    MinutesAndSeconds,
 }
