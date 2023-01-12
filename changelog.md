@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.6.0
+
+[Jan 11, 2023](https://github.com/jameslittle230/stork/releases/tag/v1.6.0)
+
+### New Features
+
+- Timestamp formatting for SRT files is now functional, and the [documentation](https://stork-search.net/docs/srt), which previously referenced unimplemented features, is now accurate.
+- The `x` SVG is now horizontally centered within the button.
+
+### Other
+
+- Internal dependency updates
+
 ## v1.5.0
 
 [May 31, 2022](https://github.com/jameslittle230/stork/releases/tag/v1.5.0)

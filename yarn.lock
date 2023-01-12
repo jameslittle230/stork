@@ -4741,7 +4741,7 @@ static-extend@^0.1.1:
     object-copy "^0.1.0"
 
 stork-search@./stork-wasm/pkg:
-  version "2.0.0"
+  version "1.6.0"
 
 string-length@^4.0.1:
   version "4.0.2"

@@ -24,6 +24,7 @@ jobs:
           crate: wasm-pack
       
       - name: Set up just
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions-rs/install@v0.1
         with:
           crate: just
@@ -136,6 +137,7 @@ jobs:
           $SETUP_REPO
           $RUN_BENCHMARK > ${{ env.BASELINE_JSON }}
           
+          git stash
           git checkout ${{ github.event.pull_request.head.sha }}
           $SETUP_REPO
           $RUN_BENCHMARK > ${{ env.CONTENDER_JSON }}
