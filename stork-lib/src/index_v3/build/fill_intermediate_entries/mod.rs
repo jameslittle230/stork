@@ -10,13 +10,8 @@ mod frontmatter;
 use self::frontmatter::parse_frontmatter;
 
 use super::{IndexGenerationError, NormalizedEntry};
-use crate::config::{
-    Config, DataSource, File, Filetype, InputConfig, OutputConfig, StemmingConfig,
-};
-use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator, ProgressStyle};
-use std::{collections::HashMap, convert::TryInto};
-
-use unicode_segmentation::UnicodeSegmentation;
+use crate::config::{Config, File, Filetype, InputConfig, OutputConfig, StemmingConfig};
+use std::collections::HashMap;
 
 /**
  * A `DataSourceReader` will output one of these once it's read from the data source.
@@ -82,21 +77,12 @@ pub(super) fn fill_intermediate_entries(
         return Err(IndexGenerationError::NoFilesSpecified);
     }
 
-    let progress_bar = build_progress_bar(config);
-
-    for stork_file in config
-        .input
-        .files
-        .iter()
-        .progress_with(progress_bar.clone())
-    {
+    for stork_file in config.input.files.iter() {
         let reader_config = ReaderConfig {
             global: config.input.clone(),
             file: stork_file.clone(),
             output: config.output.clone(),
         };
-
-        tick_progress_bar_with_filename(&progress_bar, &stork_file.title);
 
         let intermediate_entry_result: Result<NormalizedEntry, WordListGenerationError> =
             || -> Result<NormalizedEntry, WordListGenerationError> {
@@ -147,66 +133,9 @@ pub(super) fn fill_intermediate_entries(
     Ok(())
 }
 
-fn build_progress_bar(config: &Config) -> ProgressBar {
-    let progress_bar = ProgressBar::new((config.input.files.len()).try_into().unwrap()).with_style(
-        ProgressStyle::default_bar()
-            .template("[{elapsed}] {bar:40.cyan/blue} {pos}/{len} | {msg}")
-            .progress_chars("##-"),
-    );
-
-    let url_file_count: u32 = config.input.files.iter().fold(0, |acc, file| {
-        if let DataSource::URL(_) = file.source() {
-            acc + 1
-        } else {
-            acc
-        }
-    });
-
-    let progress_bar_draw_target = {
-        match url_file_count {
-            0 => ProgressDrawTarget::hidden(),
-            _ => ProgressDrawTarget::stderr_nohz(),
-        }
-    };
-
-    progress_bar.set_draw_target(progress_bar_draw_target);
-
-    progress_bar
-}
-
-fn tick_progress_bar_with_filename(progress_bar: &ProgressBar, filename: &str) {
-    let message = truncate_with_ellipsis_to_length(filename, 21, None);
-    progress_bar.set_message(message);
-    progress_bar.tick();
-}
-
-fn truncate_with_ellipsis_to_length(
-    string: &str,
-    length: usize,
-    ellipsis_override: Option<&str>,
-) -> String {
-    let ellipsis = ellipsis_override.unwrap_or("...");
-
-    let grapheme_iter = UnicodeSegmentation::graphemes(string, true);
-    let short_message: String = grapheme_iter.clone().take(length).collect();
-    let long_message: String = grapheme_iter.clone().take(length + 1).collect();
-
-    let truncated = {
-        let ellipsis = if short_message == long_message {
-            ""
-        } else {
-            ellipsis
-        };
-
-        format!("{short_message}{ellipsis}")
-    };
-
-    truncated
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{fill_intermediate_entries, truncate_with_ellipsis_to_length};
+    use super::fill_intermediate_entries;
     use crate::{
         config::{Config, DataSource, File, InputConfig, OutputConfig},
         index_v3::build::{errors::WordListGenerationError, intermediate_entry::NormalizedEntry},
@@ -274,26 +203,5 @@ mod tests {
             document_errors[0].word_list_generation_error,
             WordListGenerationError::EmptyWordList
         );
-    }
-
-    #[test]
-    fn test_truncate_with_ellipsis_on_naughty_strings() {
-        // https://github.com/minimaxir/big-list-of-naughty-strings/blob/master/blns.txt#L152
-        let naughty_strings = vec![
-            "\u{c5}\u{cd}\u{ce}\u{cf}\u{2dd}\u{d3}\u{d4}\u{f8ff}\u{d2}\u{da}\u{c6}\u{2603}",
-            "\u{152}\u{201e}\u{b4}\u{2030}\u{2c7}\u{c1}\u{a8}\u{2c6}\u{d8}\u{220f}\u{201d}\u{2019}",
-            "`\u{2044}\u{20ac}\u{2039}\u{203a}\u{fb01}\u{fb02}\u{2021}\u{b0}\u{b7}\u{201a}\u{2014}\u{b1}",
-            "\u{7530}\u{4e2d}\u{3055}\u{3093}\u{306b}\u{3042}\u{3052}\u{3066}\u{4e0b}\u{3055}\u{3044}",
-            "\u{548c}\u{88fd}\u{6f22}\u{8a9e}",
-            "\u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f466} \u{1f468}\u{200d}\u{1f469}\u{200d}\u{1f467}\u{200d}\u{1f466} \u{1f468}\u{200d}\u{1f468}\u{200d}\u{1f466} \u{1f469}\u{200d}\u{1f469}\u{200d}\u{1f467} \u{1f468}\u{200d}\u{1f466} \u{1f468}\u{200d}\u{1f467}\u{200d}\u{1f466} \u{1f469}\u{200d}\u{1f466} \u{1f469}\u{200d}\u{1f467}\u{200d}\u{1f466}",
-        ];
-
-        for string in naughty_strings {
-            let grapheme_count = UnicodeSegmentation::graphemes(string, true).count();
-
-            for i in 0..(grapheme_count + 3) {
-                let _truncation = truncate_with_ellipsis_to_length(string, i, None);
-            }
-        }
     }
 }
