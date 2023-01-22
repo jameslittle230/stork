@@ -26,7 +26,8 @@ build-wasm-release:
     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --release
     cd stork-wasm/pkg; mv stork_bg.wasm stork_bg_unopt.wasm
     wasm-opt -Os -o stork-wasm/pkg/stork_bg_uncomp.wasm stork-wasm/pkg/stork_bg_unopt.wasm 
-    gzip -c stork-wasm/pkg/stork_bg_uncomp.wasm > stork-wasm/pkg/stork_bg.wasm 
+    # gzip -c stork-wasm/pkg/stork_bg_uncomp.wasm > stork-wasm/pkg/stork_bg.wasm 
+    cp stork-wasm/pkg/stork_bg_uncomp.wasm  js/dist/stork.wasm
     -@stat -f 'stork-uncomp.wasm: %z bytes' stork-wasm/pkg/stork_bg_uncomp.wasm
     -@stat -f 'stork.wasm:        %z bytes' stork-wasm/pkg/stork_bg.wasm
 

@@ -11,7 +11,7 @@ if not os.path.exists(os.path.join(os.getcwd(), ".stork-project-root")):
 # Step 1: get file sizes for various distributed files
 files = [
     'js/dist/stork.js',
-    'js/dist/stork_bg.wasm',
+    'js/dist/stork.wasm',
     'dev/indexes/federalist.st'
 ]
 

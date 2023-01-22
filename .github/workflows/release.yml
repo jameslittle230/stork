@@ -12,14 +12,14 @@ jobs:
     steps:
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag: ${{ github.ref }}
           draft: true
           prerelease: false
+          skipIfReleaseExists: true
   
   build_binary:
     strategy:
@@ -62,6 +62,7 @@ jobs:
   build_indexes:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v1
