@@ -31,7 +31,7 @@ build-wasm-release:
     -@stat -f 'stork.wasm:        %z bytes' stork-wasm/pkg/stork_bg.wasm
 
 # Build the JS components of the project
-build-js-release: _yarn build-wasm-release
+build-js-release: _yarn
     node build.js
     -@stat -f 'stork.js: %z bytes' js/dist/stork.js
 
@@ -50,7 +50,7 @@ _build-rust-dev:
 #     cd stork-wasm/pkg; mv stork_bg.wasm stork_bg_uncomp.wasm
 #     @echo "Built WASM in dev mode, no sizes reported"
 
-_build-js-dev: _yarn build-wasm-release
+_build-js-dev: _yarn
     node build.js
 
 ######################################
@@ -79,7 +79,7 @@ bench bench_name="":
     cargo criterion --all-features --package stork-lib {{bench_name}}
 
 # Run JS tests
-test-js: _yarn build-wasm-release
+test-js: _yarn
     yarn jest --coverage
 
 # Run Rust tests
@@ -95,7 +95,7 @@ test-rust:
 ######################################
 ## Utilities
 
-_yarn:
+_yarn: build-wasm-release
     yarn install --silent
     yarn upgrade stork-search --silent
 
