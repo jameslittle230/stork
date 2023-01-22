@@ -111,6 +111,7 @@ pub(crate) fn generate(
     Err(HtmlParseError::SelectorNotPresent(selectors.to_string()))
 }
 
+// TODO: Restore tests
 // #[cfg(test)]
 // mod tests {
 //     use crate::build_config::{File, Filetype, InputConfig, OutputConfig};

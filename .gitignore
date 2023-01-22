@@ -18,6 +18,7 @@ yarn-error.log
 # Development Files
 .DS_Store
 .vscode
+!.vscode/settings.json
 # Vim Swap
 [._]*.s[a-v][a-z]
 !*.svg  # comment out if you don't need vector files

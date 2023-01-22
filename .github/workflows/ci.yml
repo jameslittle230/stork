@@ -4,7 +4,7 @@ on:
     types: ["opened", "reopened", "edited", "synchronize"]
   push:
     branches:
-      - "main"
+      - "v2"
 jobs:
   test_rust:
     name: "Test Rust"
