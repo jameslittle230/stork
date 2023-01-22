@@ -1,24 +1,16 @@
+# Dev
+.vscode
+.DS_Store
+
 # Build Artifacts
 target
-**/*.rs.bk
-node_modules
-dist
 pkg
-wasm-pack.log
-coverage
-
-# Test Files
-scripts/*_exe.sh
-/local-dev/test-corpora/federalist/*.txt
-/local-dev/test-corpora/3b1b/*.srt
-/local-dev/test-indexes/*.st
-/local-dev/dist
+/node_modules
+/dev/dist/
+/js/dist/
 yarn-error.log
+/coverage
 
-# Development Files
-.DS_Store
-.vscode
-!.vscode/settings.json
 # Vim Swap
 [._]*.s[a-v][a-z]
 !*.svg  # comment out if you don't need vector files
@@ -26,4 +18,3 @@ yarn-error.log
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
 [._]sw[a-p]
-

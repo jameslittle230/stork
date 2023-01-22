@@ -1,0 +1,78 @@
+name: Release
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
+  
+  build_binary:
+    strategy:
+      matrix: 
+        os: ["ubuntu-20.04", "ubuntu-22.04", "macos-11", "macos-12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: just build-rust-release
+      - uses: actions/upload-artifact@v3
+        with:
+          name: stork-${{ matrix.os }}
+          path: ./target/release/stork
+  
+  build_web_artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: "wasm32-unknown-unknown"
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: sudo apt-get install -y binaryen # wasm-opt
+      - run: cargo install wasm-pack
+        if: steps.rust-cache.outputs.cache-hit != 'true'
+      - run: just build-js-release
+      - uses: actions/upload-artifact@v3
+        with:
+          name: web-artifacts
+          path: ./js/dist
+
+  build_indexes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: just submodules
+      - run: just rebuild-dev-indexes
+      - uses: actions/upload-artifact@v3
+        with:
+          name: indexes
+          path: ./dev/indexes
+      
+

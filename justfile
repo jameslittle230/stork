@@ -4,12 +4,11 @@ export RUST_BACKTRACE := "1"
 _default:
     @just --list --unsorted
 
-######################################
-## Utilities
 
-_yarn:
-    yarn install --silent
-    yarn upgrade stork-search --silent
+
+
+
+
 
 ######################################
 ## Build for release
@@ -45,6 +44,7 @@ build-dev: _build-rust-dev _build-js-dev
 _build-rust-dev:
     cargo build --quiet
 
+# TODO: Document when you might want to do this vs. something else
 # _build-wasm-dev:
 #     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --dev
 #     cd stork-wasm/pkg; mv stork_bg.wasm stork_bg_uncomp.wasm
@@ -76,10 +76,10 @@ test-all: test-rust test-js
 
 # Run Rust benchmarks
 bench bench_name="":
-    cargo criterion --package stork-lib {{bench_name}}
+    cargo criterion --all-features --package stork-lib {{bench_name}}
 
 # Run JS tests
-test-js: build-wasm-release _yarn
+test-js: _yarn build-wasm-release
     yarn jest --coverage
 
 # Run Rust tests
@@ -87,7 +87,17 @@ test-rust:
     cargo test
 
 ######################################
+## Linting
+
+######################################
+## Formatting
+
+######################################
 ## Utilities
+
+_yarn:
+    yarn install --silent
+    yarn upgrade stork-search --silent
 
 # Remove build artifacts
 clean:
@@ -154,9 +164,18 @@ _dev-watch-build-release:
     git ls-files | entr -s "just build-release"
 
 ######################################
-# Other
+# Releasing
+
+generate-stats: build-js-release rebuild-dev-indexes
+    python3 scripts/generate_stats.py
 
 # Set the versions of the crates and the JS project
 set-versions version:
     cargo set-version --workspace {{version}}
+    cd stork-cli;  cargo upgrade -p stork-lib@{{version}}
+    cd stork-wasm; cargo upgrade -p stork-lib@{{version}}
     yarn version --new-version {{version}}
+
+tag-version version:
+    git tag -a v{{version}} -m "Release version {{version}}"
+    git push origin v{{version}}

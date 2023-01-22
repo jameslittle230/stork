@@ -3,15 +3,16 @@ import sys
 import json
 import subprocess
 
-# REQUIREMENTS:
-# Run `just build-js` and `just solo-build-federalist-index`
-# before running this script.
+if not os.path.exists(os.path.join(os.getcwd(), ".stork-project-root")):
+    print(
+        f"Current working directory {os.getcwd()} doesn't look to be the Stork project root.\nRun this as `just upload` or run it from the Stork root directory. Exiting.")
+    exit(1)
 
 # Step 1: get file sizes for various distributed files
 files = [
-    './dist/stork.js',
-    './dist/stork.wasm',
-    './local-dev/test-indexes/federalist.st'
+    'js/dist/stork.js',
+    'js/dist/stork_bg.wasm',
+    'dev/indexes/federalist.st'
 ]
 
 sizes = dict([(file.split('/')[-1], float(os.path.getsize(file))/1000)
@@ -30,6 +31,8 @@ for bench_name in benchmarks:
         stdout=subprocess.PIPE,
         text=True
     )
+
+    # TODO: Restore benchmarks
 
     success_line = next((line for line in run_bench_cmd.stdout.splitlines() if "benchmark-complete" in line))
 
