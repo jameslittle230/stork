@@ -1,0 +1,36 @@
+name: CI
+on:
+  pull_request:
+    types: ["opened", "reopened", "edited", "synchronize"]
+  push:
+    branches:
+      - "main"
+jobs:
+  test_rust:
+    name: "Test Rust"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: just test-rust
+  
+  test_js:
+    name: "Test JS"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: "wasm32-unknown-unknown"
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: sudo apt-get install -y binaryen # wasm-opt
+      - run: cargo install wasm-pack
+        if: steps.rust-cache.outputs.cache-hit != 'true'
+      - run: just test-js

@@ -122,9 +122,9 @@ You can read more documentation and learn more about customization at the projec
 
 Stork gratefully accepts contributions!
 
-- If you find a bug, a well-written bug report is extremely helpful. File a bug here.
-- If you want to ask about a potential feature request or enhancement, feel free to start a discussion or send a message on Discord.
-- If you want to write some code, the Contributing Guidelines can help make sense of how to get started.
+- If you find a bug, a well-written bug report is extremely helpful. [File a bug here](https://github.com/jameslittle230/stork/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
+- If you want to ask about a potential feature request or enhancement, feel free to [start a discussion](https://github.com/jameslittle230/stork/discussions) or [send a message on Discord](https://stork-search.net/chat).
+- If you want to write some code, the [Contributing Guidelines](https://github.com/jameslittle230/stork/blob/master/docs/contributing.md) can help make sense of how to get started.
 - I'd appreciate a heads up before you submit a PR, just so I can make sure that nobody is duplicating work.
 
-In order to make sure that the Stork community is welcoming to all, please review and follow the guidelines laid out in the Stork Code of Conduct.
+In order to make sure that the Stork community is welcoming to all, please review and follow the guidelines laid out in the [Stork Code of Conduct](https://github.com/jameslittle230/stork/blob/master/.github/CODE_OF_CONDUCT.md).

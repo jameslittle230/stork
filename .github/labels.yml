@@ -1,0 +1,19 @@
+- name: bug-report
+  color: d73a4a # red
+  description: Unexpected behavior found, including behavior that diverges from documentation
+
+- name: feature-request
+  color: 397dd6 # blue
+  description: Request for new or enhanced behavior
+
+- name: good-first-issue
+  color: af39d6 # purple
+  description: Indicator for an issue that would be easy for first-time contributors
+
+- name: help-wanted
+  color: d639ac # pink
+  description: Indicator that the maintainers want advice, help, ideas, etc.
+
+- name: distribution
+  color: 2ecc40 #green
+  description: An issue with the distribution/release of Stork, either for the current release or the broader process
