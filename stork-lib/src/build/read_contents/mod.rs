@@ -58,12 +58,8 @@ pub(crate) fn read_contents(
     }
 
     // parse frontmatter
-    let frontmatter_handling = file_config
-        .frontmatter_handling_override
-        .clone()
-        .unwrap_or_else(|| config.input.frontmatter_handling.clone());
-
-    let (frontmatter, contents) = frontmatter::parse(&frontmatter_handling, &contents);
+    let frontmatter_config = config.get_frontmatter_config_for_file(file_index);
+    let (frontmatter, contents) = frontmatter::parse(&frontmatter_config, &contents);
 
     Ok(FileReadValue {
         contents,

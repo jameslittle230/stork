@@ -1,3 +1,5 @@
+use std::default;
+
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
 
@@ -5,9 +7,6 @@ use smart_default::SmartDefault;
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
 pub struct OutputConfig {
-    #[default = false]
-    pub save_nearest_html_id: bool,
-
     #[default = 0]
     pub chunk_size_kb: usize,
 
@@ -22,4 +21,7 @@ pub struct OutputConfig {
 
     #[default = 10]
     pub displayed_results_count: u8,
+
+    #[default = false]
+    pub break_on_file_error: bool,
 }

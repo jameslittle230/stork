@@ -60,6 +60,14 @@ fn build_srt_url_time_suffix(time: &srtparse::Time, srt_config: &SRTConfig) -> S
         SRTTimestampFormat::NumberOfSeconds => {
             ((time.hours) * 3600 + (time.minutes) * 60 + (time.seconds)).to_string()
         }
+
+        SRTTimestampFormat::MinutesAndSeconds => {
+            if time.minutes > 0 {
+                format!("{}m{}s", time.hours * 60 + time.minutes, time.seconds)
+            } else {
+                format!("{}s", time.seconds)
+            }
+        }
     };
 
     srt_config
@@ -72,7 +80,9 @@ mod tests {
     use pretty_assertions::assert_eq;
     use srtparse::{Item, Time};
 
-    use super::generate_from_subs;
+    use crate::build_config::{SRTConfig, SRTTimestampFormat};
+
+    use super::{build_srt_url_time_suffix, generate_from_subs};
 
     #[test]
     fn correctly_segments_words() {
@@ -128,5 +138,62 @@ mod tests {
                 .map(|aw| aw.annotation.byte_offset)
                 .collect::<Vec<usize>>(),
         );
+    }
+
+    #[test]
+    fn it_formats_time_suffix_correctly() {
+        let time = srtparse::Time {
+            hours: 0,
+            minutes: 16,
+            seconds: 12,
+            milliseconds: 0,
+        };
+        let config = SRTConfig {
+            timestamp_linking: true,
+            timestamp_template_string: "{}".to_string(),
+            timestamp_format: SRTTimestampFormat::NumberOfSeconds,
+        };
+
+        let computed = build_srt_url_time_suffix(&time, &config);
+        let expected = "972";
+        assert_eq!(computed, expected);
+    }
+
+    #[test]
+    fn it_formats_time_suffix_correctly_minutes_and_seconds() {
+        let time = srtparse::Time {
+            hours: 0,
+            minutes: 16,
+            seconds: 12,
+            milliseconds: 0,
+        };
+        let config = SRTConfig {
+            timestamp_linking: true,
+            timestamp_template_string: "{}".to_string(),
+            timestamp_format: SRTTimestampFormat::MinutesAndSeconds,
+        };
+
+        let computed = build_srt_url_time_suffix(&time, &config);
+        let expected = "16m12s";
+        assert_eq!(computed, expected);
+    }
+
+    #[test]
+    fn it_formats_time_suffix_correctly_minutes_and_seconds_for_time_over_one_hour() {
+        let time = srtparse::Time {
+            hours: 1,
+            minutes: 16,
+            seconds: 12,
+            milliseconds: 0,
+        };
+        let config = SRTConfig {
+            timestamp_linking: true,
+            timestamp_template_string: "{}".to_string(),
+            timestamp_format: SRTTimestampFormat::MinutesAndSeconds,
+        };
+
+        let computed = build_srt_url_time_suffix(&time, &config);
+        let expected = "76m12s";
+        assert_eq!(computed, expected);
     }
 }

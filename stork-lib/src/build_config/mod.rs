@@ -12,6 +12,7 @@ use smart_default::SmartDefault;
 
 mod file;
 mod frontmatter;
+mod html;
 mod input;
 mod local;
 mod output;
@@ -19,6 +20,7 @@ mod srt;
 mod stemming;
 
 pub use self::frontmatter::FrontmatterConfig;
+use self::html::HTMLConfig;
 pub use file::{DataSource, File, Filetype};
 pub use input::{InputConfig, TitleBoost};
 pub use local::LocalConfig;
@@ -84,11 +86,41 @@ impl TryFrom<&str> for Config {
     }
 }
 
+impl Config {
+    pub(crate) fn get_stem_config_for_file(&self, file_index: usize) -> StemmingConfig {
+        return self
+            .input
+            .files
+            .get(file_index)
+            .map(|file| file.stemming.clone())
+            .flatten()
+            .unwrap_or_else(|| self.input.stemming.clone());
+    }
+
+    pub(crate) fn get_frontmatter_config_for_file(&self, file_index: usize) -> FrontmatterConfig {
+        self.input
+            .files
+            .get(file_index)
+            .map(|file| file.frontmatter_config.clone())
+            .flatten()
+            .unwrap_or_else(|| self.input.frontmatter_config.clone())
+    }
+
+    pub(crate) fn get_html_config_for_file(&self, file_index: usize) -> HTMLConfig {
+        self.input
+            .files
+            .get(file_index)
+            .map(|file| file.html_config.clone())
+            .flatten()
+            .unwrap_or_else(|| self.input.html_config.clone())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
 
-    use super::*;
+    use super::{html::HTMLConfig, *};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -107,75 +139,30 @@ mod tests {
                 stemming: StemmingConfig::Language(
                     rust_stemmers::Algorithm::English,
                 ),
-                html_selector: None,
-                exclude_html_selector: None,
-                frontmatter_handling: FrontmatterConfig::Omit,
+                frontmatter_config: FrontmatterConfig::Omit,
                 files: vec![
-                    File {
-                        title: "Introduction".into(),
-                        url: "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1".into(),
-                        explicit_source: Some(
-                            DataSource::FilePath(
-                                "federalist-1.txt".into(),
-                            ),
-                        ),
-                        id: None,
-                        stemming_override: None,
-                        html_selector_override: None,
-                        exclude_html_selector_override: None,
-                        frontmatter_handling_override: None,
-                        filetype: None,
-                        fields: HashMap::new(),
-                    },
-                    File {
-                        title: "Concerning Dangers from Foreign Force and Influence".into(),
-                        url: "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2".into(),
-                        explicit_source: Some(
-                            DataSource::FilePath(
-                                "federalist-2.txt".into(),
-                            ),
-                        ),
-                        id: None,
-                        stemming_override: None,
-                        html_selector_override: None,
-                        exclude_html_selector_override: None,
-                        frontmatter_handling_override: None,
-                        filetype: None,
-                        fields: HashMap::new(),
-                    },
-                    File {
-                        title: "Concerning Dangers from Foreign Force and Influence 2".into(),
-                        url: "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3".into(),
-                        explicit_source: Some(
-                            DataSource::FilePath(
-                                "federalist-3.txt".into(),
-                            ),
-                        ),
-                        id: None,
-                        stemming_override: None,
-                        html_selector_override: None,
-                        exclude_html_selector_override: None,
-                        frontmatter_handling_override: None,
-                        filetype: None,
-                        fields: HashMap::new(),
-                    },
+                    File {title:"Introduction".into(),url:"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1".into(),explicit_source:Some(DataSource::FilePath("federalist-1.txt".into(),),),filetype:None,fields:HashMap::new(), stemming: None, html_config: None, frontmatter_config: None, srt_config: None },
+                    File {title:"Concerning Dangers from Foreign Force and Influence".into(),url:"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2".into(),explicit_source:Some(DataSource::FilePath("federalist-2.txt".into(),),),filetype:None,fields:HashMap::new(), stemming: None, html_config: None, frontmatter_config: None, srt_config: None },
+                    File {title:"Concerning Dangers from Foreign Force and Influence 2".into(),url:"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3".into(),explicit_source:Some(DataSource::FilePath("federalist-3.txt".into(),),),filetype:None,fields:HashMap::new(), stemming: None, html_config: None, frontmatter_config: None, srt_config: None },
                 ],
-                break_on_file_error: false,
                 srt_config: SRTConfig {
                     timestamp_linking: true,
                     timestamp_template_string: "&t={ts}".into(),
                     timestamp_format: SRTTimestampFormat::NumberOfSeconds,
                 },
-                minimum_indexed_substring_length: 3,
-                minimum_index_ideographic_substring_length: 1,
+                html_config: HTMLConfig {
+                    save_nearest_id: true,
+                    included_selectors: vec!["main".to_string()],
+                    excluded_selectors: vec![],
+                },
             },
             output: OutputConfig {
-                save_nearest_html_id: false,
                 chunk_size_kb: 0,
                 excerpt_buffer: 8,
                 excerpts_per_result: 5,
                 displayed_results_count: 10,
                 minimum_query_length: 3,
+                break_on_file_error: true,
             },
             local: LocalConfig { debug_output: false },
         }

@@ -1,6 +1,6 @@
 #![allow(clippy::upper_case_acronyms)]
 
-use super::{FrontmatterConfig, StemmingConfig};
+use super::{html::HTMLConfig, FrontmatterConfig, SRTConfig, StemmingConfig};
 use core::fmt;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
@@ -14,29 +14,27 @@ pub struct File {
     pub title: String,
     pub url: String,
 
+    #[serde(flatten, default)]
+    pub fields: Fields,
+
     /// Implicit source will take from the destination URL
     #[serde(flatten)]
     pub explicit_source: Option<DataSource>,
 
-    pub id: Option<String>,
+    #[serde(default)]
+    pub stemming: Option<StemmingConfig>,
 
     #[serde(default)]
-    pub stemming_override: Option<StemmingConfig>,
+    pub html_config: Option<HTMLConfig>,
 
     #[serde(default)]
-    pub html_selector_override: Option<String>,
+    pub frontmatter_config: Option<FrontmatterConfig>,
 
     #[serde(default)]
-    pub exclude_html_selector_override: Option<String>,
-
-    #[serde(default)]
-    pub frontmatter_handling_override: Option<FrontmatterConfig>,
+    pub srt_config: Option<SRTConfig>,
 
     #[serde(default)]
     pub filetype: Option<Filetype>,
-
-    #[serde(flatten, default)]
-    pub fields: Fields,
 }
 
 impl File {

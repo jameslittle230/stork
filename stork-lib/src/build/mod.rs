@@ -67,13 +67,10 @@ pub(crate) fn build_index(
     }
 
     for (document_id, doc_parse_value) in documents.iter().enumerate() {
-        let stemmer = match &config.input.files[document_id]
-            .stemming_override
-            .clone()
-            .unwrap_or_else(|| config.input.stemming.clone())
-        {
+        let stem_config = config.get_stem_config_for_file(document_id);
+        let stemmer = match stem_config {
             crate::build_config::StemmingConfig::None => None,
-            crate::build_config::StemmingConfig::Language(alg) => Some(Stemmer::create(*alg)),
+            crate::build_config::StemmingConfig::Language(alg) => Some(Stemmer::create(alg)),
         };
 
         for title_word in &doc_parse_value.annotated_title_words {

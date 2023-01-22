@@ -55,13 +55,7 @@ pub(super) fn parse_document(
         DocumentParseValue {
             annotated_words,
             contents: contents.replace('\n', " "),
-
-            stem_algorithm: document_config
-                .stemming_override
-                .clone()
-                .unwrap_or_else(|| config.input.stemming.clone())
-                .to_optional(),
-
+            stem_algorithm: config.get_stem_config_for_file(file_index).to_optional(),
             annotated_title_words: split_into_normalized_words(&document_config.title)
                 .iter()
                 .map(|indexed_word| {

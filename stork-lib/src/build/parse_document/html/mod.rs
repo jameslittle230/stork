@@ -19,50 +19,41 @@ pub(crate) fn generate(
     let document = kuchiki::parse_html().one(contents);
     let document_config = config.input.files.get(file_index).unwrap(); // TODO: Deal with unwrap, somehow
 
-    let selector: &str = document_config
-        .html_selector_override
-        .as_ref()
-        .or(config.input.html_selector.as_ref())
-        .map_or("main", std::string::String::as_str);
+    let html_config = config.get_html_config_for_file(file_index);
 
-    let exclude_selector: Option<&str> = document_config
-        .exclude_html_selector_override
-        .as_ref()
-        .or(config.input.exclude_html_selector.as_ref())
-        .map(std::string::String::as_str);
+    let selectors = html_config.included_selectors.join(", ");
 
-    if let Ok(document_matches) = document.select(selector) {
+    let excluded_selectors = html_config.excluded_selectors.join(", ");
+    let compiled_excluded_selectors = Selectors::compile(&excluded_selectors);
+
+    if let Ok(document_matches) = document.select(&selectors) {
         let mut word_list: Vec<AnnotatedWord> = vec![];
         let mut latest_id: Option<String> = None;
         let mut document_contents = String::new();
 
-        let compiled_exclude_selector = exclude_selector.map(Selectors::compile);
         let matches_vec: Vec<NodeDataRef<ElementData>> = document_matches
             .into_iter()
-            .filter(|n| match &compiled_exclude_selector {
-                Some(Ok(exclude_selector)) => !exclude_selector.matches(n),
+            .filter(|n| match &compiled_excluded_selectors {
+                Ok(e) => !e.matches(n),
                 _ => true,
             })
             .collect();
 
         if matches_vec.is_empty() {
-            return Err(HtmlParseError::SelectorNotPresent(selector.to_string()));
+            return Err(HtmlParseError::SelectorNotPresent(selectors.to_string()));
         }
 
         for css_match in matches_vec {
             let as_node = css_match.as_node();
 
-            if let Some(exclude_selector) = exclude_selector {
-                if let Ok(exclusion_selection) = as_node.select(exclude_selector) {
-                    // Kuchiki doesn't like it if you mutate the tree while iterating over it,
-                    // so instead of iterating over the .select() result, let's first collect
-                    // all nodes in our iterator, then remove them after the fact.
-                    let excluded_nodes: Vec<NodeDataRef<_>> =
-                        exclusion_selection.into_iter().collect();
+            if let Ok(exclusion_selection) = as_node.select(&excluded_selectors) {
+                // Kuchiki doesn't like it if you mutate the tree while iterating over it,
+                // so instead of iterating over the .select() result, let's first collect
+                // all nodes in our iterator, then remove them after the fact.
+                let excluded_nodes: Vec<NodeDataRef<_>> = exclusion_selection.into_iter().collect();
 
-                    for node in excluded_nodes {
-                        node.as_node().detach();
-                    }
+                for node in excluded_nodes {
+                    node.as_node().detach();
                 }
             }
 
@@ -71,7 +62,7 @@ pub(crate) fn generate(
                     let contents: String = {
                         let mut output = "".to_string();
                         if let Some(element_data) = node_ref.as_element() {
-                            if config.output.save_nearest_html_id {
+                            if html_config.save_nearest_id {
                                 if let Some(id) = element_data.attributes.borrow().get("id") {
                                     latest_id = Some(id.to_string());
                                 }
@@ -117,13 +108,12 @@ pub(crate) fn generate(
         return Ok((document_contents, word_list));
     }
 
-    Err(HtmlParseError::SelectorNotPresent(selector.to_string()))
+    Err(HtmlParseError::SelectorNotPresent(selectors.to_string()))
 }
 
-// TODO: Restore tests
 // #[cfg(test)]
 // mod tests {
-//     use crate::config::{File, Filetype, InputConfig, OutputConfig};
+//     use crate::build_config::{File, Filetype, InputConfig, OutputConfig};
 //     use pretty_assertions::assert_eq;
 
 //     use super::*;
