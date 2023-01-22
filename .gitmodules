@@ -1,6 +1,6 @@
-[submodule "local-dev/test-corpora/federalist"]
-	path = local-dev/test-corpora/federalist
+[submodule "dev/documents/federalist"]
+	path = dev/documents/federalist
 	url = https://github.com/stork-search/federalist
-[submodule "local-dev/test-corpora/3b1b"]
-	path = local-dev/test-corpora/3b1b
+[submodule "dev/documents/3b1b"]
+	path = dev/documents/3b1b
 	url = https://github.com/stork-search/3b1b
