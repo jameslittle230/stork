@@ -1,6 +1,6 @@
 [package]
 name = "stork-search"
-version = "1.6.0"
+version = "2.0.0"
 authors = ["James Little <littleguy23@gmail.com>"]
 edition = "2021"
 documentation = "https://stork-search.net/docs"
@@ -12,27 +12,33 @@ keywords = ["wasm", "webassembly", "search", "javascript"]
 categories = ["wasm"]
 
 [features]
-default = ["v1-compat", "search-v2", "search-v3", "build-v3-web-scraping"]
+default = ["test-server"]
 test-server = ["hyper", "tokio"]
-v1-compat = []
-search-v2 = ["stork-lib/search-v2"]
-search-v3 = ["stork-lib/search-v3"]
-build-v3 = ["search-v3", "stork-lib/build-v3"]
-build-v3-web-scraping = ["build-v3", "stork-lib/build-v3-web-scraping"]
+remote-fetch = ['stork-lib/build-remote-fetch']
 
 [dependencies]
 atty = "0.2.14"
 bytes = "1.1.0"
-clap = { version = "2.33.3", features = ["color"] }
+clap = { version = "3.2.16", features = ["cargo", "wrap_help"] }
 colored = "2.0.0"
-hyper = { version = "0.14.17", optional = true, features = ["server"] }
+hyper = { version = "0.14.17", optional = true, features = [
+    "server",
+    "http1",
+    "tcp"
+] }
+indicatif = "0.17.0"
 num-format = "0.4.0"
 serde = "1.0.130"
 serde_json = "1.0.68"
-stork-lib = { path = "../stork-lib", version = "1.6.0", default-features = false }
+stork-lib = { path = "../stork-lib", version = "2.0.0", features = ["build"] }
+strunc = "0.1.1"
 textwrap = { version = "0.14.2", features = ["terminal_size"] }
 thiserror = "1.0.29"
-tokio = { version = "1.18.4", optional = true, features = ["signal"] }
+tokio = { version = "=1.17.0", optional = true, features = [
+    "signal",
+    "rt-multi-thread"
+] }
+unicode-segmentation = "1.9.0"
 
 [dev-dependencies]
 pretty_assertions = "1.0.0"

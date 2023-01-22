@@ -1,20 +1,21 @@
-# Stork
+<div align="center">
 
-Impossibly fast web search, made for static sites.
+# 🔎 Stork Search
 
-[![Crates.io](https://img.shields.io/crates/v/stork-search)](https://crates.io/crates/stork-search)
-[![Codecov](https://img.shields.io/codecov/c/gh/jameslittle230/stork)](https://codecov.io/gh/jameslittle230/stork)
-![GitHub branch checks state](https://img.shields.io/github/checks-status/jameslittle230/stork/master)
+**A library for creating beautiful, fast, and accurate full-text search interfaces on the web.**
 
-Stork is a library for creating beautiful, fast, and accurate full-text search interfaces on the web.
+[![Crates.io](https://img.shields.io/crates/v/stork-search)](https://crates.io/crates/stork-search?style=plastic)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/jameslittle230/stork/ci-on-push.yml?branch=master&style=plastic)
 
-It comes in two parts. First, it's a **command-line tool** that indexes content and creates a search index file that you can upload to a web server. Second, it's a **Javascript library** that uses that index file to build an interactive search interface that displays optimal search results immediately to your user, as they type.
-
-Stork is built with Rust, and the Javascript library uses WebAssembly behind the scenes. It's easy to get started and is even easier to customize so it fits your needs. It's perfect for Jamstack sites and personal blogs, but can be used wherever you need an interactive search bar.
-
-Currently in development by [James Little](https://jameslittle.me)
+### [Website](https://stork-search.net/docs/install) • [Documentation](https://stork-search.net/docs/install) • [Demo](https://codepen.io/littleguy230/pen/oNBJBmK) • [Donate](https://ko-fi.com/jameslittle230) • [Chat](https://stork-search.net/chat) • [Stickers](https://stork-search.net/sticker)
 
 ![Gif of Stork in Action](https://files.stork-search.net/marketing/1.0.0-video.gif)
+
+</div>
+
+Stork comes in two parts. First, it's a **command-line tool** that indexes content and creates a search index file that you can upload to a web server. Second, it's a **Javascript library** that uses that index file to build an interactive search interface that displays optimal search results immediately to your user, as they type.
+
+Stork is built with Rust, and the Javascript library uses WebAssembly behind the scenes. It's easy to get started and is even easier to customize so it fits your needs. It's perfect for Jamstack sites and personal blogs, but can be used wherever you need an interactive search bar.
 
 ## Getting Started
 
@@ -117,45 +118,13 @@ To embed a Stork search interface on your website, first upload the index file t
 
 You can read more documentation and learn more about customization at the project's website: <https://stork-search.net>.
 
-# Development
+# Contributing
 
-To build Stork, you'll need:
+Stork gratefully accepts contributions!
 
-- [Rust](https://www.rust-lang.org), using the stable toolchain
-- [wasm-pack](https://github.com/rustwasm/wasm-pack)
-- [yarn](https://yarnpkg.com)
-- [Just](https://github.com/casey/just) if you want to use the same build scripts I do (otherwise you can read the Justfile and run the scripts manually)
+- If you find a bug, a well-written bug report is extremely helpful. File a bug here.
+- If you want to ask about a potential feature request or enhancement, feel free to start a discussion or send a message on Discord.
+- If you want to write some code, the Contributing Guidelines can help make sense of how to get started.
+- I'd appreciate a heads up before you submit a PR, just so I can make sure that nobody is duplicating work.
 
-The repository is structured like a [typical Cargo workspace](https://doc.rust-lang.org/cargo/reference/workspaces.html), with some modifications.
-
-- The `stork-*` directories hold Rust packages. `stork-cli` and `stork-wasm` are the top-level packages; everything else is a dependency.
-- `js` holds the Javascript source code.
-- `test-assets` holds binary assets required by Stork's functional tests.
-- `local-dev` holds configuration files, corpora, and index files required to build and run the test webpage used for local development.
-
-You can build the project using either the Rust entrypoint or the Javascript entrypoint (build instructions are listed below). After you've built the project, you'll see three more directories:
-
-- `target` holds the output binary build artifacts
-- `pkg` holds intermediate WASM build artifacts
-- `dist` holds the final build artifacts for the web.
-
-If you're interested in extracting the final Stork build artifacts, you can extract the following files after building the project with `yarn build`:
-
-- `/target/release/stork`
-- `/dist/stork.js`
-- `/dist/stork.wasm`
-
-## Building the project for production
-
-- `just build-indexer` will build the indexer binary to `target/release/stork`
-- `just build-js` will build the WASM binary and the Javascript bridging code to the `dist` directory
-- `just build-federalist-index` will build the federalist.st index file that's referenced throughout the project. It will output to `local-dev/test-indexes/federalist.st`.
-
-### Building the project for development
-
-- `just build-indexer-dev` will build the indexer binary
-- `cargo run -- <CLI OPTIONS>` will run the indexer binary
-- `just build-dev-site` will build the WASM and Javascript bridge code, build the federalist.st index, and package the development site
-- `./scripts/serve.sh` will serve the development site
-
-Take a look at the project's Justfile for more available scripts.
+In order to make sure that the Stork community is welcoming to all, please review and follow the guidelines laid out in the Stork Code of Conduct.

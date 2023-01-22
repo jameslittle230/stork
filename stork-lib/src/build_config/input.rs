@@ -1,0 +1,42 @@
+#![allow(clippy::module_name_repetitions)]
+
+use serde::{Deserialize, Serialize};
+use smart_default::SmartDefault;
+
+use super::{File, FrontmatterConfig, SRTConfig, StemmingConfig};
+
+#[derive(Serialize, Deserialize, Clone, Debug, SmartDefault, PartialEq, Eq, PartialOrd)]
+#[serde(deny_unknown_fields)]
+pub enum TitleBoost {
+    Minimal,
+    #[default]
+    Moderate,
+    Large,
+    Ridiculous,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq)]
+#[serde(deny_unknown_fields, default)]
+#[allow(non_snake_case)]
+pub struct InputConfig {
+    pub base_directory: String,
+    pub url_prefix: String,
+    pub title_boost: TitleBoost,
+    pub stemming: StemmingConfig,
+    pub html_selector: Option<String>,
+
+    #[default(None)]
+    pub exclude_html_selector: Option<String>,
+    pub frontmatter_handling: FrontmatterConfig,
+    pub files: Vec<File>,
+
+    #[default = false]
+    pub break_on_file_error: bool,
+    pub srt_config: SRTConfig,
+
+    #[default = 3]
+    pub minimum_indexed_substring_length: u8,
+
+    #[default = 1]
+    pub minimum_index_ideographic_substring_length: u8,
+}

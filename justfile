@@ -1,132 +1,162 @@
+set positional-arguments
+export RUST_BACKTRACE := "1"
+
 _default:
-  @just --choose
+    @just --list --unsorted
+
+######################################
+## Utilities
 
 _yarn:
-    yarn install
+    yarn install --silent
+    yarn upgrade stork-search --silent
 
+######################################
+## Build for release
 
+# Build the project for release
+build-release: build-rust-release build-js-release
 
+# Build the Rust components of the project for release
+build-rust-release:
+    cargo build --release --quiet
+    cargo clippy --quiet
 
-_js-test: build-wasm _yarn
+# Build and compress the WASM blob
+build-wasm-release:
+    cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --release
+    cd stork-wasm/pkg; mv stork_bg.wasm stork_bg_unopt.wasm
+    wasm-opt -Os -o stork-wasm/pkg/stork_bg_uncomp.wasm stork-wasm/pkg/stork_bg_unopt.wasm 
+    gzip -c stork-wasm/pkg/stork_bg_uncomp.wasm > stork-wasm/pkg/stork_bg.wasm 
+    -@stat -f 'stork-uncomp.wasm: %z bytes' stork-wasm/pkg/stork_bg_uncomp.wasm
+    -@stat -f 'stork.wasm:        %z bytes' stork-wasm/pkg/stork_bg.wasm
+
+# Build the JS components of the project
+build-js-release: _yarn build-wasm-release
+    node build.js
+    -@stat -f 'stork.js: %z bytes' js/dist/stork.js
+
+######################################
+## Build for development
+
+# Build the project for development
+build-dev: _build-rust-dev _build-js-dev
+
+_build-rust-dev:
+    cargo build --quiet
+
+# _build-wasm-dev:
+#     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --dev
+#     cd stork-wasm/pkg; mv stork_bg.wasm stork_bg_uncomp.wasm
+#     @echo "Built WASM in dev mode, no sizes reported"
+
+_build-js-dev: _yarn build-wasm-release
+    node build.js
+
+######################################
+## Running the project
+
+alias _rb := run-build
+
+# Build a search index with the default data set
+run-build input="dev/configs/federalist.toml" output="dev/indexes/federalist.st":
+    cargo run -- build --input {{input}} --output {{output}} --timing
+
+alias _rs := run-search
+
+# Run a search on the default development index
+run-search query index="dev/indexes/federalist.st":
+    cargo run -- search --index {{index}} --query "{{query}}" --timing
+
+######################################
+## Testing
+
+# Run all project tests
+test-all: test-rust test-js
+
+# Run Rust benchmarks
+bench bench_name="":
+    cargo criterion --package stork-lib {{bench_name}}
+
+# Run JS tests
+test-js: build-wasm-release _yarn
     yarn jest --coverage
 
-_rust-test:
+# Run Rust tests
+test-rust:
     cargo test
 
-test: _js-test _rust-test
+######################################
+## Utilities
 
-format: _yarn
-    cargo fmt
-    yarn prettier --write js/**/*.ts
-
-lint: _yarn format
-    cargo check
-    cargo clippy --fix --all-targets --all-features -- -D warnings
-    yarn eslint js/**/*.ts
-
+# Remove build artifacts
 clean:
     rm -rf dist
     rm -rf pkg
     rm -rf coverage
+    rm -rf dev/dist
+    rm -rf js/dist
     rm -rf target
 
-super-clean: clean
+# Remove build artifacts and downloaded helpers
+clean-super: clean
     rm -rf node_modules
-    rm -rf local-dev/test-corpora/3b1b/*
-    rm -rf local-dev/test-corpora/federalist/*
+    rm -rf dev/documents/3b1b/*
+    rm -rf dev/documents/federalist/*
+    rm -rf dev/indexes/*.st
 
+# Generate Rust package documentation
+rustdoc:
+    cargo doc --no-deps --open
 
-
-
-fetch-test-corpora:
+# Update Git submodules
+submodules:
     git submodule init
     git submodule update
 
-solo-build-federalist-index:
-    cargo run -q --all-features -- build --input local-dev/test-configs/federalist.toml --output local-dev/test-indexes/federalist.st
-
-build-federalist-index: build-indexer-dev fetch-test-corpora solo-build-federalist-index
-
-build-all-indexes: build-federalist-index
-    -cargo run -q --all-features -- build --input local-dev/test-configs/3b1b.toml            --output local-dev/test-indexes/3b1b.st
-    -cargo run -q --all-features -- build --input local-dev/test-configs/beepboop.toml        --output local-dev/test-indexes/beepboop.st
-    -cargo run -q --all-features -- build --input local-dev/test-configs/bowdoin-orient.toml  --output local-dev/test-indexes/bowdoin-orient.st
-    -cargo run -q --all-features -- build --input local-dev/test-configs/federalist-zero.toml --output local-dev/test-indexes/federalist-zero.st
+# Build the development indexes
+rebuild-dev-indexes:
+    rm -rf dev/indexes/*.st
+    just _build-dev-indexes
 
 
+######################################
+## Live Development
 
+# Start a live development session
+dev: build-dev _copy-dev-files
+    mprocs "just _dev-watch-build" "just _dev-serve" "just _dev-watch-test"
 
+_build-dev-indexes:
+    python3 ./scripts/build_dev_indexes.py
 
-#############################################
-# Production build settings
+_copy-dev-files: _build-dev-indexes
+    rm -rf dev/dist
+    mkdir  dev/dist
 
-build-indexer:
-    cargo build --release --all-features
+    cp dev/site/*        dev/dist/
+    cp js/dist/*         dev/dist/
+    cp dev/indexes/*.st  dev/dist/
+    cp stork-wasm/pkg/stork_bg_uncomp.wasm  dev/dist/stork.wasm
 
-build-wasm:
-    cd stork-wasm && wasm-pack build --target web --out-name stork -- --no-default-features --features="v3"
-    wc -c < ./stork-wasm/pkg/stork_bg.wasm
+_dev-watch-build:
+    git ls-files | entr -s "just build-dev && just _copy-dev-files"
 
-build-wasm-all-features:
-    cd stork-wasm && wasm-pack build --target web --out-name stork -- --features="v2, v3"
-    wc -c < ./stork-wasm/pkg/stork_bg.wasm
-
-solo-build-js:
-    yarn webpack --config webpack.prod.js
-
-build-js: build-wasm _yarn solo-build-js
-
-
-
-
-
-#############################################
-# Development build settings 
-# for the local dev site
-
-build-indexer-dev:
-    cargo build --all-features
-
-build-wasm-dev:
-    cd stork-wasm && wasm-pack build --target web --out-name stork --dev -- --no-default-features --features="v3"
-
-solo-build-js-dev:
-    yarn webpack --config webpack.dev.js
-
-build-js-dev: build-wasm-dev _yarn solo-build-js-dev
-
-solo-build-dev-site:
-    rm -rf local-dev/dist
-    mkdir local-dev/dist
-    cp themes/*.css local-dev/dist/
-    cp local-dev/index.html local-dev/dist/
-    cp dist/* local-dev/dist/
-    cp local-dev/test-indexes/*.st local-dev/dist/
-    @echo "You should run \`just serve-dev-site\` in another tab!"
-
-build-dev-site: build-js-dev build-all-indexes solo-build-dev-site
-
-build-dev-site-prod: build-js build-all-indexes solo-build-dev-site
-
-serve-dev-site:
+_dev-serve:
     @echo "Open http://127.0.0.1:8025"
-    python3 -m http.server --directory ./local-dev/dist 8025
+    lsof -t -i tcp:8025 | xargs kill
+    python3 -m http.server --directory ./dev/dist 8025
 
+_dev-watch-test:
+    git ls-files | entr -s "just test"
 
+_dev-watch-build-release:
+    git ls-files | entr -s "just build-release"
 
+######################################
+# Other
 
-
-#############################################
-# CI
-
-upload ref="":
-    python3 scripts/upload_build_artifacts.py
-
-bench bench_name="":
-    cargo criterion --package stork-lib --plotting-backend=disabled --message-format=json {{bench_name}}
-
-solo-generate-stats:
-    python3 scripts/generate_stats.py
-
-generate-stats: build-js solo-build-federalist-index solo-generate-stats
-    
+# Set the versions of the crates and the JS project
+set-versions version:
+    cargo set-version --workspace {{version}}
+    yarn version --new-version {{version}}

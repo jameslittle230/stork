@@ -1,61 +1,37 @@
 [package]
 name = "stork-lib"
-version = "1.6.0"
-authors = ["James Little <littleguy23@gmail.com>"]
+version = "2.0.0"
 edition = "2021"
-documentation = "https://stork-search.net/docs"
-homepage = "https://stork-search.net"
-description = "Impossibly fast web search, made for static sites."
-repository = "https://github.com/jameslittle230/stork"
-license = "Apache-2.0"
-keywords = ["wasm", "webassembly", "search", "javascript"]
-categories = ["wasm"]
-exclude = ['/dist/', 'node_modules/', '/test/', '/test-assets/']
 
 [features]
-default = ["build-v3-web-scraping"]
-search-v2 = ["bincode"]
-search-v3 = ["rmp-serde"]
-build-v3 = [
-    "search-v3",
-    "num-format",
-    "pulldown-cmark",
-    "mime",
-    "srtparse",
-    "kuchiki",
-    "frontmatter",
-    "indicatif",
-]
-build-v3-web-scraping = ["build-v3", "reqwest"]
+build = ['thiserror', 'toml', 'serde_json', 'smart-default', 'srtparse', 'frontmatter', 'kuchiki', 'pulldown-cmark']
+build-remote-fetch = ['build', 'mime', 'reqwest']
 
+# json-search-output = ['serde']
 [dependencies]
-bytes = "1.1.0"
-thiserror = "1.0.29"
+bstr = "1.0.1"
+bytes = "1.2.1"
+minicbor = { version = "0.18.0", features = ["derive", "std"] }
+rmp-serde = "1.1.1"
+wasm-bindgen = "0.2.83"
 rust-stemmers = "1.2.0"
-colored = { version = "2.0.0", optional = true } # colored console output
-console_error_panic_hook = { version = "0.1.6", optional = true }
-num-format = { version = "0.4.0", optional = true }
-serde = { version = "1.0", features = ["derive"] }
-smart-default = "0.6.0"
-serde_json = "1.0.72"
-toml = "0.5.8"
+itertools = "0.10.3"
+unicode-segmentation = "1.8.0"
+### build deps
+thiserror = { version = "1.0.29", optional = true }
+toml = { version = "0.5.8", optional = true }
+serde = { version = "1.0.147", features = ["derive"], optional = false }
+serde_json = { version = "1.0.72", optional = true }
+smart-default = { version = "0.6.0", optional = true }
+srtparse = { version = "0.2.0", optional = true }
 frontmatter = { version = "0.4.0", optional = true }
-indicatif = { version = "0.16.2", optional = true }
 kuchiki = { version = "0.8.1", optional = true }
 pulldown-cmark = { version = "0.9.1", optional = true }
+### build-remote-fetch deps
 mime = { version = "0.3.16", optional = true }
-reqwest = { version = "0.11", features = ["blocking", "json"], optional = true }
-rmp-serde = { version = "0.15.5", optional = true }
-srtparse = { version = "0.2.0", optional = true }
-unicode-segmentation = "1.8.0"
-bincode = { version = "1.3.3", optional = true }
-lazy_static = "1.4.0"
+reqwest = { version = "0.11", optional = true, features = ["blocking", "json"] }
+rust-tfidf = "1.1.1"
 
 [dev-dependencies]
-criterion = "0.3"
 hex-literal = "0.3.4"
-pretty_assertions = "1.0.0"
-
-[[bench]]
-name = "basic"
-harness = false
+pretty_assertions = "1.3.0"

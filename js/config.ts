@@ -1,60 +1,51 @@
-import StorkError from "./storkError";
-import { difference, plural } from "./util";
+import { Result } from "./searchData";
 
-export interface Configuration {
-  showProgress: boolean;
-  printIndexInfo: boolean;
-  showScores: boolean;
-  showCloseButton: boolean;
-  minimumQueryLength: number;
-  forceOverwrite: boolean;
-  resultNoun: { singular: string; plural: string };
-  onQueryUpdate?: (query: string, results: unknown) => unknown;
-  onResultSelected?: (query: string, result: unknown) => unknown;
-  onResultsHidden?: () => unknown;
-  onInputCleared?: () => unknown;
-  transformResultUrl: (url: string) => string;
-}
-
-export const defaultConfig: Readonly<Configuration> = {
-  showProgress: true,
-  printIndexInfo: false,
-  showScores: false,
-  showCloseButton: true,
-  minimumQueryLength: 3,
-  forceOverwrite: false,
-  resultNoun: { singular: "file", plural: "files" },
-  onQueryUpdate: undefined,
-  onResultSelected: undefined,
-  onResultsHidden: undefined,
-  onInputCleared: undefined,
-  transformResultUrl: url => url,
+const defaultRegisterConfig = {
+  forceRefreshIndex: false
 };
 
-export function calculateOverriddenConfig(
-  overrides: Partial<Configuration>
-): Configuration | StorkError {
-  const configKeyDiff = difference(
-    Object.keys(overrides),
-    Object.keys(defaultConfig)
-  );
+export type RegisterConfiguration = Readonly<typeof defaultRegisterConfig>;
 
-  if (configKeyDiff.length > 0) {
-    const keys = plural(configKeyDiff.length, "key", "keys");
-    const invalidKeys = JSON.stringify(configKeyDiff);
-    return new StorkError(`Invalid ${keys} in config object: ${invalidKeys}`);
-  }
+export const resolveRegisterConfig = (object: any) => {
+  return {
+    ...defaultRegisterConfig,
+    ...object
+  } as RegisterConfiguration;
+};
 
-  const output: Configuration = Object.assign({}, defaultConfig);
+const CLOSE_BUTTON_SVG = `\
+<svg height="0.8em" viewBox="0 0 23 24" xmlns="http://www.w3.org/2000/svg">\
+<g fill="none" fill-rule="evenodd" stroke-linecap="round">\
+<g transform="translate(-700 -149)" stroke="currentcolor" stroke-width="4">\
+<line id="a" x1="702.5" x2="720" y1="152.5" y2="170"/>\
+<line transform="translate(711 161) rotate(-90) translate(-711 -161)" x1="702.5" x2="720" y1="152.5" y2="170"/>\
+</g>\
+</g>\
+</svg>`;
 
-  for (const key of Object.keys(defaultConfig) as Array<keyof Configuration>) {
-    const overrideVal = overrides[key];
-    if (overrideVal !== undefined) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      output[key] = overrideVal;
+const defaultUIConfig = {
+  strings: {
+    attribution: `Powered by <a href="https://stork-search.net">Stork</a>`,
+    closeButtonSvg: CLOSE_BUTTON_SVG,
+    queryTooShort: "Searching..."
+  },
+  generateMessage: (totalResultCount: number, duration: number) => {
+    if (totalResultCount === 1) {
+      return `${totalResultCount} result in ${duration.toFixed(3)} ms`;
+    } else {
+      return `${totalResultCount} results in ${duration.toFixed(3)} ms`;
     }
-  }
+  },
+  onQueryUpdate: (query: string) => {},
+  onResultSelected: (query: string, result: Result) => {},
+  transformResultUrl: (url: string) => url
+};
 
-  return output;
-}
+export type UIConfig = Readonly<typeof defaultUIConfig>;
+
+export const resolveUIConfig = (object: any) => {
+  return {
+    ...defaultUIConfig,
+    ...object
+  } as UIConfig;
+};
