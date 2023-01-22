@@ -1,0 +1,2 @@
+Scripts check for the existence of this file to make sure they're running
+from the root of the project.
