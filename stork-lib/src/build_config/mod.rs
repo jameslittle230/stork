@@ -92,8 +92,7 @@ impl Config {
             .input
             .files
             .get(file_index)
-            .map(|file| file.stemming.clone())
-            .flatten()
+            .and_then(|file| file.stemming.clone())
             .unwrap_or_else(|| self.input.stemming.clone());
     }
 
@@ -101,8 +100,7 @@ impl Config {
         self.input
             .files
             .get(file_index)
-            .map(|file| file.frontmatter_config.clone())
-            .flatten()
+            .and_then(|file| file.frontmatter_config.clone())
             .unwrap_or_else(|| self.input.frontmatter_config.clone())
     }
 
@@ -110,8 +108,7 @@ impl Config {
         self.input
             .files
             .get(file_index)
-            .map(|file| file.html_config.clone())
-            .flatten()
+            .and_then(|file| file.html_config.clone())
             .unwrap_or_else(|| self.input.html_config.clone())
     }
 }

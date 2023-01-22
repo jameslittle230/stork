@@ -108,7 +108,7 @@ pub(crate) fn generate(
         return Ok((document_contents, word_list));
     }
 
-    Err(HtmlParseError::SelectorNotPresent(selectors.to_string()))
+    Err(HtmlParseError::SelectorNotPresent(selectors))
 }
 
 // TODO: Restore tests

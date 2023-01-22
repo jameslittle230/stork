@@ -34,7 +34,7 @@ impl WordImportanceCalculator {
                     })
                     .or_insert(1);
             })
-            .or_insert(BTreeMap::from([(word.to_string(), 1)]));
+            .or_insert_with(|| BTreeMap::from([(word.to_string(), 1)]));
     }
 
     pub(crate) fn get_value(&self, term: &str, document_id: usize) -> f64 {

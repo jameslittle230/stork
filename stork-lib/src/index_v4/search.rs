@@ -31,13 +31,11 @@ pub(crate) fn get_search_values(
 
             values
                 .iter()
-                .filter_map(|value| {
-                    Some(search_value::SearchValue {
-                        v4_value: Some(V4SearchValue::SearchResult {
-                            term: term.clone(),
-                            result: value.clone(),
-                        }),
-                    })
+                .map(|value| search_value::SearchValue {
+                    v4_value: Some(V4SearchValue::SearchResult {
+                        term: term.clone(),
+                        result: value.clone(),
+                    }),
                 })
                 .collect_vec()
         }
@@ -50,6 +48,7 @@ pub(crate) fn get_search_values(
     Ok(search_values)
 }
 
+#[allow(clippy::collapsible_match)]
 pub(crate) fn merge_search_values(
     index: &Index,
     lists_of_values: Vec<Vec<search_value::SearchValue>>,
@@ -64,8 +63,8 @@ pub(crate) fn merge_search_values(
         .flatten()
         .filter_map(|v| match &v.v4_value {
             Some(V4SearchValue::Filter { term }) => todo!(),
-            Some(V4SearchValue::SearchResult { term, result }) => return Some(result),
-            None => return None,
+            Some(V4SearchValue::SearchResult { term, result }) => Some(result),
+            None => None,
         })
         .collect_vec();
 
@@ -93,7 +92,7 @@ pub(crate) fn merge_search_values(
         .map(|(document_id, value_indices)| {
             let mut sorted_value_indices = value_indices.clone();
             sorted_value_indices.sort_by_cached_key(|idx| {
-                extract_contents_excerpt(&values[*idx])
+                extract_contents_excerpt(values[*idx])
                     .map(|contents_excerpt| contents_excerpt.byte_offset)
                     .unwrap_or(0)
             });
@@ -131,7 +130,7 @@ pub(crate) fn merge_search_values(
                                 if let QueryResult::ContentsExcerpt(prev_contents_excerpt) =
                                     prev_query_result
                                 {
-                                    let diff = &contents_excerpt.byte_offset
+                                    let diff = contents_excerpt.byte_offset
                                         - prev_contents_excerpt.byte_offset;
 
                                     if diff < 150 - 3 {
@@ -177,7 +176,7 @@ pub(crate) fn merge_search_values(
             // ---- create output excerpts for top n groupings
             let mut excerpts = groupings
                 .iter()
-                .map(|g| g.into_excerpt(&values, document))
+                .map(|g| g.as_excerpt(&values, document))
                 .collect_vec();
 
             excerpts.sort_by_key(|e| e.score);
@@ -227,15 +226,15 @@ struct ContentExcerptGrouping {
 }
 
 impl ContentExcerptGrouping {
-    fn into_excerpt(
+    fn as_excerpt(
         &self,
-        values: &Vec<&TreeRetrievalValue<QueryResult>>,
+        values: &[&TreeRetrievalValue<QueryResult>],
         document: &super::Document,
     ) -> Excerpt {
         let excerpts = self
             .value_indices
             .iter()
-            .map(|idx| extract_contents_excerpt(&values[*idx]).unwrap())
+            .map(|idx| extract_contents_excerpt(values[*idx]).unwrap())
             .collect_vec();
 
         let first_byte = excerpts.first().unwrap().byte_offset.saturating_sub(

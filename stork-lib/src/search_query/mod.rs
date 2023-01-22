@@ -29,11 +29,11 @@ impl FromStr for SearchQuery {
         let items = s
             .split_ascii_whitespace() // TODO: Don't assume that word segmentation can be performed by splitting on whitespace
             .filter_map(|term| match term {
-                term if term.contains("=") => {
-                    if let Some((k, v)) = term.split_once("=") {
-                        return Some(SearchTerm::MetadataFilter(k.to_string(), v.to_string()));
+                term if term.contains('=') => {
+                    if let Some((k, v)) = term.split_once('=') {
+                        Some(SearchTerm::MetadataFilter(k.to_string(), v.to_string()))
                     } else {
-                        return None;
+                        None
                     }
                 }
 

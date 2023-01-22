@@ -4,6 +4,7 @@ use colored::Colorize;
 use stork_lib::search_output::{HighlightRange, SearchOutput};
 use textwrap::termwidth;
 
+#[allow(clippy::ptr_arg, clippy::unnecessary_to_owned)]
 fn highlight_title(string: &str, ranges: &Vec<HighlightRange>) -> String {
     let mut highlighted = String::new();
 
@@ -26,6 +27,7 @@ fn highlight_title(string: &str, ranges: &Vec<HighlightRange>) -> String {
     highlighted
 }
 
+#[allow(clippy::ptr_arg, clippy::unnecessary_to_owned)]
 fn highlight_string(string: &str, ranges: &Vec<HighlightRange>) -> String {
     let mut highlighted = String::new();
 
@@ -113,7 +115,7 @@ mod tests {
                 }],
             }],
             total_hit_count: 21,
-            url_prefix: "".to_string(),
+            url_prefix: String::new(),
         };
 
         let computed = print(&results);
