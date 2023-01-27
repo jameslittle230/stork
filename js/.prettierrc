@@ -13,7 +13,13 @@
   "tabWidth": 2,
   "trailingComma": "none",
   "useTabs": false,
-"importOrder": ["^stork-search%", "^@server/(.*)$", "^@ui/(.*)$", "^[./]"],
+  "importOrder": [
+    "^stork-search%",
+    "^../stork-lib/bindings/(.*)$",
+    "^@server/(.*)$",
+    "^@ui/(.*)$",
+    "^[./]"
+  ],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true
 }

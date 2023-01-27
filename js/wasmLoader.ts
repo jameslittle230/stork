@@ -6,7 +6,7 @@ import { debugAssert } from "./util/debugAssert";
 import { log } from "./util/storkLog";
 
 const baseUrl = "https://files.stork-search.net";
-// @ts-expect-error
+// @ts-expect-error - Filled in by esbuild
 const version = __VERSION as string | null;
 const DEFAULT_WASM_URL = version
   ? `${baseUrl}/releases/v${version}/stork.wasm`

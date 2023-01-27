@@ -1,12 +1,17 @@
 import { SearchResult } from "../stork-lib/bindings/SearchResult";
 
+import StorkError from "./storkError";
+
 const defaultRegisterConfig = {
   forceRefreshIndex: false
 };
 
 export type RegisterConfiguration = Readonly<typeof defaultRegisterConfig>;
 
-export const resolveRegisterConfig = (object: any) => {
+export const resolveRegisterConfig = (object: unknown) => {
+  if (typeof object !== "object") {
+    throw new StorkError("Your configuration value needs to be an object.");
+  }
   return {
     ...defaultRegisterConfig,
     ...object
@@ -36,14 +41,19 @@ const defaultUIConfig = {
       return `${totalResultCount} results in ${duration.toFixed(3)} ms`;
     }
   },
-  onQueryUpdate: (query: string) => {},
-  onResultSelected: (query: string, result: SearchResult) => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onQueryUpdate: (_query: string) => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onResultSelected: (_query: string, _result: SearchResult) => {},
   transformResultUrl: (url: string) => url
 };
 
 export type UIConfig = Readonly<typeof defaultUIConfig>;
 
-export const resolveUIConfig = (object: any) => {
+export const resolveUIConfig = (object: unknown) => {
+  if (typeof object !== "object") {
+    throw new StorkError("Your configuration value needs to be an object.");
+  }
   return {
     ...defaultUIConfig,
     ...object

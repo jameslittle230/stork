@@ -1,10 +1,11 @@
 import { load_index, perform_search } from "stork-search";
 
+import { SearchOutput } from "../stork-lib/bindings/SearchOutput";
+
 import { RegisterConfiguration, UIConfig } from "./config";
 import EntityDomManager from "./entityDomManager";
 import IndexLoader, { IndexLoadValue } from "./indexLoader";
 import LoadManager from "./loadManager";
-import { SearchOutput } from "../stork-lib/bindings/SearchOutput";
 import { log } from "./util/storkLog";
 import WasmLoader from "./wasmLoader";
 

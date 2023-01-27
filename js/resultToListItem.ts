@@ -1,4 +1,5 @@
 import { SearchResult } from "../stork-lib/bindings/SearchResult";
+
 import { highlight } from "./htmlManipulation";
 
 export interface ListItemDisplayOptions {

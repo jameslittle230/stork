@@ -79,7 +79,11 @@ type IndexStatistics = object;
  *
  * @param unsafeConfig A configuration object
  */
-const downloadIndex = (name: string, url: string, unsafeConfig: any): Promise<IndexStatistics> => {
+const downloadIndex = (
+  name: string,
+  url: string,
+  unsafeConfig: unknown
+): Promise<IndexStatistics> => {
   log(`Starting downloadIndex with ${name} at ${url}`);
   const safeConfig = resolveRegisterConfig(unsafeConfig);
 
@@ -134,7 +138,7 @@ const appendChunk = (_name: string, _url: string): Promise<IndexStatistics> => {
  *
  * @param name The index identifier
  */
-const attach = (name: string, unsafeUIConfig: any): void => {
+const attach = (name: string, unsafeUIConfig: unknown): void => {
   log(`Starting attach with ${name}`);
   const safeUIConfig = resolveUIConfig(unsafeUIConfig);
   entityStore.get(name).attach(safeUIConfig);
@@ -143,7 +147,7 @@ const attach = (name: string, unsafeUIConfig: any): void => {
 /**
  *
  */
-const search = (name: string, query: string, options: object): string[] => {
+const search = (name: string, query: string): string[] => {
   log(`Starting search with ${name} for query ${query}`);
   entityStore.get(name).performSearch(query);
   return [];
@@ -174,7 +178,7 @@ const debug = (): object => {
     logs: getDebugLogs(),
     wasmLoader: wasmLoader?.debug(),
     entityStore: entityStore.debug(),
-    // @ts-expect-error
+    // @ts-expect-error - version is filled in by esbuild
     jsLibraryVersion: __VERSION,
     wasmLibraryVersion
   };

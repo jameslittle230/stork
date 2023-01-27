@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
       - uses: 10XGenomics/clippy-check@v1.0.8
-  
+
   eslint:
     name: "Run ESLint"
     runs-on: "ubuntu-latest"
@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
         with:
-            targets: "wasm32-unknown-unknown"
+          targets: "wasm32-unknown-unknown"
       - uses: extractions/setup-just@v1
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: cargo install wasm-pack
         if: steps.rust-cache.outputs.cache-hit != 'true'
-      # - run: yarn run eslint js/
+      - run: just lint-js

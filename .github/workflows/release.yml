@@ -2,11 +2,11 @@ name: Release
 on:
   push:
     tags:
-     - "v2*"
+      - "v2*"
 jobs:
   build_binary:
     strategy:
-      matrix: 
+      matrix:
         os: ["ubuntu-20.04", "ubuntu-22.04", "macos-11", "macos-12"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -21,7 +21,7 @@ jobs:
         with:
           name: stork-${{ matrix.os }}
           path: ./target/release/stork
-  
+
   build_web_artifacts:
     runs-on: ubuntu-latest
     steps:
@@ -32,7 +32,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v1
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: sudo apt-get install -y binaryen # wasm-opt
       - run: cargo install wasm-pack
         if: steps.rust-cache.outputs.cache-hit != 'true'
@@ -50,7 +50,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v1
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: just submodules
       - run: just rebuild-dev-indexes
       - uses: actions/upload-artifact@v3
@@ -60,7 +60,7 @@ jobs:
 
   release:
     name: Create release
-    needs: ['build_binary', 'build_web_artifacts', 'build_indexes']
+    needs: ["build_binary", "build_web_artifacts", "build_indexes"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3

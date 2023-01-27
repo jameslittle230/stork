@@ -17,7 +17,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: just test-rust
-  
+
   test_js:
     name: "Test JS"
     runs-on: "ubuntu-latest"
@@ -29,7 +29,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v1
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: sudo apt-get install -y binaryen # wasm-opt
       - run: cargo install wasm-pack
         if: steps.rust-cache.outputs.cache-hit != 'true'

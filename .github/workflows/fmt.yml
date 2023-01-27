@@ -1,0 +1,33 @@
+name: Check Formatting
+on:
+  pull_request:
+    types: ["opened", "reopened", "edited", "synchronize"]
+  push:
+    branches:
+      - "v2"
+jobs:
+  clippy:
+    name: "Run Cargo fmt"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: just fmt-check-rust
+
+  eslint:
+    name: "Run Prettier"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: "wasm32-unknown-unknown"
+      - uses: extractions/setup-just@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: cargo install wasm-pack
+        if: steps.rust-cache.outputs.cache-hit != 'true'
+      - run: just fmt-check-js

@@ -39,6 +39,12 @@ build-wasm-release:
 build-js-release: _yarn
     node build.js
 
+
+
+
+
+
+
 ######################################
 ## Build for development
 
@@ -57,6 +63,12 @@ _build-rust-dev:
 _build-js-dev: _yarn
     node build.js
 
+
+
+
+
+
+
 ######################################
 ## Running the project
 
@@ -71,6 +83,12 @@ alias _rs := run-search
 # Run a search on the default development index
 run-search query index="dev/indexes/federalist.st":
     cargo run -- search --index {{index}} --query "{{query}}" --timing
+
+
+
+
+
+
 
 ######################################
 ## Testing
@@ -90,11 +108,50 @@ test-js: _yarn
 test-rust:
     cargo test
 
+
+
+
+
+
+
 ######################################
 ## Linting
 
+lint-all: lint-rust lint-js
+
+lint-rust:
+    cargo check
+    cargo clippy --all-targets --all-features -- -D warnings
+
+lint-js:
+    yarn eslint js/*.ts js/**/*.ts
+
+
+
+
+
 ######################################
 ## Formatting
+
+fmt-check-all: fmt-check-rust fmt-check-js
+
+fmt-check-rust:
+    cargo fmt --check --all
+
+fmt-check-js:
+    yarn prettier js/*.ts js/**/*.ts
+
+fmt-all: fmt-rust fmt-js
+
+fmt-rust:
+    cargo fmt --all
+
+fmt-js:
+    yarn prettier --write js/*.ts js/**/*.ts
+
+
+
+
 
 ######################################
 ## Utilities
@@ -134,6 +191,12 @@ rebuild-dev-indexes:
     just _build-dev-indexes
 
 
+
+
+
+
+
+
 ######################################
 ## Live Development
 
@@ -166,6 +229,12 @@ _dev-watch-test:
 
 _dev-watch-build-release:
     git ls-files | entr -s "just build-release"
+
+
+
+
+
+
 
 ######################################
 # Releasing
