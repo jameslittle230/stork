@@ -123,7 +123,7 @@ lint-rust:
     cargo check
     cargo clippy --all-targets --all-features -- -D warnings
 
-lint-js:
+lint-js: _yarn
     yarn eslint js/*.ts js/**/*.ts
 
 
@@ -138,7 +138,7 @@ fmt-check-all: fmt-check-rust fmt-check-js
 fmt-check-rust:
     cargo fmt --check --all
 
-fmt-check-js:
+fmt-check-js: _yarn
     yarn prettier js/*.ts js/**/*.ts
 
 fmt-all: fmt-rust fmt-js
@@ -146,7 +146,7 @@ fmt-all: fmt-rust fmt-js
 fmt-rust:
     cargo fmt --all
 
-fmt-js:
+fmt-js: _yarn
     yarn prettier --write js/*.ts js/**/*.ts
 
 

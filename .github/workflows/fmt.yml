@@ -1,4 +1,4 @@
-name: Check Formatting
+name: Format
 on:
   pull_request:
     types: ["opened", "reopened", "edited", "synchronize"]
