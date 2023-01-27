@@ -2,7 +2,7 @@ import { RegisterConfiguration, UIConfig } from "./config";
 import { add, clear, create, existsBeyondContainerBounds, setText } from "./dom";
 import { EntityDomDelegate } from "./entity";
 import { ListItemDisplayOptions, resultToListItem } from "./resultToListItem";
-import { Result } from "./searchData";
+import { SearchResult } from "../stork-lib/bindings/SearchResult";
 import StorkError from "./storkError";
 import { log } from "./util/storkLog";
 
@@ -23,7 +23,7 @@ export default class EntityDomManager {
   private error = false;
   private indexDownloadProgress = 0;
   private wasmDownloadIsComplete = false;
-  private visibleSearchResults: Result[] = [];
+  private visibleSearchResults: SearchResult[] = [];
   private attachedToDom = false;
   private highlightedResultIndex?: number;
   private message?: string;
@@ -103,7 +103,7 @@ export default class EntityDomManager {
     totalHitCount,
     duration
   }: {
-    results: Result[];
+    results: SearchResult[];
     totalHitCount: number;
     duration: number;
   }) {

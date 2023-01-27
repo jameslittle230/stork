@@ -4,24 +4,6 @@ on:
     tags:
      - "v2*"
 jobs:
-  release:
-    name: Create release
-    runs-on: ubuntu-latest
-    outputs:
-      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
-    steps:
-      - name: Create Release
-        id: create_release
-        uses: ncipollo/release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag: ${{ github.ref }}
-          name: ${{ github.ref }}
-          draft: true
-          prerelease: false
-          skipIfReleaseExists: true
-  
   build_binary:
     strategy:
       matrix: 
@@ -75,5 +57,22 @@ jobs:
         with:
           name: indexes
           path: ./dev/indexes
-      
 
+  release:
+    name: Create release
+    needs: ['build_binary', 'build_web_artifacts', 'build_indexes']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+      - run: ls -lR
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          prerelease: false
+          skipIfReleaseExists: true
+          artifactErrorsFailBuid: true
+          artifacts: ""

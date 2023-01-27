@@ -162,7 +162,7 @@ _dev-serve:
     python3 -m http.server --directory ./dev/dist 8025
 
 _dev-watch-test:
-    git ls-files | entr -s "just test"
+    git ls-files | entr -s "just test-all"
 
 _dev-watch-build-release:
     git ls-files | entr -s "just build-release"

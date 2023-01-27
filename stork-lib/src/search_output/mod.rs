@@ -3,11 +3,13 @@
 use crate::Fields;
 use serde::Serialize;
 use std::hash::{Hash, Hasher};
+use ts_rs::TS;
 
 pub mod errors;
 
 /// The set of data needed to display search results to a user.
-#[derive(Serialize)]
+#[derive(Serialize, TS)]
+#[ts(export)]
 #[cfg_attr(feature = "build", derive(Clone, Debug))]
 pub struct SearchOutput {
     pub results: Vec<SearchResult>,
@@ -18,8 +20,9 @@ pub struct SearchOutput {
 
 /// A single document in the list of matches for a search query, along with its
 /// display information and excerpts.
-#[derive(Serialize)]
-#[cfg_attr(feature = "build", derive(Clone, Debug,))]
+#[derive(Serialize, TS)]
+#[ts(export)]
+#[cfg_attr(feature = "build", derive(Clone, Debug))]
 pub struct SearchResult {
     pub entry: Document,
     pub excerpts: Vec<Excerpt>,
@@ -28,7 +31,8 @@ pub struct SearchResult {
 }
 
 /// A document present in the search results.
-#[derive(Serialize)]
+#[derive(Serialize, TS)]
+#[ts(export)]
 #[cfg_attr(feature = "build", derive(Clone, Debug,))]
 pub struct Document {
     pub url: String,
@@ -51,7 +55,8 @@ impl Hash for Document {
 
 /// An excerpt of a document's contents that contains words that were part
 /// of the search query.
-#[derive(Serialize)]
+#[derive(Serialize, TS)]
+#[ts(export)]
 #[cfg_attr(feature = "build", derive(Clone, Debug))]
 pub struct Excerpt {
     pub text: String,
@@ -62,7 +67,8 @@ pub struct Excerpt {
 
 /// A range of characters in a string that should be highlighted.
 /// The start and end indices are inclusive.
-#[derive(Serialize)]
+#[derive(Serialize, TS)]
+#[ts(export)]
 #[cfg_attr(feature = "build", derive(Clone, Debug))]
 pub struct HighlightRange {
     pub beginning: usize,

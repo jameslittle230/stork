@@ -1,5 +1,6 @@
 // It's like Handlebars, but smaller.
-import { HighlightRange } from "./searchData";
+
+import { HighlightRange } from "../stork-lib/bindings/HighlightRange";
 
 export function highlight(text: string, highlight_ranges: Array<HighlightRange>): string {
   function insert(str: string, index: number, value: string) {

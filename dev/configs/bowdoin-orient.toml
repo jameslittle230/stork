@@ -1,5 +1,4 @@
-[input]
-
+# The Bowdoin Orient is Bowdoin College's student newspaper.
 [input.html_config]
 included_selectors = ["main > article.post > .single__content"]
 

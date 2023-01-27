@@ -1,4 +1,4 @@
-import { Result } from "../js/searchData";
+import { SearchResult } from "../stork-lib/bindings/SearchResult";
 import { highlight } from "./htmlManipulation";
 
 export interface ListItemDisplayOptions {
@@ -6,7 +6,7 @@ export interface ListItemDisplayOptions {
   showScores: boolean;
 }
 
-export function resultToListItem(result: Result, options: ListItemDisplayOptions): ChildNode {
+export function resultToListItem(result: SearchResult, options: ListItemDisplayOptions): ChildNode {
   const template = document.createElement("template");
   template.innerHTML = `\
 <li class="stork-result${options.selected ? " selected" : ""}">\

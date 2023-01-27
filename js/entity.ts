@@ -4,14 +4,14 @@ import { RegisterConfiguration, UIConfig } from "./config";
 import EntityDomManager from "./entityDomManager";
 import IndexLoader, { IndexLoadValue } from "./indexLoader";
 import LoadManager from "./loadManager";
-import { SearchValue } from "./searchData";
+import { SearchOutput } from "../stork-lib/bindings/SearchOutput";
 import { log } from "./util/storkLog";
 import WasmLoader from "./wasmLoader";
 
 type WrappedValue<T> = { success: boolean; value?: T };
 
 export type EntityDomDelegate = {
-  performSearch: (query: string) => WrappedValue<SearchValue>;
+  performSearch: (query: string) => WrappedValue<SearchOutput>;
 };
 
 export default class Entity implements EntityDomDelegate {

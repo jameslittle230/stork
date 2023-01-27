@@ -1,4 +1,4 @@
-import { Result } from "./searchData";
+import { SearchResult } from "../stork-lib/bindings/SearchResult";
 
 const defaultRegisterConfig = {
   forceRefreshIndex: false
@@ -37,7 +37,7 @@ const defaultUIConfig = {
     }
   },
   onQueryUpdate: (query: string) => {},
-  onResultSelected: (query: string, result: Result) => {},
+  onResultSelected: (query: string, result: SearchResult) => {},
   transformResultUrl: (url: string) => url
 };
 
