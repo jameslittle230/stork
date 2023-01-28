@@ -6,7 +6,7 @@ pub struct SRTConfig {
     #[default = true]
     pub timestamp_linking: bool,
 
-    #[default = "&t={ts}"]
+    #[default = "&t={}"]
     pub timestamp_template_string: String,
     pub timestamp_format: SRTTimestampFormat,
 }

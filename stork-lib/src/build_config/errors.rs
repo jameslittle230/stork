@@ -14,6 +14,9 @@ pub enum ConfigReadError {
 
     #[error("Cannot parse config as JSON. Stork recieved error: `{0}`")]
     UnparseableJsonInput(#[from] serde_json::Error),
+
+    #[error("Files array is empty")]
+    EmptyFilesArray,
 }
 
 impl PartialEq for ConfigReadError {

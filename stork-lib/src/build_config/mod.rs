@@ -115,9 +115,7 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
-    use super::{html::HTMLConfig, *};
+    use super::*;
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -125,97 +123,6 @@ mod tests {
         let contents = r#""#;
         let error = Config::try_from(contents).unwrap_err();
         assert_eq!(error, errors::ConfigReadError::EmptyString);
-    }
-
-    fn get_default_config() -> Config {
-        Config {
-            input: InputConfig {
-                base_directory: "test/federalist".into(),
-                url_prefix: "".into(),
-                title_boost: TitleBoost::Moderate,
-                stemming: StemmingConfig::Language(
-                    rust_stemmers::Algorithm::English,
-                ),
-                frontmatter_config: FrontmatterConfig::Omit,
-                files: vec![
-                    File {title:"Introduction".into(),url:"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1".into(),explicit_source:Some(DataSource::FilePath("federalist-1.txt".into(),),),filetype:None,fields:HashMap::new(), stemming: None, html_config: None, frontmatter_config: None, srt_config: None },
-                    File {title:"Concerning Dangers from Foreign Force and Influence".into(),url:"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2".into(),explicit_source:Some(DataSource::FilePath("federalist-2.txt".into(),),),filetype:None,fields:HashMap::new(), stemming: None, html_config: None, frontmatter_config: None, srt_config: None },
-                    File {title:"Concerning Dangers from Foreign Force and Influence 2".into(),url:"https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3".into(),explicit_source:Some(DataSource::FilePath("federalist-3.txt".into(),),),filetype:None,fields:HashMap::new(), stemming: None, html_config: None, frontmatter_config: None, srt_config: None },
-                ],
-                srt_config: SRTConfig {
-                    timestamp_linking: true,
-                    timestamp_template_string: "&t={ts}".into(),
-                    timestamp_format: SRTTimestampFormat::NumberOfSeconds,
-                },
-                html_config: HTMLConfig {
-                    save_nearest_id: true,
-                    included_selectors: vec!["main".to_string()],
-                    excluded_selectors: vec![],
-                },
-            },
-            output: OutputConfig {
-                chunk_size_kb: 0,
-                excerpt_buffer: 8,
-                excerpts_per_result: 5,
-                displayed_results_count: 10,
-                minimum_query_length: 3,
-                break_on_file_error: true,
-            },
-            local: LocalConfig { debug_output: false },
-        }
-    }
-
-    // This test also makes sure that our default values don't change
-    // without being accounted for in tests.
-    #[test]
-    fn simple_toml_config_is_parseable() {
-        let contents = r#"
-[input]
-base_directory = "test/federalist"
-files = [
-    {path = "federalist-1.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1", title = "Introduction"},
-    {path = "federalist-2.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2", title = "Concerning Dangers from Foreign Force and Influence"},
-    {path = "federalist-3.txt", url = "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3", title = "Concerning Dangers from Foreign Force and Influence 2"},
-]
-    "#;
-
-        let computed = Config::try_from(contents).unwrap();
-        let expected = get_default_config();
-
-        assert_eq!(computed, expected);
-    }
-
-    #[test]
-    fn simple_json_config_is_parseable() {
-        let contents = r#"
-        {
-            "input": {
-                "base_directory": "test/federalist",
-                "files": [
-                    {
-                        "path": "federalist-1.txt",
-                        "url": "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-1",
-                        "title": "Introduction"
-                    },
-                    {
-                        "path": "federalist-2.txt",
-                        "url": "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-2",
-                        "title": "Concerning Dangers from Foreign Force and Influence"
-                    },
-                    {
-                        "path": "federalist-3.txt",
-                        "url": "https://www.congress.gov/resources/display/content/The+Federalist+Papers#TheFederalistPapers-3",
-                        "title": "Concerning Dangers from Foreign Force and Influence 2"
-                    }
-                ]
-            }
-        }
-    "#;
-
-        let computed = Config::try_from(contents).unwrap();
-        let expected = get_default_config();
-
-        assert_eq!(computed, expected);
     }
 
     #[test]
@@ -237,14 +144,151 @@ files = [
     }
 
     #[test]
-    fn empty_file_array_fails() {
+    fn bad_file_object_fails() {
         let contents = r#"
 [input]
 files = [{}]
     "#;
-        let result: toml::de::Error = toml::from_str::<Config>(contents).unwrap_err();
+        let result = Config::try_from(contents).unwrap_err();
         let computed = result.to_string();
-        let expected = "missing field `title` for key `input.files` at line 3 column 10"; // TODO: Can this be nicer?
+        let expected = "Cannot parse config as TOML. Stork recieved error: `missing field `title` for key `input.files` at line 3 column 10`";
         assert_eq!(computed, expected);
+    }
+
+    #[test]
+    fn stem_config_no_override() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    ..Default::default()
+                }],
+                stemming: StemmingConfig::Language(rust_stemmers::Algorithm::Portuguese),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(
+            config.get_stem_config_for_file(0),
+            StemmingConfig::Language(rust_stemmers::Algorithm::Portuguese)
+        )
+    }
+
+    #[test]
+    fn stem_config_with_override() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    stemming: Some(StemmingConfig::Language(rust_stemmers::Algorithm::Danish)),
+                    ..Default::default()
+                }],
+                stemming: StemmingConfig::Language(rust_stemmers::Algorithm::Portuguese),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(
+            config.get_stem_config_for_file(0),
+            StemmingConfig::Language(rust_stemmers::Algorithm::Danish)
+        )
+    }
+
+    #[test]
+    fn frontmatter_config_no_override() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    ..Default::default()
+                }],
+                frontmatter_config: FrontmatterConfig::Omit,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(
+            config.get_frontmatter_config_for_file(0),
+            FrontmatterConfig::Omit
+        )
+    }
+
+    #[test]
+    fn frontmatter_config_with_override() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    frontmatter_config: Some(FrontmatterConfig::Parse),
+                    ..Default::default()
+                }],
+                frontmatter_config: FrontmatterConfig::Omit,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(
+            config.get_frontmatter_config_for_file(0),
+            FrontmatterConfig::Parse
+        )
+    }
+
+    #[test]
+    fn html_config_no_override() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    ..Default::default()
+                }],
+                html_config: HTMLConfig {
+                    save_nearest_id: true,
+                    included_selectors: vec![".article".to_string()],
+                    excluded_selectors: vec![".ignore".to_string()],
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(
+            config.get_html_config_for_file(0),
+            HTMLConfig {
+                save_nearest_id: true,
+                included_selectors: vec![".article".to_string()],
+                excluded_selectors: vec![".ignore".to_string()],
+            }
+        )
+    }
+
+    #[test]
+    fn html_config_with_override() {
+        let config = Config {
+            input: InputConfig {
+                files: vec![File {
+                    html_config: Some(HTMLConfig {
+                        save_nearest_id: false,
+                        included_selectors: vec![".article-2".to_string()],
+                        excluded_selectors: vec![".ignore-2".to_string()],
+                    }),
+                    ..Default::default()
+                }],
+                html_config: HTMLConfig {
+                    save_nearest_id: true,
+                    included_selectors: vec![".article".to_string()],
+                    excluded_selectors: vec![".ignore".to_string()],
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        assert_eq!(
+            config.get_html_config_for_file(0),
+            HTMLConfig {
+                save_nearest_id: false,
+                included_selectors: vec![".article-2".to_string()],
+                excluded_selectors: vec![".ignore-2".to_string()],
+            }
+        )
     }
 }

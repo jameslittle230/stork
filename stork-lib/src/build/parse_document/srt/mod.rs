@@ -72,7 +72,7 @@ fn build_srt_url_time_suffix(time: &srtparse::Time, srt_config: &SRTConfig) -> S
 
     srt_config
         .timestamp_template_string
-        .replace("{ts}", &time_string)
+        .replace("{}", &time_string)
 }
 
 #[cfg(test)]
