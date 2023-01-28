@@ -1,11 +1,12 @@
 import { load_index, perform_search } from "stork-search";
 
+import { IndexStatistics } from "../stork-lib/bindings/IndexStatistics";
 import { SearchOutput } from "../stork-lib/bindings/SearchOutput";
 
 import { RegisterConfiguration, UIConfig } from "./config";
 import EntityDomManager from "./entityDomManager";
 import IndexLoader, { IndexLoadValue } from "./indexLoader";
-import LoadManager from "./loadManager";
+import LoadManager, { LoadState } from "./loadManager";
 import { log } from "./util/storkLog";
 import WasmLoader from "./wasmLoader";
 
@@ -25,6 +26,8 @@ export default class Entity implements EntityDomDelegate {
   private loadManager: LoadManager;
   private indexLoader: IndexLoader;
   private wasmLoader: WasmLoader;
+
+  indexStatistics: IndexStatistics | null;
 
   constructor(
     name: string,
@@ -51,12 +54,12 @@ export default class Entity implements EntityDomDelegate {
 
   load(): Promise<IndexLoadValue> {
     this.wasmLoader.runAfterWasmLoaded(`${this.name} entity domManager report success`, () => {
-      this.loadManager.setState("wasm", "success");
+      this.loadManager.setState("wasm", LoadState.Success);
       this.domManager.setWasmLoadIsComplete(true);
     });
 
     this.wasmLoader.runAfterWasmError(`${this.name} entity domManager report error`, () => {
-      this.loadManager.setState("wasm", "failure");
+      this.loadManager.setState("wasm", LoadState.Failure);
       // -> this.loadManager.runOnError
     });
 
@@ -79,11 +82,13 @@ export default class Entity implements EntityDomDelegate {
           log(`Index download complete! Got ${buffer.byteLength} bytes`);
 
           try {
-            load_index(this.name, new Uint8Array(buffer));
+            const indexStatsRaw = load_index(this.name, new Uint8Array(buffer));
+            this.indexStatistics = JSON.parse(indexStatsRaw) as IndexStatistics;
             log(`Index loaded in WASM, setting loadManager state to success`);
-            this.loadManager.setState("index", "success");
+            log("Index statistics:", this.indexStatistics);
+            this.loadManager.setState("index", LoadState.Success);
           } catch (e) {
-            this.loadManager.setState("index", "failure");
+            this.loadManager.setState("index", LoadState.Failure);
             log(
               `Index failed to load in WASM, setting loadManager state to failure. Got error ${e}`
             );
@@ -92,7 +97,7 @@ export default class Entity implements EntityDomDelegate {
         return buffer;
       })
       .catch((e) => {
-        this.loadManager.setState("index", "failure");
+        this.loadManager.setState("index", LoadState.Failure);
         throw e;
       });
   }
@@ -102,7 +107,7 @@ export default class Entity implements EntityDomDelegate {
   }
 
   performSearch(query: string) {
-    if (this.loadManager.getAggregateState() !== "success") {
+    if (this.loadManager.getAggregateState() !== LoadState.Success) {
       log("Returning early from search; not ready yet.");
       return { success: false };
     }

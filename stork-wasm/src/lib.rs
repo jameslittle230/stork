@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsError;
 
 use stork_lib::{
-    parse_index::{IndexStatistics, ParsedIndex},
+    parse_index::ParsedIndex,
     search,
     search_value::{SearchValue, SearchValueCacheKey},
 };
@@ -23,7 +23,7 @@ pub fn wasm_stork_version() -> String {
 }
 
 #[wasm_bindgen]
-pub fn load_index(name: &str, data: &[u8]) -> Result<IndexStatistics, JsError> {
+pub fn load_index(name: &str, data: &[u8]) -> Result<String, JsError> {
     if cfg!(debug_assertions) {
         console_error_panic_hook::set_once();
     }
@@ -32,7 +32,7 @@ pub fn load_index(name: &str, data: &[u8]) -> Result<IndexStatistics, JsError> {
     let index = stork_lib::parse_bytes_as_index(bytes).map_err(|_| JsError::new("oh no!"))?;
     let stats = index.stats();
     INDEX_CACHE.lock().unwrap().insert(name.to_string(), index);
-    Ok(stats)
+    Ok(serde_json::to_string(&stats).unwrap())
 }
 
 #[wasm_bindgen]

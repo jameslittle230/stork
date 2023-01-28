@@ -26,6 +26,7 @@
     "@types/jest": "^29.2.6",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
+    "@vue/compiler-sfc": "3.2.45",
     "esbuild": "^0.15.12",
     "eslint": "^8.32.0",
     "eslint-plugin-prettier": "^4.2.1",

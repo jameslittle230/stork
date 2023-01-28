@@ -9,9 +9,14 @@ const defaultRegisterConfig = {
 export type RegisterConfiguration = Readonly<typeof defaultRegisterConfig>;
 
 export const resolveRegisterConfig = (object: unknown) => {
-  if (typeof object !== "object") {
-    throw new StorkError("Your configuration value needs to be an object.");
+  if (object && typeof object !== "object") {
+    throw new StorkError(`Your configuration value needs to be an object. Saw a ${typeof object}.`);
   }
+
+  if (!object) {
+    return defaultRegisterConfig;
+  }
+
   return {
     ...defaultRegisterConfig,
     ...object
@@ -51,9 +56,14 @@ const defaultUIConfig = {
 export type UIConfig = Readonly<typeof defaultUIConfig>;
 
 export const resolveUIConfig = (object: unknown) => {
-  if (typeof object !== "object") {
-    throw new StorkError("Your configuration value needs to be an object.");
+  if (object && typeof object !== "object") {
+    throw new StorkError(`Your configuration value needs to be an object. Saw a ${typeof object}.`);
   }
+
+  if (!object) {
+    return defaultUIConfig;
+  }
+
   return {
     ...defaultUIConfig,
     ...object

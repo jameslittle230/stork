@@ -1,7 +1,12 @@
 import StorkError from "./storkError";
 import { log } from "./util/storkLog";
 
-export type LoadState = "notStarted" | "incomplete" | "success" | "failure";
+export enum LoadState {
+  NotStarted,
+  Incomplete,
+  Success,
+  Failure
+}
 
 export default class LoadManager {
   components: Record<string, LoadState> = {};
@@ -11,16 +16,16 @@ export default class LoadManager {
 
   constructor(components: string[]) {
     components.forEach((component) => {
-      this.components[component] = "notStarted";
+      this.components[component] = LoadState.NotStarted;
     });
   }
 
   setState(component: string, state: LoadState) {
-    if (!this.components[component]) {
-      throw new Error("");
+    if (this.components[component] === undefined) {
+      throw new Error(`Could not find component ${component} in load manager`);
     }
 
-    if (this.components[component] === "success" && state !== "success") {
+    if (this.components[component] === LoadState.Success && state !== LoadState.Success) {
       throw new StorkError(
         `Tried to set ${component} to "${state}" after it's already been set to "success", which is a final value`
       );
@@ -38,10 +43,10 @@ export default class LoadManager {
     this.components[component] = state;
 
     switch (this.getAggregateState()) {
-      case "failure":
+      case LoadState.Failure:
         this.flushErrorQueue();
         return;
-      case "success":
+      case LoadState.Success:
         this.flushQueue();
         return;
     }
@@ -53,14 +58,14 @@ export default class LoadManager {
 
   getAggregateState(): LoadState {
     const values = Object.values(this.components);
-    if (values.every((v) => v === "success")) {
-      return "success";
-    } else if (values.every((v) => v === "notStarted")) {
-      return "notStarted";
-    } else if (values.includes("failure")) {
-      return "failure";
+    if (values.every((v) => v === LoadState.Success)) {
+      return LoadState.Success;
+    } else if (values.every((v) => v === LoadState.NotStarted)) {
+      return LoadState.NotStarted;
+    } else if (values.includes(LoadState.NotStarted)) {
+      return LoadState.NotStarted;
     }
-    return "incomplete";
+    return LoadState.Incomplete;
   }
 
   runAfterLoad(debugName: string, fn: () => void) {

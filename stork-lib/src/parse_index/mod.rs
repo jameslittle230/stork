@@ -1,5 +1,6 @@
 use bytes::Bytes;
-use wasm_bindgen::prelude::wasm_bindgen;
+use serde::Serialize;
+use ts_rs::TS;
 
 use std::convert::TryFrom;
 
@@ -7,9 +8,11 @@ use crate::{envelope, index_v4};
 
 pub mod errors;
 
-#[wasm_bindgen]
+#[derive(Serialize, TS)]
+#[ts(export)]
 pub struct IndexStatistics {
-    // TODO: Implement
+    version: String,
+    document_count: usize,
 }
 
 /// An index-version-agnostic wrapper type to represent a usable search index.
@@ -19,7 +22,12 @@ pub struct ParsedIndex {
 
 impl ParsedIndex {
     pub fn stats(&self) -> IndexStatistics {
-        IndexStatistics {}
+        match &self.value {
+            IndexType::V4Index(v4_index) => IndexStatistics {
+                version: "4".to_string(),
+                document_count: v4_index.documents.len(),
+            },
+        }
     }
 }
 
