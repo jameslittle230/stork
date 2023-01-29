@@ -48,9 +48,8 @@ pub fn print(search_output: &SearchOutput) -> String {
     let mut output = String::new();
 
     output.push_str(&format!(
-        "{} results found for \"{}\"",
+        "{} results found",
         search_output.total_hit_count.to_string().bold(),
-        search_output.query.yellow()
     ));
 
     let textwrap_options = textwrap::Options::new(min(120, termwidth()))
@@ -92,14 +91,13 @@ mod tests {
     #[ignore = "reason"]
     fn display_pretty_search_results_given_output() {
         let results = search_output::SearchOutput {
-            query: "search query".to_string(),
             results: vec![search_output::SearchResult {
                 entry: search_output::Document {
                     title: "Some Document Title".to_string(),
                     url: "https://example.com".to_string(),
                     fields: HashMap::new(),
                 },
-                score: 25,
+                score: 25.0,
                 excerpts: vec![search_output::Excerpt {
                     text: "This is the excerpt of the text".to_string(),
                     highlight_ranges: vec![search_output::HighlightRange {
@@ -107,7 +105,7 @@ mod tests {
                         end: 1,
                     }],
                     url_suffix: Some("#25".to_string()),
-                    score: 12,
+                    score: 12.0,
                 }],
                 title_highlight_ranges: vec![search_output::HighlightRange {
                     beginning: 0,
@@ -121,11 +119,9 @@ mod tests {
         let computed = print(&results);
 
         let expected = format!(
-            "{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}",
             "21".bold(),
-            " results found for \"",
-            "search query".yellow(),
-            "\"\n\n",
+            " results found\n\n",
             "Some ".black().bold().on_yellow(),
             "Document Title".bold().green(),
             "\n<https://example.com>\n    - ",

@@ -4,196 +4,224 @@ use itertools::Itertools;
 
 use crate::{
     index_v4::DocumentId,
-    search_output::{self, Document, Excerpt, HighlightRange, SearchOutput, SearchResult},
-    search_query::{self},
+    search_output::{
+        errors::SearchError, Document, Excerpt, HighlightRange, SearchOutput, SearchResult,
+    },
+    search_query::{MetadataFilter, SearchTerm},
     search_value,
 };
 
-use super::{tree::TreeRetrievalValue, ContentsExcerpt, Index, QueryResult, V4SearchValue};
+use super::{tree::TreeRetrievalValue, ContentsExcerpt, Index, QueryResult, SearchValue};
 
+// Use this method to get the search values for a given search term. Search values
+// are merged together to create a `SearchOutput` struct, which contains data needed
+// to render the search results for a given query.
+//
+// SearchValues can be cached by search term to make multi-word queries faster:
+// an implementation only has to call this method once for each new search term,
+// and merge new and cached values together.
 pub(crate) fn get_search_values(
     index: &Index,
-    term: &search_query::SearchTerm,
-) -> Result<Vec<search_value::SearchValue>, search_output::errors::SearchError> {
+    term: &SearchTerm,
+) -> Result<Vec<search_value::SearchValue>, SearchError> {
     let search_values = match term {
-        search_query::SearchTerm::ExactWord(_) | search_query::SearchTerm::InexactWord(_) => {
-            let values = match term {
-                search_query::SearchTerm::InexactWord(inexact_word) => index
-                    .query_result_tree
-                    .retrieve_values_for_string(inexact_word, false)
-                    .unwrap_or_default(),
-                search_query::SearchTerm::ExactWord(exact_word) => index
-                    .query_result_tree
-                    .retrieve_values_for_string(exact_word, true)
-                    .unwrap_or_default(),
-                _ => unreachable!(),
-            };
+        SearchTerm::Inexact(inexact_word) => {
+            let tree_values = index
+                .query_result_tree
+                .retrieve_values_for_string(inexact_word, false)
+                .unwrap_or_default();
 
-            values
+            tree_values
                 .iter()
-                .map(|value| search_value::SearchValue {
-                    v4_value: Some(V4SearchValue::SearchResult {
-                        term: term.clone(),
+                .map(|tree_value| match tree_value {
+                    TreeRetrievalValue::Value {
+                        value,
+                        characters_remaining,
+                    } => SearchValue::InexactResult {
+                        term: inexact_word.clone(),
                         result: value.clone(),
-                    }),
+                        highlight_length: (inexact_word.len() as u8) + characters_remaining,
+                        characters_remaining: *characters_remaining,
+                    },
+                    TreeRetrievalValue::UnloadedArena(_) => todo!(),
                 })
                 .collect_vec()
         }
 
-        search_query::SearchTerm::MetadataFilter(_, _) => vec![search_value::SearchValue {
-            v4_value: Some(V4SearchValue::Filter { term: term.clone() }),
-        }],
+        SearchTerm::Exact(exact_word) => {
+            let tree_values = index
+                .query_result_tree
+                .retrieve_values_for_string(exact_word, true)
+                .unwrap_or_default();
+
+            tree_values
+                .iter()
+                .map(|tree_value| match tree_value {
+                    TreeRetrievalValue::Value {
+                        value,
+                        characters_remaining: _,
+                    } => SearchValue::ExactResult {
+                        term: exact_word.clone(),
+                        result: value.clone(),
+                        highlight_length: (exact_word.len() as u8),
+                    },
+                    TreeRetrievalValue::UnloadedArena(_) => todo!(),
+                })
+                .collect_vec()
+        }
+
+        SearchTerm::MetadataFilter(metadata_filter) => {
+            vec![SearchValue::Filter(metadata_filter.clone())]
+        }
     };
 
-    Ok(search_values)
+    let output = search_values
+        .iter()
+        .map(|value| search_value::SearchValue {
+            v4_value: Some(value.clone()),
+        })
+        .collect_vec();
+
+    Ok(output)
 }
 
 #[allow(clippy::collapsible_match)]
-pub(crate) fn merge_search_values(
+pub(crate) fn render_search_values(
     index: &Index,
-    lists_of_values: Vec<Vec<search_value::SearchValue>>,
-) -> Result<search_output::SearchOutput, search_output::errors::SearchError> {
+    search_values: Vec<SearchValue>,
+) -> Result<SearchOutput, SearchError> {
     type ValuesArrayIndex = usize;
 
-    // group values by document
-    let mut values_for_document: HashMap<DocumentId, Vec<ValuesArrayIndex>> = HashMap::new();
+    let mut query_results_by_document: HashMap<DocumentId, Vec<SearchValue>> = HashMap::new();
+    let mut filters: Vec<MetadataFilter> = Vec::new();
+    let mut results: Vec<SearchResult> = Vec::new();
 
-    let values = lists_of_values
-        .iter()
-        .flatten()
-        .filter_map(|v| match &v.v4_value {
-            Some(V4SearchValue::Filter { term }) => todo!(),
-            Some(V4SearchValue::SearchResult { term, result }) => Some(result),
-            None => None,
-        })
-        .collect_vec();
+    // Fill two previous data structures
+    for value in search_values {
+        match &value {
+            SearchValue::ExactResult {
+                term: _,
+                result,
+                highlight_length: _,
+            } => {
+                let document_id = match result {
+                    QueryResult::ContentsExcerpt(contents_excerpt) => contents_excerpt.document_id,
+                    QueryResult::TitleExcerpt(title_excerpt) => title_excerpt.document_id,
+                };
 
-    values.iter().enumerate().for_each(|(index, value)| {
-        let document_id = match value {
-            TreeRetrievalValue::Value {
-                value,
-                characters_remaining,
-            } => match value {
-                QueryResult::ContentsExcerpt(contents_excerpt) => contents_excerpt.document_id,
-                QueryResult::TitleExcerpt(title_excerpt) => title_excerpt.document_id,
-            },
-            TreeRetrievalValue::UnloadedArena(_) => todo!(),
-        };
-
-        values_for_document
-            .entry(document_id)
-            .and_modify(|vec| vec.push(index))
-            .or_insert_with(|| vec![index]);
-    });
-
-    // for each document:
-    let mut results = values_for_document
-        .iter()
-        .map(|(document_id, value_indices)| {
-            let mut sorted_value_indices = value_indices.clone();
-            sorted_value_indices.sort_by_cached_key(|idx| {
-                extract_contents_excerpt(values[*idx])
-                    .map(|contents_excerpt| contents_excerpt.byte_offset)
-                    .unwrap_or(0)
-            });
-
-            // ---- create and score groupings
-            let mut groupings: Vec<ContentExcerptGrouping> = sorted_value_indices
-                .iter()
-                .filter_map(|value_index| {
-                    let value = &values[*value_index];
-                    match value {
-                        TreeRetrievalValue::Value {
-                            value,
-                            characters_remaining,
-                        } => match value {
-                            QueryResult::ContentsExcerpt(contents_excerpt) => {
-                                Some((value_index, contents_excerpt))
-                            }
-                            QueryResult::TitleExcerpt(_) => None,
-                        },
-                        TreeRetrievalValue::UnloadedArena(_) => None,
-                    }
-                })
-                .fold(
-                    vec![],
-                    |mut accumulator, (value_index, contents_excerpt)| {
-                        if let Some(last_grouping) = accumulator.last_mut() {
-                            if let TreeRetrievalValue::Value {
-                                value: prev_query_result,
-                                characters_remaining: _, // TODO: Incorporate into scoring
-                            } = &values[*last_grouping
-                                .value_indices
-                                .first()
-                                .expect("Vec expected to always have >=1 value")]
-                            {
-                                if let QueryResult::ContentsExcerpt(prev_contents_excerpt) =
-                                    prev_query_result
-                                {
-                                    let diff = contents_excerpt.byte_offset
-                                        - prev_contents_excerpt.byte_offset;
-
-                                    if diff < 150 - 3 {
-                                        // Adding onto the existing grouping
-                                        let diff_score = 150 - diff;
-                                        last_grouping.value_indices.push(*value_index);
-
-                                        // TODO: Don't score groupings iteratively; instead, aggregate data in the ContentExcerptGrouping and calculate a score after the fact.
-                                        // This will let me add the "how many unique words are there" metric to the scoring algo.
-                                        last_grouping.score +=
-                                            contents_excerpt.importance + diff_score as f64;
-                                    } else {
-                                        // Starting a new grouping
-                                        accumulator.push(ContentExcerptGrouping {
-                                            value_indices: vec![*value_index],
-                                            score: contents_excerpt.importance,
-                                        });
-                                    }
-                                }
-                            }
-                        } else {
-                            // Once per document, starting the list of groupings
-                            accumulator.push(ContentExcerptGrouping {
-                                value_indices: vec![*value_index],
-                                score: contents_excerpt.importance,
-                            });
-                        }
-
-                        accumulator
-                    },
-                );
-
-            groupings.sort_by_key(|g| i32::MAX - g.score as i32);
-
-            let document_score = groupings.iter().fold(0.0, |acc, g| acc + g.score);
-
-            groupings.truncate(10);
-
-            let document = index.documents.get(document_id).unwrap();
-
-            // ---- sum all grouping scores for each document to determine document scoring
-            // ---- sort groupings by aggregated score
-            // ---- create output excerpts for top n groupings
-            let mut excerpts = groupings
-                .iter()
-                .map(|g| g.as_excerpt(&values, document))
-                .collect_vec();
-
-            excerpts.sort_by_key(|e| e.score);
-            excerpts.reverse();
-
-            SearchResult {
-                entry: index.documents.get(document_id).unwrap().into(),
-                excerpts,
-                title_highlight_ranges: vec![],
-                score: document_score as usize,
+                query_results_by_document
+                    .entry(document_id)
+                    .and_modify(|vec| vec.push((value).clone()))
+                    .or_insert_with(|| vec![value.clone()]);
             }
+
+            SearchValue::InexactResult {
+                term: _,
+                result,
+                characters_remaining: _,
+                highlight_length: _,
+            } => {
+                let document_id = match result {
+                    QueryResult::ContentsExcerpt(contents_excerpt) => contents_excerpt.document_id,
+                    QueryResult::TitleExcerpt(title_excerpt) => title_excerpt.document_id,
+                };
+
+                query_results_by_document
+                    .entry(document_id)
+                    .and_modify(|vec| vec.push(value.clone()))
+                    .or_insert_with(|| vec![value.clone()]);
+            }
+
+            SearchValue::Filter(metadata_filter) => {
+                filters.push(metadata_filter.clone());
+            }
+        }
+    }
+
+    for (document_id, query_results) in query_results_by_document {
+        let document = index.documents.get(&document_id).unwrap();
+
+        let mut contents_excerpts_with_hl = vec![];
+        let mut title_excerpts_with_hl = vec![];
+
+        query_results.iter().for_each(|value| match value {
+            SearchValue::ExactResult {
+                term,
+                result,
+                highlight_length: hl,
+            } => match result {
+                QueryResult::ContentsExcerpt(c) => contents_excerpts_with_hl.push((c, hl)),
+                QueryResult::TitleExcerpt(t) => title_excerpts_with_hl.push((t, hl)),
+            },
+
+            SearchValue::InexactResult {
+                term,
+                result,
+                characters_remaining: _,
+                highlight_length: hl,
+            } => match result {
+                QueryResult::ContentsExcerpt(c) => contents_excerpts_with_hl.push((c, hl)),
+                QueryResult::TitleExcerpt(t) => title_excerpts_with_hl.push((t, hl)),
+            },
+
+            SearchValue::Filter(_) => {
+                unreachable!("query_results vec should have no filters in it")
+            }
+        });
+
+        contents_excerpts_with_hl.sort_by_cached_key(|(ce, _)| ce.byte_offset);
+        title_excerpts_with_hl.sort_by_cached_key(|(te, _)| te.byte_offset);
+
+        let mut contents_excerpts_groupings: Vec<ContentExcerptGrouping> =
+            contents_excerpts_with_hl.iter().fold(
+                vec![],
+                |mut accumulator, (contents_excerpt, highlight_length)| {
+                    if let Some(last_grouping) = accumulator.last_mut() {
+                        if last_grouping.can_swallow(contents_excerpt) {
+                            last_grouping.push(contents_excerpt, **highlight_length);
+                            return accumulator;
+                        }
+                    }
+
+                    accumulator.push(ContentExcerptGrouping::new(
+                        contents_excerpt,
+                        **highlight_length,
+                    ));
+
+                    accumulator
+                },
+            );
+
+        // sort descending by score
+        contents_excerpts_groupings.sort_by(|a, b| a.score().partial_cmp(&b.score()).unwrap());
+
+        let document_score = contents_excerpts_groupings
+            .iter()
+            .fold(0.0, |acc, g| acc + g.score());
+
+        contents_excerpts_groupings.truncate(10);
+
+        // ---- sum all grouping scores for each document to determine document scoring
+        // ---- sort groupings by aggregated score
+        // ---- create output excerpts for top n groupings
+        let mut excerpts = contents_excerpts_groupings
+            .iter()
+            .map(|g| g.as_excerpt(document))
+            .collect_vec();
+
+        excerpts.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+        excerpts.reverse();
+
+        results.push(SearchResult {
+            entry: document.into(),
+            excerpts,
+            title_highlight_ranges: vec![],
+            score: document_score,
         })
-        .collect_vec();
-    // create output results for top m documents
+    }
 
     let total_hit_count = results.len();
-    results.sort_by_key(|r| r.score);
+    results.sort_by(|a, b| a.score.partial_cmp(&b.score).unwrap());
     results.reverse();
     results.truncate(10);
 
@@ -201,47 +229,55 @@ pub(crate) fn merge_search_values(
         results,
         total_hit_count,
         url_prefix: index.settings.url_prefix.clone(),
-        query: "".to_string(), // TODO
     })
 }
 
-fn extract_contents_excerpt(
-    tree_value: &TreeRetrievalValue<QueryResult>,
-) -> Option<ContentsExcerpt> {
-    match tree_value {
-        TreeRetrievalValue::Value {
-            value,
-            characters_remaining,
-        } => match value {
-            QueryResult::ContentsExcerpt(contents_excerpt) => Some(contents_excerpt.clone()),
-            QueryResult::TitleExcerpt(_) => None,
-        },
-        TreeRetrievalValue::UnloadedArena(_) => None,
-    }
-}
+type HighlightLength = u8;
 
-struct ContentExcerptGrouping {
-    value_indices: Vec<usize>,
-    score: f64,
-}
+struct ContentExcerptGrouping(Vec<(ContentsExcerpt, HighlightLength)>);
 
 impl ContentExcerptGrouping {
-    fn as_excerpt(
-        &self,
-        values: &[&TreeRetrievalValue<QueryResult>],
-        document: &super::Document,
-    ) -> Excerpt {
-        let excerpts = self
-            .value_indices
-            .iter()
-            .map(|idx| extract_contents_excerpt(values[*idx]).unwrap())
-            .collect_vec();
+    fn new(contents_excerpt: &ContentsExcerpt, highlight_length: HighlightLength) -> Self {
+        Self(vec![(contents_excerpt.clone(), highlight_length)])
+    }
 
-        let first_byte = excerpts.first().unwrap().byte_offset.saturating_sub(
+    fn push(&mut self, contents_excerpt: &ContentsExcerpt, highlight_length: HighlightLength) {
+        self.0.push((contents_excerpt.clone(), highlight_length));
+    }
+
+    fn can_swallow(&self, other: &ContentsExcerpt) -> bool {
+        match (self.0.first(), self.0.last()) {
+            (Some((first_excerpt_in_self, _)), Some((last_excerpt_in_self, _))) => {
+                assert!(last_excerpt_in_self.byte_offset <= other.byte_offset);
+                let diff = other.byte_offset - last_excerpt_in_self.byte_offset;
+                diff < 150 - 3
+            }
+            _ => unreachable!("Grouping should always have at least one element"),
+        }
+    }
+
+    fn score(&self) -> f64 {
+        self.0
+            .iter()
+            .fold(0.0, |acc, (excerpt, _)| acc + excerpt.importance)
+    }
+
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn first(&self) -> &ContentsExcerpt {
+        &self.0.first().unwrap().0
+    }
+
+    fn last(&self) -> &ContentsExcerpt {
+        &self.0.last().unwrap().0
+    }
+
+    fn as_excerpt(&self, document: &super::Document) -> Excerpt {
+        let first_byte = self.first().byte_offset.saturating_sub(
             147_usize
-                .saturating_sub(
-                    excerpts.last().unwrap().byte_offset - excerpts.first().unwrap().byte_offset,
-                )
+                .saturating_sub(self.last().byte_offset - self.first().byte_offset)
                 .div(2),
         ); // TODO: Trim to word bounds
 
@@ -250,18 +286,19 @@ impl ContentExcerptGrouping {
             document.contents.first().unwrap().contents.len(),
         );
 
-        let highlight_ranges = excerpts
+        let highlight_ranges = self
+            .0
             .iter()
-            .map(|excerpt| HighlightRange {
+            .map(|(excerpt, hl)| HighlightRange {
                 beginning: excerpt.byte_offset.saturating_sub(first_byte),
-                end: excerpt.byte_offset.saturating_sub(first_byte) + 3, // TODO: Feed through word length
+                end: excerpt.byte_offset.saturating_sub(first_byte) + (*hl as usize),
             })
             .collect_vec();
 
         Excerpt {
             text: document.contents.first().unwrap().contents[first_byte..last_byte].to_string(),
             highlight_ranges,
-            score: self.score as usize,
+            score: self.score(),
             url_suffix: None,
         }
     }

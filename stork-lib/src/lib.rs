@@ -74,7 +74,13 @@ pub fn merge_search_values(
 ) -> Result<search_output::SearchOutput, search_output::errors::SearchError> {
     match &index.value {
         parse_index::IndexType::V4Index(v4_index) => {
-            index_v4::search::merge_search_values(v4_index, lists_of_search_values)
+            let search_values = lists_of_search_values
+                .iter()
+                .flatten()
+                .filter_map(|sv| sv.v4_value.clone()) // TODO: Throw a user-visible error if there are non-v4 search values
+                .collect_vec();
+
+            index_v4::search::render_search_values(v4_index, search_values)
         }
     }
 }

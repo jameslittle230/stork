@@ -11,7 +11,7 @@ pub(crate) use disk::{Chunk, RootChunk};
 #[cfg(feature = "build")]
 use itertools::Itertools;
 
-use crate::{search_query::SearchTerm, Fields};
+use crate::{search_query::MetadataFilter, Fields};
 
 #[cfg(feature = "build")]
 use crate::build::parse_document::DocumentParseValue;
@@ -34,15 +34,21 @@ use self::{
 };
 
 #[derive(Clone)]
-pub(crate) enum V4SearchValue {
-    SearchResult {
-        term: SearchTerm,
-        result: tree::TreeRetrievalValue<QueryResult>,
+pub(crate) enum SearchValue {
+    ExactResult {
+        term: String,
+        result: QueryResult,
+        highlight_length: u8,
     },
 
-    Filter {
-        term: SearchTerm,
+    InexactResult {
+        term: String,
+        result: QueryResult,
+        highlight_length: u8,
+        characters_remaining: u8,
     },
+
+    Filter(MetadataFilter),
 }
 
 /// In-memory representation of a search index.
@@ -170,6 +176,7 @@ pub(crate) struct ContentsExcerpt {
     #[n(3)]
     pub(crate) url_suffix: Option<String>,
 }
+
 #[derive(Clone, Decode)]
 #[cfg_attr(feature = "build", derive(Encode, Debug))]
 pub(crate) struct TitleExcerpt {

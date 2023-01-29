@@ -15,7 +15,6 @@ pub struct SearchOutput {
     pub results: Vec<SearchResult>,
     pub total_hit_count: usize,
     pub url_prefix: String,
-    pub query: String,
 }
 
 /// A single document in the list of matches for a search query, along with its
@@ -27,7 +26,7 @@ pub struct SearchResult {
     pub entry: Document,
     pub excerpts: Vec<Excerpt>,
     pub title_highlight_ranges: Vec<HighlightRange>,
-    pub score: usize,
+    pub score: f64,
 }
 
 /// A document present in the search results.
@@ -61,7 +60,7 @@ impl Hash for Document {
 pub struct Excerpt {
     pub text: String,
     pub highlight_ranges: Vec<HighlightRange>,
-    pub score: usize,
+    pub score: f64,
     pub url_suffix: Option<String>,
 }
 
