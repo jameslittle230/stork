@@ -1,4 +1,7 @@
-use std::{collections::HashMap, ops::Div};
+use std::{
+    collections::{HashMap, HashSet},
+    ops::Div,
+};
 
 use itertools::Itertools;
 
@@ -194,6 +197,7 @@ pub(crate) fn render_search_values(
 
         // sort descending by score
         contents_excerpts_groupings.sort_by(|a, b| a.score().partial_cmp(&b.score()).unwrap());
+        contents_excerpts_groupings.reverse();
 
         let document_score = contents_excerpts_groupings
             .iter()
@@ -209,7 +213,7 @@ pub(crate) fn render_search_values(
             .map(|g| g.as_excerpt(document))
             .collect_vec();
 
-        excerpts.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+        excerpts.sort_by(|a, b| a.score.partial_cmp(&b.score).unwrap());
         excerpts.reverse();
 
         results.push(SearchResult {
@@ -257,9 +261,27 @@ impl ContentExcerptGrouping {
     }
 
     fn score(&self) -> f64 {
-        self.0
+        let distinct_terms = self
+            .0
             .iter()
-            .fold(0.0, |acc, (excerpt, _)| acc + excerpt.importance)
+            .fold(HashSet::new(), |mut acc, (excerpt, _)| {
+                acc.insert(excerpt.importance.to_bits());
+                acc
+            })
+            .len();
+
+        let average_distance_between_words =
+            self.last().byte_offset - self.first().byte_offset / self.len();
+
+        let avg_modifier =
+            distinct_terms as f64 / (((average_distance_between_words + 1) as f64).log2() + 1.0);
+
+        let sum_of_importances = self
+            .0
+            .iter()
+            .fold(0.0, |acc, (excerpt, _)| acc + excerpt.importance);
+
+        sum_of_importances * avg_modifier * distinct_terms as f64
     }
 
     fn is_empty(&self) -> bool {
@@ -272,6 +294,10 @@ impl ContentExcerptGrouping {
 
     fn last(&self) -> &ContentsExcerpt {
         &self.0.last().unwrap().0
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
     }
 
     fn as_excerpt(&self, document: &super::Document) -> Excerpt {

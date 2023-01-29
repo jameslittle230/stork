@@ -13,118 +13,253 @@
 
 </div>
 
-Stork comes in two parts. First, it's a **command-line tool** that indexes content and creates a search index file that you can upload to a web server. Second, it's a **Javascript library** that uses that index file to build an interactive search interface that displays optimal search results immediately to your user, as they type.
+Stork Search is two pieces of software. First, it's a **command-line tool** that indexes content and creates a search index. Second, it's a **Javascript library** that uses that index file to build an interactive search interface that displays optimal search results immediately to your user as they type.
 
 Stork is built with Rust, and the Javascript library uses WebAssembly behind the scenes. It's easy to get started and is even easier to customize so it fits your needs. It's perfect for Jamstack sites and personal blogs, but can be used wherever you need an interactive search bar.
 
-## Getting Started
+## Quickstart
 
 Let's put a search box online that searches within the text of the [Federalist Papers](https://www.youtube.com/watch?v=DPgE7PNzXag).
 
-> **See this demo live at <https://stork-search.net>.**
+> **→ [See the final result live on CodePen]().**
+
+### Step 1: Create a search index
+
+A Stork search index begins with a configuration file defining where to find the content that can be indexed. Stork can index content from the filesystem, from the internet, or embedded directly in the configuration file.
+
+> **→ [Read the documentation about the Stork configuration file]()**
+
+To index the Federalist Papers, we can set up a TOML configuration file that retrieves them from the web:
+
+```toml
+[[input.files]]
+title = "1: General Introduction"
+url = "https://federalist.stork-search.net/1.html"
+
+[[input.files]]
+title = "2-5: Concerning Dangers from Foreign Force and Influence"
+url = "https://federalist.stork-search.net/2-5.html"
+
+[[input.files]]
+title = "6-7: Concerning Dangers from Dissentions Between the States"
+url = "https://federalist.stork-search.net/6-7.html"
+
+[[input.files]]
+title = "8: The Consequences of Hostilities Between the States"
+url = "https://federalist.stork-search.net/8.html"
+
+[[input.files]]
+title = "9-10: The Union as a Safeguard Against Domestic Faction and Insurrection"
+url = "https://federalist.stork-search.net/9-10.html"
+
+[[input.files]]
+title = "11: The Utility of the Union in Respect to Commercial Relations and a Navy"
+url = "https://federalist.stork-search.net/11.html"
+
+[[input.files]]
+title = "12: The Utility of the Union in Respect to Revenue"
+url = "https://federalist.stork-search.net/12.html"
+```
+
+Stork configuration files can be written in TOML or JSON. There are a lot more settings than described here, but this configuration file relies on many implicit defaults.
+
+<details>
+<summary><b>View this configuration file in JSON</b></summary>
+
+Stork will automatically detect whether a given index is TOML or JSON and parse it appropriately.
+
+```json
+{
+  "input": {
+    "files": [
+      {
+        "title": "1: General Introduction",
+        "url": "https://federalist.stork-search.net/1.html"
+      },
+      {
+        "title": "2-5: Concerning Dangers from Foreign Force and Influence",
+        "url": "https://federalist.stork-search.net/2-5.html"
+      },
+      {
+        "title": "6-7: Concerning Dangers from Dissentions Between the States",
+        "url": "https://federalist.stork-search.net/6-7.html"
+      },
+      {
+        "title": "8: The Consequences of Hostilities Between the States",
+        "url": "https://federalist.stork-search.net/8.html"
+      },
+      {
+        "title": "9-10: The Union as a Safeguard Against Domestic Faction and Insurrection",
+        "url": "https://federalist.stork-search.net/9-10.html"
+      },
+      {
+        "title": "11: The Utility of the Union in Respect to Commercial Relations and a Navy",
+        "url": "https://federalist.stork-search.net/11.html"
+      },
+      {
+        "title": "12: The Utility of the Union in Respect to Revenue",
+        "url": "https://federalist.stork-search.net/12.html"
+      }
+    ]
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>View a configuration file that indexes content from the filesystem</b></summary>
+
+In the previous configuration file, the `url` key is doing double-duty: it's telling Stork where to find the source HTML file to be indexed, _and_ it's saying where the user should navigate to when they click on that search result. (If you want the source and destination URLs to be different, you can use the [src_url]() key to enable that.)
+
+Here, the `url` key only describes the destination, and the `path` key indicates that the source HTML file can be found on the filesystem.
+
+The paths described this configuration file are relative to the location where you run the `stork` binary.
+
+```toml
+[[input.files]]
+title = "1: General Introduction"
+path = "1.html"
+url = "https://federalist.stork-search.net/1.html"
+
+[[input.files]]
+title = "2-5: Concerning Dangers from Foreign Force and Influence"
+path = "2-5.html"
+url = "https://federalist.stork-search.net/2-5.html"
+
+[[input.files]]
+title = "6-7: Concerning Dangers from Dissentions Between the States"
+path = "6-7.html"
+url = "https://federalist.stork-search.net/6-7.html"
+
+[[input.files]]
+title = "8: The Consequences of Hostilities Between the States"
+path = "8.html"
+url = "https://federalist.stork-search.net/8.html"
+
+[[input.files]]
+title = "9-10: The Union as a Safeguard Against Domestic Faction and Insurrection"
+path = "9-10.html"
+url = "https://federalist.stork-search.net/9-10.html"
+
+[[input.files]]
+title = "11: The Utility of the Union in Respect to Commercial Relations and a Navy"
+path = "11.html"
+url = "https://federalist.stork-search.net/11.html"
+
+[[input.files]]
+title = "12: The Utility of the Union in Respect to Revenue"
+path = "12.html"
+url = "https://federalist.stork-search.net/12.html"
+```
+
+</details>
+
+After [installing the Stork command-line tool]() and saving the file, run the following command to build a search index:
+
+```sh
+$ stork build --input federalist.toml --output federalist.st
+```
+
+Stork wrote a search index file named `federalist.st` to your filesystem. You can test it out with the same command-line tool by performing a search:
+
+```sh
+$ stork search --index federalist.st --query "liberty"
+```
+
+### Step 2: Embed it on a webpage
+
+To build an interactive, online search interface, you can use the Stork Javascript library to load your search index and attach it to HTML on your webpage.
+
+You'll need to take the output file generated in the previous step and make it accessible on a web server. I've already done that and uploaded the search index to `https://files.stork-search.net/federalist.st`.
+
+Stork looks for the `data-stork` attributes on two tags: an `<input>` tag where your users will type their search query, and a `<div>` tag where Stork will render the search results. Here, we're setting up our input and output elements with the name "federalist"—we'll use that name later to point the Javascript library at the correct HTML tags.
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Federalist Search</title>
+    <title>Search</title>
+  </head>
+  <body>
+    <input data-stork="federalist" />
+    <div data-stork="federalist-output"></div>
+  </body>
+</html>
+```
+
+By default, Stork's output is completely unstyled, letting you customize the output however you want. However, Stork also provides a "base" theme that can be customized using CSS variables. Before we continue, we'll add some classes, structure, and a `<link>` tag to load up Stork's "base" theme.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Search</title>
+    <link rel="stylesheet" href="https://files.stork-search.net/basic.css" />
   </head>
   <body>
     <div class="stork-wrapper">
       <input data-stork="federalist" class="stork-input" />
       <div data-stork="federalist-output" class="stork-output"></div>
     </div>
+  </body>
+</html>
+```
+
+> **→ [Learn more about theming Stork's UI]()**
+
+Finally, we'll load the Stork Javascript library and register our search index:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Search</title>
+    <link rel="stylesheet" href="https://files.stork-search.net/basic.css" />
+  </head>
+  <body>
+    <div class="stork-wrapper">
+      <input data-stork="federalist" class="stork-input" />
+      <div data-stork="federalist-output" class="stork-output"></div>
+    </div>
+
     <script src="https://files.stork-search.net/stork.js"></script>
     <script>
       stork.register(
         "federalist",
-        "http://files.stork-search.net/federalist.st"
+        "https://files.stork-search.net/federalist.st",
+        {}
       );
     </script>
   </body>
 </html>
 ```
 
-### Step 1: Include the HTML
-
-Stork hooks into existing HTML that you include on your page. Each Stork instance has to have an input hook and a results list; those two elements should be placed in a wrapper, though the wrapper is optional.
-
-The input hook should have the `data-stork="federalist"` attribute, where `federalist` is the name with which you register that search instance. (This way, you can have multiple, independent search boxes on a page, all pointing to different instances.) It doesn't have to be `federalist` -- you can change it to whatever you want.
-
-The results list should be an empty `<div>` tag with the attribute `data-stork="federalist-results"`. Again, here, you can change `federalist` to whatever you want.
-
-The classes in the example above (`stork-input`, `stork-output`) are for the theme. Most Stork themes assume the format above; the theme documentation will tell you if it requires something different. You can also design your own theme, at which point the styling and class names are up to you.
-
-### Step 2: Include the Javascript
-
-You need to include `stork.js`, which you can either load from the Stork CDN or host yourself. This will load the Stork WebAssembly blob and create the Stork object, which will allow for registering and configuring indices.
-
-Then, you should register at least one index:
-
-```javascript
-stork.register("federalist", "http://files.stork-search.net/federalist.st");
-```
-
-The search index you build needs to be stored somewhere with a public URL. To register
-
-This registers the index stored at `http://files.stork-search.net/federalist.st` under the name `federalist`; the `data-stork` attributes in the HTML will hook into this name.
-
-Finally, you can set some configuration options for how your search bar will interact with the index and with the page.
-
-## Building your own index
-
-You probably don't want to add an interface to your own website that lets you search through the Federalist papers. Here's how to make your search bar yours.
-
-To build an index, you need the Stork executable on your computer, which you can install at the [latest Github release](https://github.com/jameslittle230/stork/releases) or by running `cargo install stork-search --locked` if you have a Rust toolchain installed.
-
-The search index is based on a document structure: you give Stork a list of documents on disk and include some metadata about those documents, and Stork will build its search index based on the contents of those documents.
-
-First, you need a configuration file that describes, among other things, that list of files:
-
-```toml
-[input]
-base_directory = "test/federalist"
-files = [
-    {path = "federalist-1.txt", url = "/federalist-1/", title = "Introduction"},
-    {path = "federalist-2.txt", url = "/federalist-2/", title = "Concerning Dangers from Foreign Force and Influence"},
-    {path = "federalist-3.txt", url = "/federalist-3/", title = "Concerning Dangers from Foreign Force and Influence 2"},
-    {path = "federalist-4.txt", url = "/federalist-4/", title = "Concerning Dangers from Foreign Force and Influence 3"},
-    {path = "federalist-5.txt", url = "/federalist-5/", title = "Concerning Dangers from Foreign Force and Influence 4"},
-    {path = "federalist-6.txt", url = "/federalist-6/", title = "Concerning Dangers from Dissensions Between the States"},
-    {path = "federalist-7.txt", url = "/federalist-7/", title = "Concerning Dangers from Dissensions Between the States 2"},
-    {path = "federalist-8.txt", url = "/federalist-8/", title = "The Consequences of Hostilities Between the States"},
-    {path = "federalist-9.txt", url = "/federalist-9/", title = "The Union as a Safeguard Against Domestic Faction and Insurrection"},
-    {path = "federalist-10.txt", url = "/federalist-10/", title = "The Union as a Safeguard Against Domestic Faction and Insurrection 2"}
-]
-```
-
-This TOML file describes the base directory of all your documents, then lists out each document along with the web URL at which that document will be found, along with that document's title.
-
-From there, you can build your search index by running:
-
-```bash
-$ stork build --input federalist.toml --output federalist.st
-```
-
-This will create a new file at `federalist.st`. You can search through it with the same command line tool:
-
-```bash
-$ stork search --index federalist.st --query "liberty"
-```
-
-To embed a Stork search interface on your website, first upload the index file to your web server, then pass its URL to the `stork.register()` function in your web page's Javascript.
+> **Warning**
+>
+> The files at the root of `files.stork-search.net` point directly to the build artifacts from most recent release. Linking to these files from your webpage can result in unexpected behavior when a new version is released. To pin to a specific release, use URLs in the following the format:
+>
+> `https://files.stork-search.net/releases/v2.0.0/stork.js`
+>
+> → [Read more about the `files.stork-search.net` fileserver]()
 
 ## Going further
 
-You can read more documentation and learn more about customization at the project's website: <https://stork-search.net>.
+With Stork, you can:
 
-# Contributing
+- [Create a search interface for videos or podcasts, and link directly to specific timestamps]()
+- [Automatically create and publish a search index when you update your blog]()
+- [Index content in multiple languages]()
+- [Self-host the WASM, JS, CSS, and search indexes to manage your own infrastructure]()
+- ...and more!
+
+## Contributing
 
 Stork gratefully accepts contributions!
 
 - If you find a bug, a well-written bug report is extremely helpful. [File a bug here](https://github.com/jameslittle230/stork/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
 - If you want to ask about a potential feature request or enhancement, feel free to [start a discussion](https://github.com/jameslittle230/stork/discussions) or [send a message on Discord](https://stork-search.net/chat).
 - If you want to write some code, the [Contributing Guidelines](https://github.com/jameslittle230/stork/blob/master/docs/contributing.md) can help make sense of how to get started.
-- I'd appreciate a heads up before you submit a PR, just so I can make sure that nobody is duplicating work.
+- I'd appreciate a heads up before you submit a PR so I can make sure that nobody is duplicating work.
 
 In order to make sure that the Stork community is welcoming to all, please review and follow the guidelines laid out in the [Stork Code of Conduct](https://github.com/jameslittle230/stork/blob/master/.github/CODE_OF_CONDUCT.md).

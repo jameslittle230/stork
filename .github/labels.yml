@@ -1,19 +1,31 @@
 - name: bug-report
   color: d73a4a # red
-  description: Unexpected behavior found, including behavior that diverges from documentation
+  description: Unexpected behavior found, including behavior that diverges from documentation.
 
-- name: feature-request
+- name: improvement-request
   color: 397dd6 # blue
-  description: Request for new or enhanced behavior
+  description: Request for new or enhanced behavior.
 
 - name: good-first-issue
   color: af39d6 # purple
-  description: Indicator for an issue that would be easy for first-time contributors
+  description: Indicator for an issue that would be easy for first-time contributors.
 
 - name: help-wanted
   color: d639ac # pink
   description: Indicator that the maintainers want advice, help, ideas, etc.
 
 - name: distribution
-  color: 2ecc40 #green
-  description: An issue with the distribution/release of Stork, either for the current release or the broader process
+  color: 2ecc40 # green
+  description: An issue with the distribution/release of Stork, either for the current release or the broader process.
+
+- name: tracking
+  color: 85144b # maroon
+  description: A change request that's blocked on something external.
+
+- name: investigating
+  color: 85144b # maroon
+  description: A change request that's blocked on investigation, understanding, or implementation.
+
+- name: fixed-in-upcoming-release
+  color: FFDC00 # yellow
+  description: This ticket is fixed, and will be closed when an upcoming version of Stork is released.

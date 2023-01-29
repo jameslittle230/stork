@@ -2,6 +2,12 @@
 
 Hi! Thank you for your interest in contributing to Stork!
 
+Stork has a [community code of conduct](https://github.com/jameslittle230/stork/blob/main/.github/CODE_OF_CONDUCT.md) that everyone interacting with the project
+is expected to follow.
+
+If you have any questions about whether a PR will be accepted, please reach out
+via [Github Discussions](https://github.com/jameslittle230/stork/discussions) or [Discord chat](https://stork-search.net/chat).
+
 ## Development
 
 To build Stork, you'll need:

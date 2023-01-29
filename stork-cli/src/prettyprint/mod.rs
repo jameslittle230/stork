@@ -4,6 +4,8 @@ use colored::Colorize;
 use stork_lib::search_output::{HighlightRange, SearchOutput};
 use textwrap::termwidth;
 
+const SHOW_SCORES: bool = false;
+
 #[allow(clippy::ptr_arg, clippy::unnecessary_to_owned)]
 fn highlight_title(string: &str, ranges: &Vec<HighlightRange>) -> String {
     let mut highlighted = String::new();
@@ -59,18 +61,28 @@ pub fn print(search_output: &SearchOutput) -> String {
     search_output.results.iter().for_each(|result| {
         output.push_str("\n\n");
         output.push_str(&format!(
-            "{}\n<{}{}>",
+            "{} {}\n<{}{}>",
             highlight_title(&result.entry.title, &result.title_highlight_ranges),
+            if SHOW_SCORES {
+                result.score.to_string().blue().to_string()
+            } else {
+                String::new()
+            },
             search_output.url_prefix,
             result.entry.url
         ));
         result.excerpts.iter().for_each(|excerpt| {
             output.push_str(&format!(
-                "\n{}",
+                "\n{} {}",
                 textwrap::fill(
                     &highlight_string(&excerpt.text, &excerpt.highlight_ranges),
                     &textwrap_options
-                )
+                ),
+                if SHOW_SCORES {
+                    excerpt.score.to_string().blue().to_string()
+                } else {
+                    String::new()
+                }
             ));
         });
     });
