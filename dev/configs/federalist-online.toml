@@ -1,0 +1,29 @@
+# This configuration file is identical to the one in the readme.
+[[input.files]]
+title = "1: General Introduction"
+url = "https://federalist.stork-search.net/1.html"
+
+[[input.files]]
+title = "2-5: Concerning Dangers from Foreign Force and Influence"
+url = "https://federalist.stork-search.net/2-5.html"
+
+[[input.files]]
+title = "6-7: Concerning Dangers from Dissentions Between the States"
+url = "https://federalist.stork-search.net/6-7.html"
+
+[[input.files]]
+title = "8: The Consequences of Hostilities Between the States"
+url = "https://federalist.stork-search.net/8.html"
+
+[[input.files]]
+title = "9-10: The Union as a Safeguard Against Domestic Faction and Insurrection"
+url = "https://federalist.stork-search.net/9-10.html"
+
+[[input.files]]
+title = "11: The Utility of the Union in Respect to Commercial Relations and a Navy"
+url = "https://federalist.stork-search.net/11.html"
+
+[[input.files]]
+title = "12: The Utility of the Union in Respect to Revenue"
+url = "https://federalist.stork-search.net/12.html"
+# TODO: Add more files
