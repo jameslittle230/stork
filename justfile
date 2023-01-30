@@ -242,6 +242,10 @@ _dev-watch-build-release:
 generate-stats: build-js-release rebuild-dev-indexes
     python3 scripts/generate_stats.py
 
+print-deploy:
+    pandoc -o ~/Desktop/deploy.pdf docs/deploy.md --pdf-engine=/Library/TeX/texbin/pdflatex -V geometry:margin=0.75in
+    open ~/Desktop/deploy.pdf
+
 # Set the versions of the crates and the JS project
 set-versions version:
     cargo set-version --workspace {{version}}
