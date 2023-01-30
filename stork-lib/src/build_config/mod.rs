@@ -244,6 +244,7 @@ files = [{}]
                     save_nearest_id: true,
                     included_selectors: vec![".article".to_string()],
                     excluded_selectors: vec![".ignore".to_string()],
+                    ..Default::default()
                 },
                 ..Default::default()
             },
@@ -256,6 +257,7 @@ files = [{}]
                 save_nearest_id: true,
                 included_selectors: vec![".article".to_string()],
                 excluded_selectors: vec![".ignore".to_string()],
+                ..Default::default()
             }
         )
     }
@@ -269,6 +271,7 @@ files = [{}]
                         save_nearest_id: false,
                         included_selectors: vec![".article-2".to_string()],
                         excluded_selectors: vec![".ignore-2".to_string()],
+                        ..Default::default()
                     }),
                     ..Default::default()
                 }],
@@ -276,6 +279,7 @@ files = [{}]
                     save_nearest_id: true,
                     included_selectors: vec![".article".to_string()],
                     excluded_selectors: vec![".ignore".to_string()],
+                    ..Default::default()
                 },
                 ..Default::default()
             },
@@ -288,6 +292,7 @@ files = [{}]
                 save_nearest_id: false,
                 included_selectors: vec![".article-2".to_string()],
                 excluded_selectors: vec![".ignore-2".to_string()],
+                ..Default::default()
             }
         )
     }

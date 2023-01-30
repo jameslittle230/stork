@@ -17,7 +17,7 @@ pub struct File {
     #[serde(flatten, default)]
     pub fields: Fields,
 
-    /// Implicit source will take from the destination URL
+    /// If None, the file's source will be the specified URL.
     #[serde(flatten)]
     pub explicit_source: Option<DataSource>,
 

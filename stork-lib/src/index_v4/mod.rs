@@ -130,12 +130,6 @@ pub(crate) struct Settings {
     pub(crate) title_boost: TitleBoost,
     #[n(2)]
     pub(crate) minimum_query_length: u8,
-    #[n(3)]
-    pub(crate) excerpt_buffer: u8,
-    #[n(4)]
-    pub(crate) excerpts_per_result: u8,
-    #[n(5)]
-    pub(crate) displayed_results_count: u8,
 }
 
 #[cfg(feature = "build")]
@@ -145,9 +139,6 @@ impl Settings {
             url_prefix: config.input.url_prefix.clone(),
             title_boost: config.input.title_boost.clone().into(),
             minimum_query_length: config.output.minimum_query_length,
-            excerpt_buffer: config.output.excerpt_buffer,
-            excerpts_per_result: config.output.excerpts_per_result,
-            displayed_results_count: config.output.displayed_results_count,
         }
     }
 }
