@@ -66,8 +66,8 @@ jobs:
       - uses: actions/download-artifact@v3
       - run: ls -lR
       - run: mv indexes/* .
-      - run: mv stork-macos-11/stork ./stork-macos-11
-      - run: mv stork-macos-12/stork ./stork-macos-12
+      - run: mv stork-macos-11/stork ./tmp; rm -rf stork-macos-11; mv tmp stork-macos-11
+      - run: mv stork-macos-12/stork ./tmp; rm -rf stork-macos-12; mv tmp stork-macos-12
       - run: mv stork-ubuntu-20.04/stork ./stork-ubuntu-20-04
       - run: mv stork-ubuntu-22.04/stork ./stork-ubuntu-22-04
       - run: mv web-artifacts/* .
@@ -98,8 +98,8 @@ jobs:
       - uses: actions/download-artifact@v3
       - run: ls -lR
       - run: mv indexes/* .
-      - run: mv stork-macos-11/stork ./stork-macos-11
-      - run: mv stork-macos-12/stork ./stork-macos-12
+      - run: mv stork-macos-11/stork ./tmp; rm -rf stork-macos-11; mv tmp stork-macos-11
+      - run: mv stork-macos-12/stork ./tmp; rm -rf stork-macos-12; mv tmp stork-macos-12
       - run: mv stork-ubuntu-20.04/stork ./stork-ubuntu-20-04
       - run: mv stork-ubuntu-22.04/stork ./stork-ubuntu-22-04
       - run: mv web-artifacts/* .
