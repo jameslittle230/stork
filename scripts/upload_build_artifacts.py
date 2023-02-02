@@ -59,8 +59,8 @@ if __name__ == "__main__":
         print("Error: Environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` must be set in order to upload to AWS S3.")
         exit(1)
 
-    # Script expects that these files will all be present in
-    # the ./web-artifacts directory in the project root.
+    # All filenames in the three lists below are expected to exist in the project root.
+
     web_artifacts = [
         {"filename": "stork.js", "contentType": "text/javascript"},
         {"filename": "stork.wasm", "contentType": "application/wasm"},
@@ -68,8 +68,6 @@ if __name__ == "__main__":
         {"filename": "stork.css", "contentType": "text/css"},
     ]
 
-    # Script expects that for each file below, a corresponding file
-    # will exist at ./{binary}/stork in the project root.
     binaries = [
         "stork-macos-11",
         "stork-macos-12",
@@ -79,7 +77,6 @@ if __name__ == "__main__":
         # "stork-amazon-linux",
     ]
 
-    # Script expects that these files will exist in the project root.
     other_files = [
         "federalist.st",
         "3b1b.st",
@@ -93,7 +90,7 @@ if __name__ == "__main__":
             opj("releases", ref, file["filename"]),
             opj("releases", "latest", file["filename"]),
         ]:
-            source_path = opj(projroot, "web-artifacts", file["filename"])
+            source_path = opj(projroot, file["filename"])
 
             uploadFile(source_path, destination_path, {
                        'ContentType': file["contentType"]})
@@ -103,7 +100,7 @@ if __name__ == "__main__":
             opj("releases", ref, binary),
             opj("releases", "latest", binary),
         ]:
-            source_path = opj(projroot, binary, "stork")
+            source_path = opj(projroot, binary)
             uploadFile(source_path, destination_path)
 
     for file in other_files:
