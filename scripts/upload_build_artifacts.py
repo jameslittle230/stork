@@ -65,23 +65,24 @@ if __name__ == "__main__":
         {"filename": "stork.js", "contentType": "text/javascript"},
         {"filename": "stork.wasm", "contentType": "application/wasm"},
         {"filename": "stork.js.map", "contentType": "binary/octet-stream"},
-        {"filename": "basic.css", "contentType": "text/css"},
-        {"filename": "dark.css", "contentType": "text/css"},
-        {"filename": "flat.css", "contentType": "text/css"},
-        {"filename": "edible.css", "contentType": "text/css"},
-        {"filename": "edible-dark.css", "contentType": "text/css"},
+        {"filename": "stork.css", "contentType": "text/css"},
     ]
 
     # Script expects that for each file below, a corresponding file
     # will exist at ./{binary}/stork in the project root.
     binaries = [
-        "stork-macos-10-15",
+        "stork-macos-11",
+        "stork-macos-12",
         "stork-ubuntu-20-04",
+        "stork-ubuntu-22-04",
+        # "stork-macos-13-arm",
+        # "stork-amazon-linux",
     ]
 
     # Script expects that these files will exist in the project root.
     other_files = [
         "federalist.st",
+        "3b1b.st",
     ]
 
     print(f"Uploading {len(web_artifacts) + len(binaries) + len(other_files)} files to files.stork-search.net/releases/{ref} ...")
