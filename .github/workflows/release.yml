@@ -65,6 +65,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
       - run: ls -lR
+      - run: mv indexes/* .
+      - run: mv stork-macos-11/stork ./stork-macos-11
+      - run: mv stork-macos-12/stork ./stork-macos-12
+      - run: mv stork-ubuntu-20.04/stork ./stork-ubuntu-20-04
+      - run: mv stork-ubuntu-22.04/stork ./stork-ubuntu-22-04
+      - run: mv web-artifacts/* .
+      - run: ls -lR
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
@@ -74,22 +81,29 @@ jobs:
           draft: true
           prerelease: false
           skipIfReleaseExists: true
-          artifactErrorsFailBuid: true
-          artifacts: ""
+          artifactErrorsFailBuild: true
+          artifacts: "3b1b.st,federalist.st,stork-macos-11,stork-macos-12,stork-ubuntu-20-04,stork-ubuntu-22-04,stork.css,stork.js,stork.wasm"
 
   upload:
     name: Upload to S3
     needs: ["build_binary", "build_web_artifacts", "build_indexes"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.x"
-      - uses: actions/download-artifact@v3
-      - run: ls -lR
       - run: python -m pip install --upgrade pip
       - run: pip install boto3
+      - uses: actions/download-artifact@v3
+      - run: ls -lR
+      - run: mv indexes/* .
+      - run: mv stork-macos-11/stork ./stork-macos-11
+      - run: mv stork-macos-12/stork ./stork-macos-12
+      - run: mv stork-ubuntu-20.04/stork ./stork-ubuntu-20-04
+      - run: mv stork-ubuntu-22.04/stork ./stork-ubuntu-22-04
+      - run: mv web-artifacts/* .
+      - run: ls -lR
       - run: python ./scripts/upload_build_artifacts.py ${{ github.ref }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID  }}

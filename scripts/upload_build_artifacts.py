@@ -64,7 +64,7 @@ if __name__ == "__main__":
     web_artifacts = [
         {"filename": "stork.js", "contentType": "text/javascript"},
         {"filename": "stork.wasm", "contentType": "application/wasm"},
-        {"filename": "stork.js.map", "contentType": "binary/octet-stream"},
+        # {"filename": "stork.js.map", "contentType": "binary/octet-stream"},
         {"filename": "stork.css", "contentType": "text/css"},
     ]
 
