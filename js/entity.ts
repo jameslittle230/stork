@@ -22,6 +22,7 @@ export default class Entity implements EntityDomDelegate {
   readonly config: RegisterConfiguration;
   readonly indexLoadPromise: Promise<IndexLoadValue>;
 
+  private uiConfig: UIConfig;
   private domManager: EntityDomManager;
   private loadManager: LoadManager;
   private indexLoader: IndexLoader;
@@ -103,6 +104,7 @@ export default class Entity implements EntityDomDelegate {
   }
 
   attach(uiConfig: UIConfig) {
+    this.uiConfig = uiConfig;
     this.domManager.attach(uiConfig);
   }
 
@@ -115,7 +117,13 @@ export default class Entity implements EntityDomDelegate {
     log(`Performing search for index "${this.name}" with query "${query}"`);
 
     try {
-      const v = perform_search(this.name, query);
+      const v = perform_search(
+        this.name,
+        query,
+        this.uiConfig?.excerptLength,
+        this.uiConfig?.numberOfResults,
+        this.uiConfig?.numberOfExcerpts
+      );
       const value = JSON.parse(v);
       return {
         success: true,

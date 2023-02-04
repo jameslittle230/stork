@@ -92,6 +92,7 @@ pub(crate) fn get_search_values(
 pub(crate) fn render_search_values(
     index: &Index,
     search_values: Vec<SearchValue>,
+    config: &crate::SearchConfig,
 ) -> Result<SearchOutput, SearchError> {
     type ValuesArrayIndex = usize;
 
@@ -180,7 +181,7 @@ pub(crate) fn render_search_values(
                 vec![],
                 |mut accumulator, (contents_excerpt, highlight_length)| {
                     if let Some(last_grouping) = accumulator.last_mut() {
-                        if last_grouping.can_swallow(contents_excerpt) {
+                        if last_grouping.can_swallow(contents_excerpt, config.excerpt_length) {
                             last_grouping.push(contents_excerpt, **highlight_length);
                             return accumulator;
                         }
@@ -203,14 +204,14 @@ pub(crate) fn render_search_values(
             .iter()
             .fold(0.0, |acc, g| acc + g.score());
 
-        contents_excerpts_groupings.truncate(10);
+        contents_excerpts_groupings.truncate(config.number_of_excerpts);
 
         // ---- sum all grouping scores for each document to determine document scoring
         // ---- sort groupings by aggregated score
         // ---- create output excerpts for top n groupings
         let mut excerpts = contents_excerpts_groupings
             .iter()
-            .map(|g| g.as_excerpt(document))
+            .map(|g| g.as_excerpt(document, config.excerpt_length))
             .collect_vec();
 
         excerpts.sort_by(|a, b| a.score.partial_cmp(&b.score).unwrap());
@@ -227,7 +228,7 @@ pub(crate) fn render_search_values(
     let total_hit_count = results.len();
     results.sort_by(|a, b| a.score.partial_cmp(&b.score).unwrap());
     results.reverse();
-    results.truncate(10);
+    results.truncate(config.number_of_results);
 
     Ok(SearchOutput {
         results,
@@ -249,12 +250,12 @@ impl ContentExcerptGrouping {
         self.0.push((contents_excerpt.clone(), highlight_length));
     }
 
-    fn can_swallow(&self, other: &ContentsExcerpt) -> bool {
+    fn can_swallow(&self, other: &ContentsExcerpt, excerpt_length: usize) -> bool {
         match (self.0.first(), self.0.last()) {
             (Some((first_excerpt_in_self, _)), Some((last_excerpt_in_self, _))) => {
                 assert!(last_excerpt_in_self.byte_offset <= other.byte_offset);
                 let diff = other.byte_offset - last_excerpt_in_self.byte_offset;
-                diff < 150 - 3
+                diff < excerpt_length - 3
             }
             _ => unreachable!("Grouping should always have at least one element"),
         }
@@ -300,15 +301,15 @@ impl ContentExcerptGrouping {
         self.0.len()
     }
 
-    fn as_excerpt(&self, document: &super::Document) -> Excerpt {
+    fn as_excerpt(&self, document: &super::Document, excerpt_length: usize) -> Excerpt {
         let first_byte = self.first().byte_offset.saturating_sub(
-            147_usize
+            (excerpt_length - 3)
                 .saturating_sub(self.last().byte_offset - self.first().byte_offset)
                 .div(2),
         ); // TODO: Trim to word bounds
 
         let last_byte = std::cmp::min(
-            first_byte + 150,
+            first_byte + excerpt_length,
             document.contents.first().unwrap().contents.len(),
         );
 

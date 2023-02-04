@@ -50,7 +50,10 @@ const defaultUIConfig = {
   onQueryUpdate: (_query: string) => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onResultSelected: (_query: string, _result: SearchResult) => {},
-  transformResultUrl: (url: string) => url
+  transformResultUrl: (url: string) => url,
+  excerptLength: 150,
+  numberOfResults: 10,
+  numberOfExcerpts: 5
 };
 
 export type UIConfig = Readonly<typeof defaultUIConfig>;

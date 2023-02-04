@@ -23,9 +23,20 @@
         <button id="btn-4">4: Download Index - 404</button>
         <button id="btn-5">5: Attach</button>
         <button id="btn-6">6: Attach (Wrong name)</button>
+        <textarea id="attach-config" cols="30" rows="10">
+{
+  "excerptLength": 150,
+  "numberOfResults": 10,
+  "numberOfExcerpts": 5
+}
+        </textarea>
       </div>
       <div class="stork-wrapper">
-        <input data-stork="federalist" placeholder="liberty" class="stork-input" />
+        <input
+          data-stork="federalist"
+          placeholder="liberty"
+          class="stork-input"
+        />
         <div data-stork="federalist-output" class="stork-output"></div>
       </div>
     </div>
@@ -48,9 +59,11 @@
       });
 
       document.getElementById("btn-2").addEventListener("click", () => {
-        stork.initialize("http://127.0.0.1:8025/does-not-exist.wasm").then((value) => {
-          console.log("WASM initialized", value);
-        });
+        stork
+          .initialize("http://127.0.0.1:8025/does-not-exist.wasm")
+          .then((value) => {
+            console.log("WASM initialized", value);
+          });
       });
 
       document.getElementById("btn-3").addEventListener("click", () => {
@@ -66,7 +79,10 @@
 
       document.getElementById("btn-4").addEventListener("click", () => {
         stork
-          .downloadIndex("federalist", "http://127.0.0.1:8025/does-not-exist.st")
+          .downloadIndex(
+            "federalist",
+            "http://127.0.0.1:8025/does-not-exist.st"
+          )
           .then(() => {
             console.log("Index loaded");
           })
@@ -76,7 +92,11 @@
       });
 
       document.getElementById("btn-5").addEventListener("click", () => {
-        stork.attach("federalist");
+        console.log(document.getElementById("attach-config").value);
+        stork.attach(
+          "federalist",
+          JSON.parse(document.getElementById("attach-config").value)
+        );
       });
 
       document.getElementById("btn-6").addEventListener("click", () => {

@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use bytes::Bytes;
 use itertools::Itertools;
 use search_query::SearchQuery;
+use smart_default::SmartDefault;
 
 mod envelope;
 mod string_utils;
@@ -68,19 +69,39 @@ pub fn get_search_values(
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, SmartDefault)]
+pub struct SearchConfig {
+    /// The length, in characters, that a rendered excerpt will be. Controls
+    /// excerpt merging as well as display length.
+    /// Defaults to 150.
+    #[default = 150]
+    pub excerpt_length: usize,
+
+    /// The maximum number of documents returned in the search results.
+    /// Defaults to 10.
+    #[default = 10]
+    pub number_of_results: usize,
+
+    /// The maximum number of excerpts returned for each document.
+    /// Defaults to 5.
+    #[default = 5]
+    pub number_of_excerpts: usize,
+}
+
 pub fn merge_search_values(
     index: &parse_index::ParsedIndex,
-    lists_of_search_values: Vec<Vec<search_value::SearchValue>>,
+    search_values: Vec<Vec<search_value::SearchValue>>,
+    config: &SearchConfig,
 ) -> Result<search_output::SearchOutput, search_output::errors::SearchError> {
     match &index.value {
         parse_index::IndexType::V4Index(v4_index) => {
-            let search_values = lists_of_search_values
+            let search_values = search_values
                 .iter()
                 .flatten()
                 .filter_map(|sv| sv.v4_value.clone()) // TODO: Throw a user-visible error if there are non-v4 search values
                 .collect_vec();
 
-            index_v4::search::render_search_values(v4_index, search_values)
+            index_v4::search::render_search_values(v4_index, search_values, config)
         }
     }
 }
@@ -88,6 +109,7 @@ pub fn merge_search_values(
 pub fn search(
     index: &parse_index::ParsedIndex,
     query: &str,
+    config: &SearchConfig,
 ) -> Result<search_output::SearchOutput, search_output::errors::SearchError> {
     let terms = query
         .parse::<SearchQuery>()
@@ -99,5 +121,5 @@ pub fn search(
         .flat_map(|term| get_search_values(index, term))
         .collect_vec();
 
-    merge_search_values(index, search_values)
+    merge_search_values(index, search_values, config)
 }

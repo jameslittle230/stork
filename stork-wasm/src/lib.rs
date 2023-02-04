@@ -9,6 +9,7 @@ use stork_lib::{
     parse_index::ParsedIndex,
     search,
     search_value::{SearchValue, SearchValueCacheKey},
+    SearchConfig,
 };
 
 lazy_static! {
@@ -45,14 +46,26 @@ pub fn append_chunk_to_index(name: &str, chunk_data: &[u8]) -> Result<(), JsErro
 }
 
 #[wasm_bindgen]
-pub fn perform_search(name: &str, query: &str) -> Result<String, JsError> {
+pub fn perform_search(
+    name: &str,
+    query: &str,
+    excerpt_length: usize,
+    number_of_results: usize,
+    number_of_excerpts: usize,
+) -> Result<String, JsError> {
     if cfg!(debug_assertions) {
         console_error_panic_hook::set_once();
     }
 
+    let config = SearchConfig {
+        excerpt_length,
+        number_of_results,
+        number_of_excerpts,
+    };
+
     let mut index_cache = INDEX_CACHE.lock().unwrap();
     let index = index_cache.get_mut(name).unwrap(); // TODO: map_err()
-    search(index, query)
+    search(index, query, &config)
         .map(|output| serde_json::to_string(&output).unwrap())
         .map_err(|_e| JsError::new("Error"))
 }

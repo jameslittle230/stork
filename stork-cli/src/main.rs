@@ -11,6 +11,7 @@ mod timings;
 
 use clap::ArgMatches;
 use colored::Colorize;
+use lib::SearchConfig;
 use num_format::{Locale, ToFormattedString};
 use std::time::Instant;
 
@@ -89,7 +90,25 @@ fn search(submatches: &ArgMatches) -> CommandOutput {
 
     let read_time = Instant::now();
 
-    let results = lib::search(&index, query).unwrap();
+    let search_config = SearchConfig {
+        excerpt_length: submatches
+            .value_of("excerpt_length")
+            .unwrap()
+            .parse()
+            .unwrap(),
+        number_of_results: submatches
+            .value_of("number_of_results")
+            .unwrap()
+            .parse()
+            .unwrap(),
+        number_of_excerpts: submatches
+            .value_of("number_of_excerpts")
+            .unwrap()
+            .parse()
+            .unwrap(),
+    };
+
+    let results = lib::search(&index, query, &search_config).unwrap();
 
     let search_time = Instant::now();
 

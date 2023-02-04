@@ -171,7 +171,7 @@ $ stork search --index federalist.st --query "liberty"
 
 To build an interactive, online search interface, you can use the Stork Javascript library to load your search index and attach it to HTML on your webpage.
 
-You'll need to take the output file generated in the previous step and make it accessible on a web server. I've already done that and uploaded the search index to `https://files.stork-search.net/federalist.st`.
+You'll need to take the output file generated in the previous step and make it accessible on a web server. I've already done that and uploaded the search index to `https://files.stork-search.net/releases/latest/federalist.st`.
 
 Stork looks for the `data-stork` attributes on two tags: an `<input>` tag where your users will type their search query, and a `<div>` tag where Stork will render the search results. Here, we're setting up our input and output elements with the name "federalist"—we'll use that name later to point the Javascript library at the correct HTML tags.
 
@@ -195,7 +195,10 @@ By default, Stork's output is completely unstyled, letting you customize the out
 <html lang="en">
   <head>
     <title>Search</title>
-    <link rel="stylesheet" href="https://files.stork-search.net/basic.css" />
+    <link
+      rel="stylesheet"
+      href="https://files.stork-search.net/releases/latest/basic.css"
+    />
   </head>
   <body>
     <div class="stork-wrapper">
@@ -215,7 +218,10 @@ Finally, we'll load the Stork Javascript library and register our search index:
 <html lang="en">
   <head>
     <title>Search</title>
-    <link rel="stylesheet" href="https://files.stork-search.net/basic.css" />
+    <link
+      rel="stylesheet"
+      href="https://files.stork-search.net/releases/latest/basic.css"
+    />
   </head>
   <body>
     <div class="stork-wrapper">
@@ -223,11 +229,11 @@ Finally, we'll load the Stork Javascript library and register our search index:
       <div data-stork="federalist-output" class="stork-output"></div>
     </div>
 
-    <script src="https://files.stork-search.net/stork.js"></script>
+    <script src="https://files.stork-search.net/releases/latest/stork.js"></script>
     <script>
       stork.register(
         "federalist",
-        "https://files.stork-search.net/federalist.st",
+        "https://files.stork-search.net/releases/latest/federalist.st",
         {}
       );
     </script>
@@ -237,7 +243,7 @@ Finally, we'll load the Stork Javascript library and register our search index:
 
 > **Warning**
 >
-> The files at the root of `files.stork-search.net` point directly to the build artifacts from most recent release. Linking to these files from your webpage can result in unexpected behavior when a new version is released. To pin to a specific release, use URLs in the following the format:
+> The files linked in this demo point directly to the build artifacts from most recent release. Linking to these files from your webpage can result in unexpected behavior when a new version is released. To pin to a specific release, use URLs in the following the format:
 >
 > `https://files.stork-search.net/releases/v2.0.0/stork.js`
 >

@@ -82,6 +82,10 @@ export default class EntityDomManager {
     this.attachedToDom = true;
 
     this.resetElements();
+
+    if (this.input.value.length > 0) {
+      this.performSearchFromInputValue();
+    }
   }
 
   setProgress(number: number) {

@@ -1569,6 +1569,7 @@ dependencies = [
  "colored",
  "hyper",
  "indicatif",
+ "lazy_static",
  "num-format",
  "pretty_assertions",
  "serde",
