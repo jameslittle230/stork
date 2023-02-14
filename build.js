@@ -1,31 +1,32 @@
-const { version } = require("./package.json");
-const fs = require("fs");
+import { version } from "./package.json";
+import { defineConfig } from "tsup";
 
-const outfile = "js/dist/stork.js";
-
-const esbuild = require("esbuild");
-
-esbuild
-  .build({
-    entryPoints: ["js/index.ts"],
-    bundle: true,
+export default defineConfig([
+  {
+    clean: true,
+    entry: { stork: "js/index.ts" },
+    format: ["cjs", "esm", "iife"],
     minify: true,
     globalName: "stork",
-    target: "ES2015",
-    outfile,
-    define: { __VERSION: `"${version}"`, import: null },
-    logOverride: {
-      "empty-import-meta": "debug",
+    dts: {
+      entry: { stork: "js/index.ts" },
+      compilerOptions: { moduleResolution: "node" },
     },
-  })
-  .then(() => {
-    const { size } = fs.statSync(outfile);
-    console.log(`${outfile}: ${size} bytes`);
-  })
-  .catch(() => process.exit(1));
-
-esbuild.build({
-  entryPoints: ["js/stork.css"],
-  minify: true,
-  outfile: "js/dist/stork.css",
-});
+    sourcemap: true,
+    define: { __VERSION: `"${version}"` },
+    outDir: "js/dist",
+    outExtension({ format }) {
+      if (format === "iife") return { js: ".js" };
+      return {
+        js: `.${format}.js`,
+      };
+    },
+    external: ["stork-search"],
+  },
+  {
+    clean: true,
+    entry: ["js/stork.css"],
+    minify: true,
+    outDir: "js/dist",
+  },
+]);

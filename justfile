@@ -24,20 +24,16 @@ build-rust-release:
 # Build and compress the WASM blob
 build-wasm-release:
     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --release
-    
-    cd stork-wasm/pkg; mv stork_bg.wasm stork_bg_unopt.wasm
-    wasm-opt -Os -o stork-wasm/pkg/stork_bg_uncomp.wasm stork-wasm/pkg/stork_bg_unopt.wasm 
+    mv stork-wasm/pkg/stork_bg.wasm stork-wasm/pkg/stork_bg_unopt.wasm
+    wasm-opt -Os -o stork-wasm/pkg/stork_bg_uncomp.wasm stork-wasm/pkg/stork_bg_unopt.wasm
     gzip -c stork-wasm/pkg/stork_bg_uncomp.wasm > stork-wasm/pkg/stork_bg.wasm 
-    
-    -@stat -f 'stork-uncomp.wasm: %z bytes' stork-wasm/pkg/stork_bg_uncomp.wasm
-    -@stat -f 'stork.wasm:        %z bytes' stork-wasm/pkg/stork_bg.wasm
-    
+    cp stork-wasm/pkg/stork_bg_uncomp.wasm js/dist/stork.wasm
     mkdir -p js/dist
     cp stork-wasm/pkg/stork_bg_uncomp.wasm js/dist/stork.wasm # TODO: Eventually use the compressed one
 
 # Build the JS components of the project
 build-js-release: _yarn
-    node build.js
+    yarn --silent run tsup --config build.js --silent
 
 
 
@@ -49,19 +45,10 @@ build-js-release: _yarn
 ## Build for development
 
 # Build the project for development
-build-dev: _build-rust-dev _build-js-dev
+build-dev: build-rust-dev build-js-release
 
-_build-rust-dev:
+build-rust-dev:
     cargo build --quiet
-
-# TODO: Document when you might want to do this vs. something else
-# _build-wasm-dev:
-#     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --dev
-#     cd stork-wasm/pkg; mv stork_bg.wasm stork_bg_uncomp.wasm
-#     @echo "Built WASM in dev mode, no sizes reported"
-
-_build-js-dev: _yarn
-    node build.js
 
 
 
@@ -170,7 +157,7 @@ clean:
     rm -rf target
 
 # Remove build artifacts and downloaded helpers
-clean-super: clean
+deep-clean: clean
     rm -rf node_modules
     rm -rf dev/documents/3b1b/*
     rm -rf dev/documents/federalist/*
@@ -217,7 +204,7 @@ _copy-dev-files: _build-dev-indexes
     cp stork-wasm/pkg/stork_bg_uncomp.wasm  dev/dist/stork.wasm
 
 _dev-watch-build:
-    git ls-files | entr -s "just build-dev && just _copy-dev-files"
+    git ls-files js stork-* dev/site | entr -s "just build-dev && just _copy-dev-files"
 
 _dev-serve:
     @echo "Open http://127.0.0.1:8025"
@@ -225,10 +212,10 @@ _dev-serve:
     python3 -m http.server --directory ./dev/dist 8025
 
 _dev-watch-test:
-    git ls-files | entr -s "just test-all"
+    git ls-files js stork-* | entr -s "just test-all"
 
 _dev-watch-build-release:
-    git ls-files | entr -s "just build-release"
+    git ls-files js stork-* | entr -s "just build-release"
 
 
 
