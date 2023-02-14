@@ -37,15 +37,18 @@ pub(super) fn parse_document(
     }: &FileReadValue,
 ) -> Result<DocumentParseValue, AttributedDocumentProblem> {
     match filetype {
-        Some(Filetype::PlainText) => Ok(plaintext::generate(config, file_index, contents)),
+        Some(Filetype::PlainText) => Ok(plaintext::parse(contents)),
         Some(Filetype::SRTSubtitle) => {
-            srt::generate(config, file_index, contents).map_err(DocumentProblem::from)
+            let srt_config = config.get_srt_config_for_file(file_index);
+            srt::parse(contents, &srt_config).map_err(DocumentProblem::from)
         }
         Some(Filetype::HTML) => {
-            html::generate(config, file_index, contents).map_err(DocumentProblem::from)
+            let html_config = config.get_html_config_for_file(file_index);
+            html::parse(contents, &html_config).map_err(DocumentProblem::from)
         }
         Some(Filetype::Markdown) => {
-            markdown::generate(config, file_index, contents).map_err(DocumentProblem::from)
+            let html_config = config.get_html_config_for_file(file_index);
+            markdown::parse(contents, &html_config).map_err(DocumentProblem::from)
         }
         None => Err(DocumentProblem::CannotDetermineFiletype), // Don't replace this with `_`
     }

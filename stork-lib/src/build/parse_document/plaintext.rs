@@ -3,11 +3,7 @@ use crate::string_utils::split_into_normalized_words;
 use super::annotated_word::AnnotatedWord;
 
 #[allow(clippy::unnecessary_wraps)]
-pub(crate) fn generate(
-    _config: &crate::build_config::Config,
-    _file_index: usize,
-    contents: &str,
-) -> (String, Vec<AnnotatedWord>) {
+pub(crate) fn parse(contents: &str) -> (String, Vec<AnnotatedWord>) {
     let word_list = split_into_normalized_words(contents)
         .iter()
         .map(|indexed_word| {

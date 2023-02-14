@@ -11,18 +11,17 @@ pub(crate) enum SRTParseError {
     ReaderError,
 }
 
-pub(crate) fn generate(
-    config: &crate::build_config::Config,
-    file_index: usize,
+pub(crate) fn parse(
     contents: &str,
+    config: &SRTConfig,
 ) -> Result<(String, Vec<AnnotatedWord>), SRTParseError> {
     let subs = srtparse::from_str(contents).map_err(|_| SRTParseError::ReaderError)?;
-    generate_from_subs(subs, config)
+    parse_from_subs(subs, config)
 }
 
-fn generate_from_subs(
+fn parse_from_subs(
     subs: Vec<srtparse::Item>,
-    config: &crate::build_config::Config,
+    config: &SRTConfig,
 ) -> Result<(String, Vec<AnnotatedWord>), SRTParseError> {
     const SUB_SEPARATOR: &str = " ";
     let sub_sep_count: usize = SUB_SEPARATOR.len();
@@ -39,10 +38,7 @@ fn generate_from_subs(
                 AnnotatedWord::new(
                     indexed_word.word.clone(),
                     indexed_word.byte_offset + latest_sub_character_offset,
-                    Some(build_srt_url_time_suffix(
-                        &sub.start_time,
-                        &config.input.srt_config,
-                    )),
+                    Some(build_srt_url_time_suffix(&sub.start_time, config)),
                 )
             })
             .collect();
@@ -82,7 +78,7 @@ mod tests {
 
     use crate::build_config::{SRTConfig, SRTTimestampFormat};
 
-    use super::{build_srt_url_time_suffix, generate_from_subs};
+    use super::{build_srt_url_time_suffix, parse_from_subs};
 
     #[test]
     fn correctly_segments_words() {
@@ -116,7 +112,7 @@ mod tests {
             },
         ];
         let (computed_string, computed_annotated_words) =
-            generate_from_subs(subs, &crate::build_config::Config::default()).unwrap();
+            parse_from_subs(subs, &SRTConfig::default()).unwrap();
 
         assert_eq!(
             "a bb-[ccc]; dddd eeeee,ffff ggg hh i          jj",

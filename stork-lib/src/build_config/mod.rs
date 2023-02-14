@@ -20,7 +20,7 @@ mod srt;
 mod stemming;
 
 pub use self::frontmatter::FrontmatterConfig;
-use self::html::HTMLConfig;
+pub use self::html::HTMLConfig;
 pub use file::{DataSource, File, Filetype};
 pub use input::{InputConfig, TitleBoost};
 pub use local::LocalConfig;
@@ -94,6 +94,15 @@ impl Config {
             .get(file_index)
             .and_then(|file| file.stemming.clone())
             .unwrap_or_else(|| self.input.stemming.clone());
+    }
+
+    pub(crate) fn get_srt_config_for_file(&self, file_index: usize) -> SRTConfig {
+        return self
+            .input
+            .files
+            .get(file_index)
+            .and_then(|file| file.srt_config.clone())
+            .unwrap_or_else(|| self.input.srt_config.clone());
     }
 
     pub(crate) fn get_frontmatter_config_for_file(&self, file_index: usize) -> FrontmatterConfig {
