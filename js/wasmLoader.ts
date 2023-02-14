@@ -21,7 +21,7 @@ export default class WasmLoader {
   wasmLoadPromise: Promise<WasmLoadValue> | null = null;
 
   // Once set to `success`, this should never be set to any other value
-  loadState: LoadState = "notStarted";
+  loadState: LoadState = LoadState.NotStarted;
 
   // When WASM is loaded successfully, these functions are called, then removed
   // from this array.
@@ -77,7 +77,7 @@ export default class WasmLoader {
               throw new StorkError(message); // TODO: When this is thrown, it doesn't clearly display in the browser console
             }
 
-            this.loadState = "success";
+            this.loadState = LoadState.Success;
             this.flushQueue();
 
             res({ sourceUrl: this.wasmSourceUrl, version: wasmVersion });
@@ -85,7 +85,7 @@ export default class WasmLoader {
           .catch((e) => {
             log("Error loading WASM.", e);
 
-            this.loadState = "failure";
+            this.loadState = LoadState.Failure;
             this.flushErrorQueue(e);
 
             throw new StorkError(`Error while loading WASM from ${this.wasmSourceUrl}`);

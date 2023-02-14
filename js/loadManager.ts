@@ -2,10 +2,10 @@ import StorkError from "./storkError";
 import { log } from "./util/storkLog";
 
 export enum LoadState {
-  NotStarted,
-  Incomplete,
-  Success,
-  Failure
+  NotStarted = "not-started",
+  Incomplete = "incomplete",
+  Success = "success",
+  Failure = "failure"
 }
 
 export default class LoadManager {
