@@ -1,12 +1,17 @@
 body {
   font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
     "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  background-color: #e4e4e4;
 }
 
 body.iframe {
   margin: 0;
   padding: 0;
   overflow-y: hidden;
+}
+
+a:link {
+  font-weight: bold;
 }
 
 iframe {
