@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use itertools::Itertools;
 use rust_stemmers::Stemmer;
 
@@ -14,6 +16,7 @@ use crate::{
     index_v4::{self, Document, Index},
 };
 
+pub(crate) use self::importance::ImportanceValue;
 pub use self::progress::ProgressReporter;
 use self::{importance::WordImportanceCalculator, parser::DocumentParseValue};
 
@@ -65,6 +68,7 @@ pub(crate) fn build_index(
     progress_reporter.succeed();
 
     let mut importance_calc = WordImportanceCalculator::new();
+    let mut stem_map: HashMap<String, HashSet<String>> = HashMap::new(); // TODO: Does this become an OOM risk?
 
     for (document_id, doc_parse_value) in documents.iter().enumerate() {
         index.documents.insert(
@@ -72,12 +76,40 @@ pub(crate) fn build_index(
             Document::from_parse_value(document_id, doc_parse_value),
         );
 
+        let stem_config = config.get_stem_config_for_file(document_id);
+        let stemmer = match stem_config {
+            crate::build_config::StemmingConfig::None => None,
+            crate::build_config::StemmingConfig::Language(alg) => Some(Stemmer::create(alg)),
+        };
+
         for title_word in &doc_parse_value.annotated_title_words {
-            importance_calc.push(&title_word.word, document_id)
+            let word = &title_word.word;
+            importance_calc.push(word, document_id);
+
+            if let Some(stemmer) = &stemmer {
+                let stemmed_word = stemmer.stem(word).into_owned();
+                stem_map
+                    .entry(stemmed_word)
+                    .and_modify(|v| {
+                        v.insert(word.clone());
+                    })
+                    .or_insert_with(|| HashSet::from([word.clone()]));
+            }
         }
 
         for word in &doc_parse_value.annotated_words {
-            importance_calc.push(&word.word, document_id)
+            let word = &word.word;
+            importance_calc.push(word, document_id);
+
+            if let Some(stemmer) = &stemmer {
+                let stemmed_word = stemmer.stem(word).into_owned();
+                stem_map
+                    .entry(stemmed_word)
+                    .and_modify(|v| {
+                        v.insert(word.clone());
+                    })
+                    .or_insert_with(|| HashSet::from([word.clone()]));
+            }
         }
     }
 
@@ -87,18 +119,6 @@ pub(crate) fn build_index(
             crate::build_config::StemmingConfig::None => None,
             crate::build_config::StemmingConfig::Language(alg) => Some(Stemmer::create(alg)),
         };
-
-        for title_word in &doc_parse_value.annotated_title_words {
-            index.query_result_tree.insert_value_for_string(
-                index_v4::QueryResult::TitleExcerpt(index_v4::TitleExcerpt {
-                    document_id,
-                    byte_offset: title_word.annotation.byte_offset,
-                }),
-                &title_word.word,
-            );
-
-            // TODO: Stem
-        }
 
         for word in &doc_parse_value.annotated_words {
             index.query_result_tree.insert_value_for_string(
@@ -111,7 +131,37 @@ pub(crate) fn build_index(
                 &word.word,
             );
 
-            // TODO: Stem
+            for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
+                index.query_result_tree.insert_value_for_string(
+                    index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
+                        document_id,
+                        byte_offset: word.annotation.byte_offset,
+                        importance: importance_calc.get_value(&word.word, document_id) / 3,
+                        url_suffix: word.annotation.url_suffix.clone(),
+                    }),
+                    &string,
+                )
+            }
+        }
+
+        for word in &doc_parse_value.annotated_title_words {
+            index.query_result_tree.insert_value_for_string(
+                index_v4::QueryResult::TitleExcerpt(index_v4::TitleExcerpt {
+                    document_id,
+                    byte_offset: word.annotation.byte_offset,
+                }),
+                &word.word,
+            );
+
+            for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
+                index.query_result_tree.insert_value_for_string(
+                    index_v4::QueryResult::TitleExcerpt(index_v4::TitleExcerpt {
+                        document_id,
+                        byte_offset: word.annotation.byte_offset,
+                    }),
+                    &string,
+                )
+            }
         }
     }
 
@@ -141,4 +191,55 @@ pub(crate) fn build_index(
         },
         warnings: problems.iter().map(BuildWarning::from).collect_vec(),
     })
+}
+
+fn get_stem_alternatives(
+    word: &str,
+    stemmer: &Option<Stemmer>,
+    stem_map: &HashMap<String, HashSet<String>>,
+) -> Vec<String> {
+    stemmer
+        .as_ref()
+        .and_then(|stemmer| {
+            let key = stemmer.stem(word).into_owned();
+            stem_map.get(&key).map(|hashset| {
+                hashset
+                    .iter()
+                    .filter(|w| **w != word)
+                    .cloned()
+                    .collect_vec()
+            })
+        })
+        .unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::{HashMap, HashSet};
+
+    use pretty_assertions::assert_eq;
+    use rust_stemmers::Stemmer;
+
+    use crate::build::get_stem_alternatives;
+
+    #[test]
+    fn get_stem_alternatives_dedupes() {
+        let mut computed = get_stem_alternatives(
+            "liberties",
+            &Some(Stemmer::create(rust_stemmers::Algorithm::English)),
+            &HashMap::from([(
+                "liberti".to_string(),
+                HashSet::from([
+                    "liberties".to_string(),
+                    "liberty".to_string(),
+                    "libertied".to_string(),
+                ]),
+            )]),
+        );
+        computed.sort();
+        assert_eq!(
+            computed,
+            vec!["libertied".to_string(), "liberty".to_string()]
+        );
+    }
 }

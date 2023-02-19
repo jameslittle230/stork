@@ -28,6 +28,9 @@ use crate::build_config::Config;
 #[allow(unused_imports)]
 use crate::envelope::{Envelope, Prefix};
 
+#[cfg(feature = "build")]
+use crate::build::ImportanceValue;
+
 use self::{
     disk::DocumentMetadata,
     tree::{ArenaId, Tree},
@@ -147,7 +150,7 @@ type DocumentId = usize;
 type ChunkId = usize;
 
 #[derive(Clone, Decode)]
-#[cfg_attr(feature = "build", derive(Encode, Debug))]
+#[cfg_attr(feature = "build", derive(Encode, Debug, Hash, PartialEq, Eq))]
 pub(crate) enum QueryResult {
     #[n(0)]
     ContentsExcerpt(#[n(0)] ContentsExcerpt),
@@ -156,20 +159,20 @@ pub(crate) enum QueryResult {
 }
 
 #[derive(Clone, Decode)]
-#[cfg_attr(feature = "build", derive(Encode, Debug))]
+#[cfg_attr(feature = "build", derive(Encode, Debug, Hash, PartialEq, Eq))]
 pub(crate) struct ContentsExcerpt {
     #[n(0)]
     pub(crate) document_id: DocumentId,
     #[n(1)]
     pub(crate) byte_offset: usize,
     #[n(2)]
-    pub(crate) importance: f64,
+    pub(crate) importance: ImportanceValue,
     #[n(3)]
     pub(crate) url_suffix: Option<String>,
 }
 
 #[derive(Clone, Decode)]
-#[cfg_attr(feature = "build", derive(Encode, Debug))]
+#[cfg_attr(feature = "build", derive(Encode, Debug, Hash, PartialEq, Eq))]
 pub(crate) struct TitleExcerpt {
     #[n(0)]
     pub(crate) document_id: DocumentId,

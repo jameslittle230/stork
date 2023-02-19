@@ -7,6 +7,7 @@ use minicbor::Encode;
 use std::{
     borrow::Cow,
     collections::{HashMap, VecDeque},
+    hash::Hash,
 };
 
 #[cfg(test)]
@@ -120,7 +121,7 @@ where
 #[cfg(feature = "build")]
 impl<U> Tree<U>
 where
-    U: Clone,
+    U: Clone + Eq + Hash,
 {
     pub(crate) fn new() -> Self {
         Tree {
@@ -183,9 +184,10 @@ where
         }
 
         self.arenas.get_mut(&node_pointer.arena_id).map(|arena| {
-            arena.nodes.get_mut(node_pointer.node_index).map(|node| {
-                node.values.push(value);
-            })
+            arena
+                .nodes
+                .get_mut(node_pointer.node_index)
+                .map(|node| node.push_value(value))
         });
     }
 
@@ -306,6 +308,18 @@ impl<U> Node<U> {
         Self {
             values: vec![],
             children: HashMap::new(),
+        }
+    }
+}
+
+#[cfg(feature = "build")]
+impl<U> Node<U>
+where
+    U: PartialEq,
+{
+    fn push_value(&mut self, value: U) {
+        if !self.values.contains(&value) {
+            self.values.push(value);
         }
     }
 }
@@ -538,16 +552,32 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "reason"]
+    fn it_doesnt_insert_duplicates() {
+        let mut tree = make_simple_tree();
+        tree.insert_value_for_string(25, "abc");
+        tree.insert_value_for_string(25, "abc");
+
+        assert_eq!(
+            tree.retrieve_values_for_string("abc", true).unwrap().len(),
+            1
+        );
+    }
+
+    #[test]
     fn it_collects_values_from_children() {
         let tree = make_tree();
 
-        assert_eq!(
-            tree.retrieve_values_from_children(NodePointer {
+        let mut computed = tree
+            .retrieve_values_from_children(NodePointer {
                 arena_id: "z".to_string(),
-                node_index: 1
+                node_index: 1,
             })
-            .collect::<Vec<TreeRetrievalValue<usize>>>(),
+            .collect::<Vec<TreeRetrievalValue<usize>>>();
+
+        computed.sort_by(|a, b| a.partial_cmp(b).unwrap_or(cmp::Ordering::Equal));
+
+        assert_eq!(
+            computed,
             vec![
                 TreeRetrievalValue::Value {
                     value: 3,
@@ -566,20 +596,20 @@ mod tests {
                     characters_remaining: 1
                 },
                 TreeRetrievalValue::Value {
-                    value: 11,
-                    characters_remaining: 1
-                },
-                TreeRetrievalValue::Value {
-                    value: 12,
-                    characters_remaining: 1
-                },
-                TreeRetrievalValue::Value {
                     value: 9,
                     characters_remaining: 2
                 },
                 TreeRetrievalValue::Value {
                     value: 10,
                     characters_remaining: 2
+                },
+                TreeRetrievalValue::Value {
+                    value: 11,
+                    characters_remaining: 1
+                },
+                TreeRetrievalValue::Value {
+                    value: 12,
+                    characters_remaining: 1
                 },
                 TreeRetrievalValue::Value {
                     value: 13,

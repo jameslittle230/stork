@@ -266,7 +266,7 @@ impl ContentExcerptGrouping {
             .0
             .iter()
             .fold(HashSet::new(), |mut acc, (excerpt, _)| {
-                acc.insert(excerpt.importance.to_bits());
+                acc.insert(excerpt.importance.clone());
                 acc
             })
             .len();
