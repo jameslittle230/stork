@@ -1,6 +1,6 @@
 use bytes::Bytes;
 
-use super::warning::BuildWarning;
+use super::BuildWarning;
 
 /// The data returned from Stork when a search index is successfully built.
 /// This data is agnostic to which index type has been built.

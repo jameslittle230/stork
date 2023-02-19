@@ -2,7 +2,7 @@ mod annotated_word;
 
 use rust_stemmers::Algorithm as StemAlgorithm;
 
-use super::read_contents::FileReadValue;
+use super::reader::FileReadValue;
 use crate::build_output::document_problem::{AttributedDocumentProblem, DocumentProblem};
 use crate::{build_config::Filetype, string_utils::split_into_normalized_words, Fields};
 
@@ -26,7 +26,7 @@ pub(crate) struct DocumentParseValue {
     pub(crate) fields: Option<Fields>,
 }
 
-pub(super) fn parse_document(
+pub(super) fn parse(
     config: &crate::build_config::Config,
     file_index: usize,
     FileReadValue {
@@ -36,6 +36,8 @@ pub(super) fn parse_document(
         ..
     }: &FileReadValue,
 ) -> Result<DocumentParseValue, AttributedDocumentProblem> {
+    let document_config = config.input.files.get(file_index).unwrap();
+
     match filetype {
         Some(Filetype::PlainText) => Ok(plaintext::parse(contents)),
         Some(Filetype::SRTSubtitle) => {
@@ -52,27 +54,23 @@ pub(super) fn parse_document(
         }
         None => Err(DocumentProblem::CannotDetermineFiletype), // Don't replace this with `_`
     }
-    .map(|(contents, annotated_words)| {
-        let document_config = config.input.files.get(file_index).unwrap();
+    .map(|(contents, annotated_words)| DocumentParseValue {
+        annotated_words,
+        contents: contents.replace('\n', " "),
+        stem_algorithm: config.get_stem_config_for_file(file_index).to_optional(),
+        annotated_title_words: split_into_normalized_words(&document_config.title)
+            .iter()
+            .map(|indexed_word| {
+                AnnotatedWord::new(indexed_word.word.clone(), indexed_word.byte_offset, None)
+            })
+            .collect(),
 
-        DocumentParseValue {
-            annotated_words,
-            contents: contents.replace('\n', " "),
-            stem_algorithm: config.get_stem_config_for_file(file_index).to_optional(),
-            annotated_title_words: split_into_normalized_words(&document_config.title)
-                .iter()
-                .map(|indexed_word| {
-                    AnnotatedWord::new(indexed_word.word.clone(), indexed_word.byte_offset, None)
-                })
-                .collect(),
-
-            title: document_config.title.clone(),
-            url: document_config.url.clone(),
-            fields: frontmatter.clone(),
-        }
+        title: document_config.title.clone(),
+        url: document_config.url.clone(),
+        fields: frontmatter.clone(),
     })
     .map_err(|problem: DocumentProblem| AttributedDocumentProblem {
-        file_index,
+        doc_title: document_config.title.clone(),
         problem,
     })
 }

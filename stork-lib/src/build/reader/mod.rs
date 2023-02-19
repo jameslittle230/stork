@@ -1,5 +1,5 @@
 use crate::{
-    build_config::{DataSource, Filetype},
+    build_config::{Config, DataSource, Filetype},
     Fields,
 };
 
@@ -24,8 +24,8 @@ pub(crate) struct FileReadValue {
     pub(crate) frontmatter: Option<Fields>, // TODO: Read this field
 }
 
-pub(crate) fn read_contents(
-    config: &crate::build_config::Config,
+pub(crate) fn read(
+    config: &Config,
     file_index: usize,
 ) -> Result<FileReadValue, AttributedDocumentProblem> {
     let file_config = config.input.files.get(file_index).unwrap();
@@ -41,7 +41,7 @@ pub(crate) fn read_contents(
 
     if let Err(problem) = result {
         return Err(AttributedDocumentProblem {
-            file_index,
+            doc_title: file_config.title.clone(),
             problem,
         });
     }
@@ -52,7 +52,7 @@ pub(crate) fn read_contents(
 
     if contents.is_empty() {
         return Err(AttributedDocumentProblem {
-            file_index,
+            doc_title: file_config.title.clone(),
             problem: DocumentProblem::EmptyWordList,
         });
     }

@@ -63,7 +63,7 @@ alias _rb := run-build
 
 # Build a search index with the default data set
 run-build input="dev/configs/federalist.toml" output="dev/indexes/federalist.st":
-    cargo run -- build --input {{input}} --output {{output}} --timing
+    cargo run --all-features -- build --input {{input}} --output {{output}} --timing
 
 alias _rs := run-search
 

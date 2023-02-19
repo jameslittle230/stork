@@ -43,8 +43,7 @@ pub enum CommandLineError {
 }
 
 impl From<lib::parse_index::errors::IndexParseError> for CommandLineError {
-    fn from(e: lib::parse_index::errors::IndexParseError) -> Self {
-        dbg!(&e);
+    fn from(_e: lib::parse_index::errors::IndexParseError) -> Self {
         Self::IndexParseError()
     }
 }

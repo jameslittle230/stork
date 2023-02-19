@@ -12,7 +12,8 @@ build = [
     'frontmatter',
     'kuchiki',
     'pulldown-cmark',
-    'rust-tfidf'
+    'rust-tfidf',
+    'strunc'
 ]
 build-remote-fetch = ['build', 'mime', 'reqwest']
 
@@ -28,6 +29,7 @@ itertools = "0.10.3"
 unicode-segmentation = "1.8.0"
 smart-default = { version = "0.6.0" }
 ### build deps
+strunc = { version = "0.1.1", optional = true }
 thiserror = { version = "1.0.29", optional = true }
 toml = { version = "0.5.8", optional = true }
 serde = { version = "1.0.147", features = ["derive"], optional = false }

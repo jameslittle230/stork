@@ -23,6 +23,6 @@ pub(crate) mod document_problem;
 
 pub mod errors;
 
-pub use progress::{Report as ProgressReport, State as ProgressState};
+pub use progress::{ProgressReport, TickModel, TickState};
 pub use success::{BuildStatistics, BuildSuccessValue};
 pub use warning::BuildWarning;

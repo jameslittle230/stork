@@ -1,24 +1,21 @@
+use thiserror::Error;
+
 use super::document_problem::AttributedDocumentProblem;
 
-/// Build warnings are not fatal, but should be reported at the end of
-/// the build process.
-pub struct BuildWarning {
-    warning: BuildWarningInternal,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum BuildWarningInternal {
-    DocumentProblem(AttributedDocumentProblem),
-    DeprecatedConfigSetting(DeprecatedConfigSetting),
-}
+/// Build warnings are not fatal, but should be reported at the end of the
+/// build process.
+#[derive(Error, Debug, Clone)]
+#[error(transparent)]
+pub struct BuildWarning(#[from] BuildWarningRepr);
 
 impl From<&AttributedDocumentProblem> for BuildWarning {
-    fn from(problem: &AttributedDocumentProblem) -> Self {
-        Self {
-            warning: BuildWarningInternal::DocumentProblem(problem.clone()),
-        }
+    fn from(value: &AttributedDocumentProblem) -> Self {
+        Self::from(BuildWarningRepr::from(value.clone()))
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum DeprecatedConfigSetting {}
+#[derive(Error, Debug, Clone, PartialEq)]
+pub(crate) enum BuildWarningRepr {
+    #[error("{0}")]
+    DocumentProblem(#[from] AttributedDocumentProblem),
+}

@@ -29,11 +29,14 @@ pub mod build_config;
 #[cfg(feature = "build")]
 pub mod build_output;
 
+#[cfg(feature = "build")]
+use build::ProgressReporter;
+
 /// Builds an index from a configuration.
 #[cfg(feature = "build")]
 pub fn build_index(
     config: &build_config::Config,
-    progress: Option<&dyn Fn(build_output::ProgressReport)>,
+    progress: impl ProgressReporter,
 ) -> Result<build_output::BuildSuccessValue, build_output::errors::BuildError> {
     build::build_index(config, progress).map_err(build_output::errors::BuildError::from)
 }

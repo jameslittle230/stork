@@ -19,7 +19,7 @@ use stork_lib as lib;
 
 type CommandOutput = Result<(), errors::CommandLineError>;
 
-fn main() -> CommandOutput {
+fn main() {
     let app_matches = app::app().get_matches();
 
     let result = match app_matches.subcommand() {
@@ -29,11 +29,10 @@ fn main() -> CommandOutput {
         _ => unreachable!(),
     };
 
-    if let Err(error) = &result {
-        eprintln!("{} {error}", "Error:".red());
+    match result {
+        Ok(_) => {}
+        Err(e) => eprintln!("{} {e}", "Error:".red().bold()),
     }
-
-    result
 }
 
 fn build(submatches: &ArgMatches) -> CommandOutput {
@@ -46,8 +45,8 @@ fn build(submatches: &ArgMatches) -> CommandOutput {
 
     let read_config_time = Instant::now();
 
-    let bar = progress::Bar::new();
-    let build_output = lib::build_index(&config, Some(&|report| bar.tick(report)))?;
+    let bar = progress::Bar::new(&config);
+    let build_output = lib::build_index(&config, bar)?;
 
     let build_time = Instant::now();
 
@@ -56,8 +55,21 @@ fn build(submatches: &ArgMatches) -> CommandOutput {
     let end_time = Instant::now();
 
     eprintln!(
-        "{} Index built successfully, wrote {} bytes.",
+        "{} Index built successfully{}. Wrote {} bytes to disk.",
         "Success:".green(),
+        if build_output.warnings.is_empty() {
+            String::new()
+        } else {
+            format!(
+                " with {} warning{}",
+                build_output.warnings.len(),
+                if build_output.warnings.len() == 1 {
+                    ""
+                } else {
+                    "s"
+                }
+            )
+        },
         bytes_written.to_formatted_string(&Locale::en)
     );
 
@@ -154,8 +166,8 @@ fn test(submatches: &ArgMatches) -> CommandOutput {
 
     if let Some(config_path) = submatches.value_of("config") {
         let config: lib::build_config::Config = io::read(config_path)?.try_into()?;
-        let bar = progress::Bar::new();
-        let build_output = lib::build_index(&config, Some(&|report| bar.tick(report)))?;
+        let bar = progress::Bar::new(&config);
+        let build_output = lib::build_index(&config, bar)?;
         test_server::serve(&build_output.primary_data, port)
             .map_err(|_| errors::CommandLineError::ServerError)
     } else if let Some(index_path) = submatches.value_of("index_path") {

@@ -14,7 +14,7 @@ use itertools::Itertools;
 use crate::{search_query::MetadataFilter, Fields};
 
 #[cfg(feature = "build")]
-use crate::build::parse_document::DocumentParseValue;
+use crate::build::parser::DocumentParseValue;
 
 use minicbor::Decode;
 

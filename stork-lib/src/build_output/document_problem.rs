@@ -1,14 +1,17 @@
+use std::fmt::Display;
+
+use strunc::Strunc;
 use thiserror::Error;
 
 use crate::build::{
-    parse_document::{html::HtmlParseError, srt::SRTParseError},
-    read_contents::{file::FileReadError, url::UrlReadError},
+    parser::{html::HtmlParseError, srt::SRTParseError},
+    reader::{file::FileReadError, url::UrlReadError},
 };
 
 /// A problem that came about when parsing or reading a single document. This
 /// eventually becomes associated with a certain document and is stored as an
 /// `AttributedDocumentProblem`.
-#[derive(Debug, Error, Clone, PartialEq)]
+#[derive(Error, Debug, Clone, PartialEq)]
 pub(crate) enum DocumentProblem {
     // parse_document errors
     #[error("{0}")]
@@ -38,8 +41,19 @@ pub(crate) enum DocumentProblem {
 /// be reported at the end of the build as `BuildWarning`s, or they might cause
 /// the build to fail as part of a `BuildError`, depending on how the user has
 /// configured their behavior.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Error, Debug, Clone, PartialEq)]
 pub(crate) struct AttributedDocumentProblem {
-    pub file_index: usize,
+    pub doc_title: String,
     pub problem: DocumentProblem,
+}
+
+impl Display for AttributedDocumentProblem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}: {}",
+            self.doc_title.strunc_len(25).to_string(),
+            self.problem
+        )
+    }
 }

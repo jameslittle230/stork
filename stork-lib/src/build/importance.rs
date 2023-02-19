@@ -46,7 +46,6 @@ impl WordImportanceCalculator {
                 docs,
             ) * 100.0;
 
-        println!("{document_id} {term}\t{v}");
         v
     }
 }

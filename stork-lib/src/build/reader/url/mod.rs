@@ -6,13 +6,13 @@ pub(crate) enum UrlReadError {
     #[error("Stork wasn't built with web scraping functionality enabled.")]
     FeatureNotEnabled,
 
-    #[error("")]
+    #[error("Error fetching webpage.")]
     WebPageNotFetched,
 
-    #[error("")]
+    #[error("Got status code {0} indicating page couldn't be read")]
     BadStatusCode(u16),
 
-    #[error("")]
+    #[error("Couldn't determine a content-type.")]
     UnknownContentType,
 }
 

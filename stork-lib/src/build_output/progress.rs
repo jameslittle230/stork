@@ -1,11 +1,14 @@
-/// If you're displaying a progress bar while building a search index, this data
-/// helps build that progress bar.
-pub struct Report {
-    pub total_document_count: usize,
-    pub state: State,
+pub enum ProgressReport {
+    ProgressTick(TickModel),
+    Error(String),
 }
 
-pub enum State {
+pub struct TickModel {
+    pub total_document_count: usize,
+    pub state: TickState,
+}
+
+pub enum TickState {
     StartedDocument { index: usize, title: String },
     Finished,
     Failed,

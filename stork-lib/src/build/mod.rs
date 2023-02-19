@@ -1,53 +1,68 @@
-pub(crate) mod parse_document;
-pub(crate) mod read_contents;
-
 use itertools::Itertools;
+use rust_stemmers::Stemmer;
 
 mod importance;
 mod progress;
 
-use importance::WordImportanceCalculator;
-use rust_stemmers::Stemmer;
-
 use crate::{
-    build_config,
-    build_output::{self, BuildStatistics, BuildSuccessValue},
+    build_config::Config,
+    build_output::{
+        document_problem::AttributedDocumentProblem, errors::BuildErrorRepr, BuildStatistics,
+        BuildSuccessValue, BuildWarning,
+    },
     envelope::{self, Envelope},
-    index_v4::{self, Document},
+    index_v4::{self, Document, Index},
 };
 
+pub use self::progress::ProgressReporter;
+use self::{importance::WordImportanceCalculator, parser::DocumentParseValue};
+
+pub(crate) mod parser;
+pub(crate) mod reader;
+
 pub(crate) fn build_index(
-    config: &build_config::Config,
-    progress_fn: Option<&dyn Fn(build_output::ProgressReport)>,
-) -> Result<build_output::BuildSuccessValue, build_output::errors::InternalBuildError> {
-    let mut warnings: Vec<build_output::BuildWarning> = Vec::new();
+    config: &Config,
+    progress_reporter: impl ProgressReporter,
+) -> Result<BuildSuccessValue, BuildErrorRepr> {
+    let mut problems: Vec<AttributedDocumentProblem> = Vec::new();
 
-    let progress_reporter = progress::ProgressReporter::new(config, progress_fn);
+    let mut handle_document_problem = |problem: &AttributedDocumentProblem| {
+        problems.push(problem.clone());
+        progress_reporter.send_warning(problem.to_string());
+    };
 
-    let mut index = index_v4::Index::default_from_config(config);
+    let mut index = Index::default_from_config(config);
 
-    let documents = config
-        .input
-        .files
-        .iter()
-        .enumerate()
-        .flat_map(|(document_id, file_config)| {
-            progress_reporter.report(build_output::ProgressState::StartedDocument {
-                index: document_id,
-                title: file_config.title.clone(),
-            });
+    if config.input.files.is_empty() {
+        return Err(BuildErrorRepr::NoFilesSpecified);
+    }
 
-            match read_contents::read_contents(config, document_id).and_then(|read_value| {
-                parse_document::parse_document(config, document_id, &read_value)
-            }) {
-                Ok(document) => Some(document),
-                Err(problem) => {
-                    warnings.push((&problem).into());
-                    None
+    let mut documents: Vec<DocumentParseValue> = Vec::new();
+
+    for (idx, file_config) in config.input.files.iter().enumerate() {
+        progress_reporter.send_tick(idx, config.input.files.len(), file_config.title.clone());
+
+        let parse_result = reader::read(config, idx)
+            .and_then(|read_value| parser::parse(config, idx, &read_value));
+
+        match parse_result {
+            Ok(document) => documents.push(document),
+            Err(problem) => {
+                if config.output.break_on_first_error {
+                    return Err(BuildErrorRepr::OneDocumentHadProblem(problem));
+                } else {
+                    handle_document_problem(&problem);
                 }
             }
-        })
-        .collect_vec();
+        }
+    }
+
+    if problems.len() == config.input.files.len() {
+        progress_reporter.fail();
+        return Err(BuildErrorRepr::AllDocumentsHadProblems(problems));
+    }
+
+    progress_reporter.succeed();
 
     let mut importance_calc = WordImportanceCalculator::new();
 
@@ -124,6 +139,6 @@ pub(crate) fn build_index(
             tokens_count: 0,
             index_size_bytes: 0,
         },
-        warnings,
+        warnings: problems.iter().map(BuildWarning::from).collect_vec(),
     })
 }

@@ -7,7 +7,7 @@ use std::{fs, io, path};
 
 #[derive(Debug, Clone, PartialEq, Error)]
 pub(crate) enum FileReadError {
-    #[error("")]
+    #[error("File at {0} not found")]
     FileNotFound(path::PathBuf),
 }
 
