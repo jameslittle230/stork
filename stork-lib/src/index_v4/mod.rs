@@ -36,7 +36,7 @@ use self::{
     tree::{ArenaId, Tree},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) enum SearchValue {
     ExactResult {
         term: String,

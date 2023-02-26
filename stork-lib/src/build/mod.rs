@@ -67,7 +67,7 @@ pub(crate) fn build_index(
 
     progress_reporter.succeed();
 
-    let mut importance_calc = WordImportanceCalculator::new();
+    let mut importance_calc = WordImportanceCalculator::new(config.input.files.len());
     let mut stem_map: HashMap<String, HashSet<String>> = HashMap::new(); // TODO: Does this become an OOM risk?
 
     for (document_id, doc_parse_value) in documents.iter().enumerate() {
@@ -121,27 +121,28 @@ pub(crate) fn build_index(
         };
 
         for word in &doc_parse_value.annotated_words {
+            println!("{}: {}", word.word, importance_calc.get_value(&word.word).0);
             index.query_result_tree.insert_value_for_string(
                 index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
                     document_id,
                     byte_offset: word.annotation.byte_offset,
-                    importance: importance_calc.get_value(&word.word, document_id),
+                    importance: importance_calc.get_value(&word.word),
                     url_suffix: word.annotation.url_suffix.clone(),
                 }),
                 &word.word,
             );
 
-            for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
-                index.query_result_tree.insert_value_for_string(
-                    index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
-                        document_id,
-                        byte_offset: word.annotation.byte_offset,
-                        importance: importance_calc.get_value(&word.word, document_id) / 3,
-                        url_suffix: word.annotation.url_suffix.clone(),
-                    }),
-                    &string,
-                )
-            }
+            // for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
+            //     index.query_result_tree.insert_value_for_string(
+            //         index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
+            //             document_id,
+            //             byte_offset: word.annotation.byte_offset,
+            //             importance: importance_calc.get_value(&word.word, document_id) / 3,
+            //             url_suffix: word.annotation.url_suffix.clone(),
+            //         }),
+            //         &string,
+            //     )
+            // }
         }
 
         for word in &doc_parse_value.annotated_title_words {
@@ -153,15 +154,15 @@ pub(crate) fn build_index(
                 &word.word,
             );
 
-            for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
-                index.query_result_tree.insert_value_for_string(
-                    index_v4::QueryResult::TitleExcerpt(index_v4::TitleExcerpt {
-                        document_id,
-                        byte_offset: word.annotation.byte_offset,
-                    }),
-                    &string,
-                )
-            }
+            // for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
+            //     index.query_result_tree.insert_value_for_string(
+            //         index_v4::QueryResult::TitleExcerpt(index_v4::TitleExcerpt {
+            //             document_id,
+            //             byte_offset: word.annotation.byte_offset,
+            //         }),
+            //         &string,
+            //     )
+            // }
         }
     }
 
