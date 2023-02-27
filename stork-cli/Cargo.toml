@@ -1,6 +1,6 @@
 [package]
 name = "stork-search"
-version = "2.0.0"
+version = "2.0.0-beta.2"
 authors = ["James Little <littleguy23@gmail.com>"]
 edition = "2021"
 documentation = "https://stork-search.net/docs"
@@ -31,7 +31,9 @@ lazy_static = "1.4.0"
 num-format = "0.4.0"
 serde = "1.0.130"
 serde_json = "1.0.68"
-stork-lib = { path = "../stork-lib", version = "2.0.0", features = ["build"] }
+stork-lib = { path = "../stork-lib", version = "2.0.0-beta.2", features = [
+    "build"
+] }
 strunc = "0.1.1"
 textwrap = { version = "0.14.2", features = ["terminal_size"] }
 thiserror = "1.0.29"

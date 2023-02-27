@@ -236,8 +236,8 @@ print-deploy:
 # Set the versions of the crates and the JS project
 set-versions version:
     cargo set-version --workspace {{version}}
-    cd stork-cli;  cargo upgrade -p stork-lib@{{version}}
-    cd stork-wasm; cargo upgrade -p stork-lib@{{version}}
+    cd stork-cli;  cargo upgrade --offline -p stork-lib@{{version}}
+    cd stork-wasm; cargo upgrade --offline -p stork-lib@{{version}}
     yarn version --new-version {{version}}
 
 tag-version version:

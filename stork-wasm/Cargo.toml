@@ -1,6 +1,6 @@
 [package]
 name = "stork-wasm"
-version = "2.0.0"
+version = "2.0.0-beta.2"
 edition = "2021"
 
 [lib]
@@ -8,7 +8,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen = "0.2.83"
-stork-lib = { path = "../stork-lib", default-features = false }
+stork-lib = { path = "../stork-lib", version = "2.0.0-beta.2", default-features = false }
 console_error_panic_hook = "0.1.7"
 bytes = "1.2.1"
 lazy_static = "1.4.0"
