@@ -178,6 +178,7 @@ pub(crate) struct TitleExcerpt {
     pub(crate) document_id: DocumentId,
     #[n(1)]
     pub(crate) byte_offset: usize,
+    // TODO: Does this need an importance value?
 }
 
 #[cfg_attr(feature = "build", derive(Debug))]

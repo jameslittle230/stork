@@ -224,6 +224,10 @@ pub(crate) fn render_search_values(
                 accumulator
             });
 
+        // for g in &contents_excerpts_groupings {
+        //     println!("{}", g.as_debug_string(document));
+        // }
+
         // sort descending by score
         contents_excerpts_groupings.sort_by(|a, b| a.score().partial_cmp(&b.score()).unwrap());
         contents_excerpts_groupings.reverse();
@@ -249,7 +253,7 @@ pub(crate) fn render_search_values(
         results.push(SearchResult {
             entry: document.into(),
             excerpts,
-            title_highlight_ranges: vec![],
+            title_highlight_ranges: vec![], // TODO
             score: document_score,
         })
     }

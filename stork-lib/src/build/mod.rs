@@ -121,7 +121,6 @@ pub(crate) fn build_index(
         };
 
         for word in &doc_parse_value.annotated_words {
-            println!("{}: {}", word.word, importance_calc.get_value(&word.word).0);
             index.query_result_tree.insert_value_for_string(
                 index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
                     document_id,
@@ -132,17 +131,17 @@ pub(crate) fn build_index(
                 &word.word,
             );
 
-            // for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
-            //     index.query_result_tree.insert_value_for_string(
-            //         index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
-            //             document_id,
-            //             byte_offset: word.annotation.byte_offset,
-            //             importance: importance_calc.get_value(&word.word, document_id) / 3,
-            //             url_suffix: word.annotation.url_suffix.clone(),
-            //         }),
-            //         &string,
-            //     )
-            // }
+            for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
+                index.query_result_tree.insert_value_for_string(
+                    index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
+                        document_id,
+                        byte_offset: word.annotation.byte_offset,
+                        importance: importance_calc.get_value(&word.word) / 3,
+                        url_suffix: word.annotation.url_suffix.clone(),
+                    }),
+                    &string,
+                )
+            }
         }
 
         for word in &doc_parse_value.annotated_title_words {
@@ -154,15 +153,15 @@ pub(crate) fn build_index(
                 &word.word,
             );
 
-            // for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
-            //     index.query_result_tree.insert_value_for_string(
-            //         index_v4::QueryResult::TitleExcerpt(index_v4::TitleExcerpt {
-            //             document_id,
-            //             byte_offset: word.annotation.byte_offset,
-            //         }),
-            //         &string,
-            //     )
-            // }
+            for string in get_stem_alternatives(&word.word, &stemmer, &stem_map) {
+                index.query_result_tree.insert_value_for_string(
+                    index_v4::QueryResult::TitleExcerpt(index_v4::TitleExcerpt {
+                        document_id,
+                        byte_offset: word.annotation.byte_offset,
+                    }),
+                    &string,
+                )
+            }
         }
     }
 
@@ -206,7 +205,7 @@ fn get_stem_alternatives(
             stem_map.get(&key).map(|hashset| {
                 hashset
                     .iter()
-                    .filter(|w| **w != word)
+                    .filter(|w| !w.starts_with(word))
                     .cloned()
                     .collect_vec()
             })
@@ -242,5 +241,19 @@ mod tests {
             computed,
             vec!["libertied".to_string(), "liberty".to_string()]
         );
+    }
+
+    #[test]
+    fn get_stem_alternatives_removes_strict_prefixes() {
+        let computed = get_stem_alternatives(
+            "law",
+            &Some(Stemmer::create(rust_stemmers::Algorithm::English)),
+            &HashMap::from([(
+                "law".to_string(),
+                HashSet::from(["law".to_string(), "laws".to_string()]),
+            )]),
+        );
+
+        assert!(computed.is_empty());
     }
 }

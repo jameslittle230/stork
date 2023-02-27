@@ -31,7 +31,18 @@ impl ContentsExcerptGrouping {
     }
 
     pub(super) fn push(&mut self, contents_excerpt: &ContentsExcerptWithHighlightLength) {
-        self.contents_excerpts.push(contents_excerpt.clone());
+        if let Some(latest) = self.contents_excerpts.last_mut() {
+            if latest.contents_excerpt.byte_offset == contents_excerpt.contents_excerpt.byte_offset
+            {
+                // take the longer excerpt
+                if latest.highlight_length < contents_excerpt.highlight_length {
+                    self.contents_excerpts.pop();
+                    self.contents_excerpts.push(contents_excerpt.clone());
+                }
+            } else {
+                self.contents_excerpts.push(contents_excerpt.clone());
+            }
+        }
     }
 
     pub(super) fn can_swallow(
@@ -155,8 +166,19 @@ impl ContentsExcerptGrouping {
     pub(super) fn as_debug_string(&self, document: &Document) -> String {
         let excerpt = self.as_excerpt(document, 150);
         format!(
-            "{}\n\t[{}/{}]",
+            "{}\n\t{} [{}/{}]",
             excerpt.text,
+            self.contents_excerpts
+                .iter()
+                .map(|e| {
+                    let contents = &document.contents.first().unwrap().contents;
+                    let beginning_byte = e.contents_excerpt.byte_offset;
+                    let end_byte =
+                        std::cmp::min(contents.len(), beginning_byte + e.highlight_length as usize);
+
+                    contents[beginning_byte..end_byte].to_string()
+                })
+                .join(", "),
             excerpt
                 .highlight_ranges
                 .iter()
@@ -164,5 +186,42 @@ impl ContentsExcerptGrouping {
                 .join(", "),
             self.score()
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+
+    use crate::{build::ImportanceValue, index_v4::ContentsExcerpt};
+
+    use super::{ContentsExcerptGrouping, ContentsExcerptWithHighlightLength};
+
+    #[test]
+    fn it_stores_the_longest_value_for_two_excerpts_at_the_same_byte_offset() {
+        let mut grouping = ContentsExcerptGrouping::new(&ContentsExcerptWithHighlightLength {
+            contents_excerpt: ContentsExcerpt {
+                document_id: 0,
+                url_suffix: None,
+                byte_offset: 200,
+                importance: ImportanceValue(1.0),
+            },
+            highlight_length: 10,
+            characters_remaining: 0,
+        });
+
+        grouping.push(&ContentsExcerptWithHighlightLength {
+            contents_excerpt: ContentsExcerpt {
+                document_id: 0,
+                byte_offset: 200,
+                importance: ImportanceValue(0.5),
+                url_suffix: None,
+            },
+            highlight_length: 12,
+            characters_remaining: 0,
+        });
+
+        assert_eq!(grouping.contents_excerpts.len(), 1);
+        assert_eq!(grouping.contents_excerpts[0].highlight_length, 12);
     }
 }
