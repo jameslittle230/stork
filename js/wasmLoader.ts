@@ -88,7 +88,7 @@ export default class WasmLoader {
             this.loadState = LoadState.Failure;
             this.flushErrorQueue(e);
 
-            throw new StorkError(`Error while loading WASM from ${this.wasmSourceUrl}`);
+            throw new StorkError(`Error while loading WASM from ${this.wasmSourceUrl}: ${e}`);
           });
       }, 0);
     });
