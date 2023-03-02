@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 use rust_stemmers::Stemmer;
 
-mod importance;
+mod importance_calc;
 mod progress;
 
 use crate::{
@@ -16,9 +16,8 @@ use crate::{
     index_v4::{self, Document, Index},
 };
 
-pub(crate) use self::importance::ImportanceValue;
 pub use self::progress::ProgressReporter;
-use self::{importance::WordImportanceCalculator, parser::DocumentParseValue};
+use self::{importance_calc::WordImportanceCalculator, parser::DocumentParseValue};
 
 pub(crate) mod parser;
 pub(crate) mod reader;
@@ -125,7 +124,7 @@ pub(crate) fn build_index(
                 index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
                     document_id,
                     byte_offset: word.annotation.byte_offset,
-                    importance: importance_calc.get_value(&word.word),
+                    importance: importance_calc.get_value(&word.word).into(),
                     url_suffix: word.annotation.url_suffix.clone(),
                 }),
                 &word.word,
@@ -136,7 +135,7 @@ pub(crate) fn build_index(
                     index_v4::QueryResult::ContentsExcerpt(index_v4::ContentsExcerpt {
                         document_id,
                         byte_offset: word.annotation.byte_offset,
-                        importance: importance_calc.get_value(&word.word) / 3,
+                        importance: (importance_calc.get_value(&word.word) / 3.0).into(),
                         url_suffix: word.annotation.url_suffix.clone(),
                     }),
                     &string,

@@ -17,7 +17,6 @@ build = [
 ]
 build-remote-fetch = ['build', 'mime', 'reqwest']
 
-# json-search-output = ['serde']
 [dependencies]
 bstr = "1.0.1"
 bytes = "1.2.1"
@@ -28,6 +27,7 @@ rust-stemmers = "1.2.0"
 itertools = "0.10.3"
 unicode-segmentation = "1.8.0"
 smart-default = { version = "0.6.0" }
+ts-rs = "6.2.1"
 ### build deps
 strunc = { version = "0.1.1", optional = true }
 thiserror = { version = "1.0.29", optional = true }
@@ -42,7 +42,6 @@ rust-tfidf = { version = "1.1.1", optional = true }
 ### build-remote-fetch deps
 mime = { version = "0.3.16", optional = true }
 reqwest = { version = "0.11", optional = true, features = ["blocking", "json"] }
-ts-rs = "6.2.1"
 
 [dev-dependencies]
 hex-literal = "0.3.4"

@@ -28,15 +28,15 @@ use crate::build_config::Config;
 #[allow(unused_imports)]
 use crate::envelope::{Envelope, Prefix};
 
-#[cfg(feature = "build")]
-use crate::build::ImportanceValue;
+use crate::importance_value::ImportanceValue;
 
 use self::{
     disk::DocumentMetadata,
     tree::{ArenaId, Tree},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
+#[cfg_attr(feature = "build", derive(Debug))]
 pub(crate) enum SearchValue {
     ExactResult {
         term: String,

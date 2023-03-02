@@ -1,10 +1,4 @@
-use std::{
-    collections::{BTreeMap, HashSet},
-    hash::Hash,
-    ops::{Add, Div},
-};
-
-use minicbor::{Decode, Encode};
+use std::collections::{BTreeMap, HashSet};
 
 #[derive(Debug)]
 pub(crate) struct WordImportanceCalculator {
@@ -68,50 +62,7 @@ impl WordImportanceCalculator {
         (ratio + 10.0).ln()
     }
 
-    pub(crate) fn get_value(&self, word: &str) -> ImportanceValue {
-        ImportanceValue(1.0 / (self.tf(word) * self.idf(word)))
-    }
-}
-
-#[derive(Debug, Clone, Encode, Decode)]
-pub(crate) struct ImportanceValue(#[n(0)] pub(crate) f64);
-
-impl Hash for ImportanceValue {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.0.to_bits().hash(state);
-    }
-}
-
-impl PartialEq for ImportanceValue {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.to_bits() == other.0.to_bits()
-    }
-}
-
-impl Eq for ImportanceValue {
-    fn assert_receiver_is_total_eq(&self) {}
-}
-
-impl Div for ImportanceValue {
-    type Output = Self;
-
-    fn div(self, rhs: Self) -> Self::Output {
-        ImportanceValue(self.0 / rhs.0)
-    }
-}
-
-impl Div<usize> for ImportanceValue {
-    type Output = Self;
-
-    fn div(self, rhs: usize) -> Self::Output {
-        ImportanceValue(self.0 / (rhs as f64))
-    }
-}
-
-impl Add<f64> for ImportanceValue {
-    type Output = f64;
-
-    fn add(self, rhs: f64) -> Self::Output {
-        self.0 + rhs
+    pub(crate) fn get_value(&self, word: &str) -> f64 {
+        1.0 / (self.tf(word) * self.idf(word))
     }
 }

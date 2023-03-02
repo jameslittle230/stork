@@ -7,8 +7,10 @@ use minicbor::Encode;
 use std::{
     borrow::Cow,
     collections::{HashMap, VecDeque},
-    hash::Hash,
 };
+
+#[cfg(feature = "build")]
+use std::hash::Hash;
 
 #[cfg(test)]
 use std::cmp;

@@ -3176,7 +3176,7 @@ stack-utils@^2.0.3:
     escape-string-regexp "^2.0.0"
 
 stork-search@./stork-wasm/pkg:
-  version "2.0.0"
+  version "2.0.0-beta.2"
 
 string-length@^4.0.1:
   version "4.0.2"

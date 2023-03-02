@@ -9,6 +9,7 @@ use search_query::SearchQuery;
 use smart_default::SmartDefault;
 
 mod envelope;
+mod importance_value;
 mod string_utils;
 
 mod index_v4;

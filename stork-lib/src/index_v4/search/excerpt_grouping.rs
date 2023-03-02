@@ -7,7 +7,7 @@ use crate::{
     search_output::{Excerpt, HighlightRange},
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub(super) struct ContentsExcerptWithHighlightLength {
     pub(super) contents_excerpt: ContentsExcerpt,
     pub(super) highlight_length: u8,
@@ -193,7 +193,7 @@ impl ContentsExcerptGrouping {
 mod tests {
     use pretty_assertions::assert_eq;
 
-    use crate::{build::ImportanceValue, index_v4::ContentsExcerpt};
+    use crate::index_v4::ContentsExcerpt;
 
     use super::{ContentsExcerptGrouping, ContentsExcerptWithHighlightLength};
 
@@ -204,7 +204,7 @@ mod tests {
                 document_id: 0,
                 url_suffix: None,
                 byte_offset: 200,
-                importance: ImportanceValue(1.0),
+                importance: 1.0.into(),
             },
             highlight_length: 10,
             characters_remaining: 0,
@@ -214,7 +214,7 @@ mod tests {
             contents_excerpt: ContentsExcerpt {
                 document_id: 0,
                 byte_offset: 200,
-                importance: ImportanceValue(0.5),
+                importance: 0.5.into(),
                 url_suffix: None,
             },
             highlight_length: 12,
