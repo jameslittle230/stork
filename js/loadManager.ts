@@ -57,13 +57,14 @@ export default class LoadManager {
   }
 
   getAggregateState(): LoadState {
+    // TODO: Unit tests for this function
     const values = Object.values(this.components);
     if (values.every((v) => v === LoadState.Success)) {
       return LoadState.Success;
     } else if (values.every((v) => v === LoadState.NotStarted)) {
       return LoadState.NotStarted;
-    } else if (values.includes(LoadState.NotStarted)) {
-      return LoadState.NotStarted;
+    } else if (values.includes(LoadState.Failure)) {
+      return LoadState.Failure;
     }
     return LoadState.Incomplete;
   }
