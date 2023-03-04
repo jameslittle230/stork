@@ -5,7 +5,7 @@
 # Build Artifacts
 target
 pkg
-/node_modules
+node_modules
 /dev/dist/
 /js/dist/
 yarn-error.log

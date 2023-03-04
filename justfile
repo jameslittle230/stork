@@ -26,14 +26,13 @@ build-wasm-release:
     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --release
     mv stork-wasm/pkg/stork_bg.wasm stork-wasm/pkg/stork_bg_unopt.wasm
     wasm-opt -Os -o stork-wasm/pkg/stork_bg_uncomp.wasm stork-wasm/pkg/stork_bg_unopt.wasm
-    gzip -c stork-wasm/pkg/stork_bg_uncomp.wasm > stork-wasm/pkg/stork_bg.wasm 
-    cp stork-wasm/pkg/stork_bg_uncomp.wasm js/dist/stork.wasm
+    # gzip -c stork-wasm/pkg/stork_bg_uncomp.wasm > stork-wasm/pkg/stork_bg.wasm 
     mkdir -p js/dist
     cp stork-wasm/pkg/stork_bg_uncomp.wasm js/dist/stork.wasm # TODO: Eventually use the compressed one
 
 # Build the JS components of the project
 build-js-release: _yarn
-    yarn --silent run tsup --config build.js --silent
+    cd js; yarn --silent run tsup --config build.js --silent
 
 
 
@@ -89,7 +88,7 @@ bench bench_name="":
 
 # Run JS tests
 test-js: _yarn
-    yarn jest --coverage
+    cd js; yarn jest --coverage
 
 # Run Rust tests
 test-rust:
@@ -111,7 +110,7 @@ lint-rust:
     cargo clippy --all-targets --all-features -- -D warnings
 
 lint-js: _yarn
-    yarn eslint js/*.ts js/**/*.ts
+    cd js; yarn eslint js/*.ts js/**/*.ts
 
 
 
@@ -126,7 +125,7 @@ fmt-check-rust:
     cargo fmt --check --all
 
 fmt-check-js: _yarn
-    yarn prettier js/*.ts js/**/*.ts
+    cd js; yarn prettier js/*.ts js/**/*.ts
 
 fmt-all: fmt-rust fmt-js
 
@@ -134,7 +133,7 @@ fmt-rust:
     cargo fmt --all
 
 fmt-js: _yarn
-    yarn prettier --write js/*.ts js/**/*.ts
+    cd js; yarn prettier --write js/*.ts js/**/*.ts
 
 
 
@@ -144,8 +143,8 @@ fmt-js: _yarn
 ## Utilities
 
 _yarn: build-wasm-release
-    yarn install --silent
-    yarn upgrade stork-search --silent
+    cd js; yarn install --silent
+    cd js; yarn upgrade stork-search --silent
 
 # Remove build artifacts
 clean:
@@ -238,7 +237,7 @@ set-versions version:
     cargo set-version --workspace {{version}}
     cd stork-cli;  cargo upgrade --offline -p stork-lib@{{version}}
     cd stork-wasm; cargo upgrade --offline -p stork-lib@{{version}}
-    yarn version --new-version {{version}}
+    cd js; yarn version --new-version {{version}}
 
 tag-version version:
     git tag -a v{{version}} -m "Release version {{version}}"

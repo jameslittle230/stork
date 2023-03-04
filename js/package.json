@@ -1,11 +1,13 @@
 {
-  "name": "stork",
+  "name": "@stork-search/stork",
   "version": "2.0.0-beta.2",
   "description": "Impossibly fast web search, made for static sites.",
-  "main": "index.js",
+  "browser": "dist/stork.esm.js",
+  "main": "dist/stork.esm.js",
+  "types": "dist/stork.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jameslittle230/stork.git"
+    "url": "https://github.com/jameslittle230/stork.git"
   },
   "keywords": [
     "search",
@@ -17,9 +19,12 @@
   "bugs": {
     "url": "https://github.com/jameslittle230/stork/issues"
   },
+  "files": [
+    "dist"
+  ],
   "homepage": "https://stork-search.net",
   "dependencies": {
-    "stork-search": "./stork-wasm/pkg"
+    "stork-search": "../stork-wasm/pkg"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
@@ -33,8 +38,5 @@
     "prettier": "^2.7.1",
     "tsup": "^6.6.0",
     "typescript": "^4.9.4"
-  },
-  "scripts": {
-    "dev": "echo \"You meant `just dev`.\""
   }
 }
