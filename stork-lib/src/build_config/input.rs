@@ -7,7 +7,6 @@ use ts_rs::TS;
 use super::{html::HTMLConfig, File, FrontmatterConfig, SRTConfig, StemmingConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug, SmartDefault, PartialEq, Eq, PartialOrd, TS)]
-#[serde(deny_unknown_fields)]
 #[ts(export)]
 pub enum TitleBoost {
     Minimal,
@@ -18,9 +17,9 @@ pub enum TitleBoost {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq, TS)]
-#[serde(deny_unknown_fields, default)]
-#[allow(non_snake_case)]
 #[ts(export)]
+#[serde(default)]
+#[allow(non_snake_case)]
 pub struct InputConfig {
     // If Stork is indexing files on your filesystem, this is the base directory
     // that should be used to resolve relative paths. This path will be in

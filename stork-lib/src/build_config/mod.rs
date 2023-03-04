@@ -32,8 +32,8 @@ pub use stemming::StemmingConfig;
 pub mod errors;
 
 #[derive(Serialize, Deserialize, Debug, SmartDefault, PartialEq, Eq, TS)]
-#[serde(deny_unknown_fields, default)]
 #[ts(export)]
+#[serde(default)]
 pub struct Config {
     pub input: InputConfig,
     pub output: OutputConfig,

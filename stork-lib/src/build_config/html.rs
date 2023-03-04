@@ -3,8 +3,8 @@ use smart_default::SmartDefault;
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, SmartDefault, TS)]
-#[serde(deny_unknown_fields, default)]
 #[ts(export)]
+#[serde(default)]
 pub struct HTMLConfig {
     #[default = false]
     pub save_nearest_id: bool,

@@ -9,7 +9,6 @@ use ts_rs::TS;
 type Fields = HashMap<String, String>;
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, TS)]
-#[serde(deny_unknown_fields)]
 #[ts(export)]
 pub struct File {
     pub title: String,

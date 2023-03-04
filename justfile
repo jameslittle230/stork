@@ -17,7 +17,7 @@ _default:
 build-release: build-rust-release build-js-release
 
 build-ts-bindings:
-    cargo test --package stork-lib --quiet --all-features export_bindings_ # Build TS bindings
+    cargo test --package stork-lib --quiet --all-features export_bindings_ 2> /dev/null # Build TS bindings
 
 # Build the Rust components of the project for release
 build-rust-release: build-ts-bindings
@@ -28,14 +28,12 @@ build-rust-release: build-ts-bindings
 build-wasm-release: build-ts-bindings
     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --release
     mv stork-wasm/pkg/stork_bg.wasm stork-wasm/pkg/stork_bg_unopt.wasm
-    wasm-opt -Os -o stork-wasm/pkg/stork_bg_uncomp.wasm stork-wasm/pkg/stork_bg_unopt.wasm
-    # gzip -c stork-wasm/pkg/stork_bg_uncomp.wasm > stork-wasm/pkg/stork_bg.wasm 
-    mkdir -p js/dist
-    cp stork-wasm/pkg/stork_bg_uncomp.wasm js/dist/stork.wasm # TODO: Eventually use the compressed one
+    wasm-opt -Os -o stork-wasm/pkg/stork.wasm stork-wasm/pkg/stork_bg_unopt.wasm
 
 # Build the JS components of the project
 build-js-release: _yarn
     cd js; yarn --silent run tsup --config build.js --silent
+    cp stork-wasm/pkg/stork.wasm js/dist/stork.wasm
 
 
 
@@ -175,9 +173,8 @@ submodules:
     git submodule update
 
 # Build the development indexes
-rebuild-dev-indexes:
+rebuild-dev-indexes: && _build-dev-indexes
     rm -rf dev/indexes/*.st
-    just _build-dev-indexes
 
 
 
@@ -194,7 +191,7 @@ dev: build-dev _copy-dev-files
     mprocs "just _dev-watch-build" "just _dev-serve" "just _dev-watch-test"
 
 _build-dev-indexes:
-    python3 ./scripts/build_dev_indexes.py
+    python3 scripts/build_dev_indexes.py
 
 _copy-dev-files: _build-dev-indexes
     rm -rf dev/dist
