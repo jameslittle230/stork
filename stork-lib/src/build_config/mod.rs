@@ -9,6 +9,7 @@ use bstr::ByteSlice;
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+use ts_rs::TS;
 
 mod file;
 mod frontmatter;
@@ -30,8 +31,9 @@ pub use stemming::StemmingConfig;
 
 pub mod errors;
 
-#[derive(Serialize, Deserialize, Debug, SmartDefault, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, SmartDefault, PartialEq, Eq, TS)]
 #[serde(deny_unknown_fields, default)]
+#[ts(export)]
 pub struct Config {
     pub input: InputConfig,
     pub output: OutputConfig,
@@ -171,7 +173,7 @@ files = [{}]
                 files: vec![File {
                     ..Default::default()
                 }],
-                stemming: StemmingConfig::Language(rust_stemmers::Algorithm::Portuguese),
+                stemming: StemmingConfig::Portuguese,
                 ..Default::default()
             },
             ..Default::default()
@@ -179,7 +181,7 @@ files = [{}]
 
         assert_eq!(
             config.get_stem_config_for_file(0),
-            StemmingConfig::Language(rust_stemmers::Algorithm::Portuguese)
+            StemmingConfig::Portuguese
         )
     }
 
@@ -188,19 +190,16 @@ files = [{}]
         let config = Config {
             input: InputConfig {
                 files: vec![File {
-                    stemming: Some(StemmingConfig::Language(rust_stemmers::Algorithm::Danish)),
+                    stemming: Some(StemmingConfig::Portuguese),
                     ..Default::default()
                 }],
-                stemming: StemmingConfig::Language(rust_stemmers::Algorithm::Portuguese),
+                stemming: StemmingConfig::Portuguese,
                 ..Default::default()
             },
             ..Default::default()
         };
 
-        assert_eq!(
-            config.get_stem_config_for_file(0),
-            StemmingConfig::Language(rust_stemmers::Algorithm::Danish)
-        )
+        assert_eq!(config.get_stem_config_for_file(0), StemmingConfig::Danish)
     }
 
     #[test]

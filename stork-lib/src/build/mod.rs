@@ -76,10 +76,7 @@ pub(crate) fn build_index(
         );
 
         let stem_config = config.get_stem_config_for_file(document_id);
-        let stemmer = match stem_config {
-            crate::build_config::StemmingConfig::None => None,
-            crate::build_config::StemmingConfig::Language(alg) => Some(Stemmer::create(alg)),
-        };
+        let stemmer = stem_config.to_optional().map(Stemmer::create);
 
         for title_word in &doc_parse_value.annotated_title_words {
             let word = &title_word.word;
@@ -114,10 +111,7 @@ pub(crate) fn build_index(
 
     for (document_id, doc_parse_value) in documents.iter().enumerate() {
         let stem_config = config.get_stem_config_for_file(document_id);
-        let stemmer = match stem_config {
-            crate::build_config::StemmingConfig::None => None,
-            crate::build_config::StemmingConfig::Language(alg) => Some(Stemmer::create(alg)),
-        };
+        let stemmer = stem_config.to_optional().map(Stemmer::create);
 
         for word in &doc_parse_value.annotated_words {
             index.query_result_tree.insert_value_for_string(

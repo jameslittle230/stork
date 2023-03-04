@@ -1,37 +1,39 @@
+use std::str::FromStr;
+
 use rust_stemmers::Algorithm;
 use serde::{Deserialize, Serialize};
-use std::convert::{From, TryFrom};
-use std::fmt::Write;
-use toml::Value;
 
-#[derive(Serialize, Debug, Clone, PartialEq, Eq)]
-#[serde(into = "String")]
-#[serde(try_from = "String")]
+use strum_macros::{Display, EnumString};
+use toml::Value;
+use ts_rs::TS;
+
+#[derive(Serialize, Debug, Clone, PartialEq, Eq, TS, EnumString, Display)]
+#[ts(export)]
 pub enum StemmingConfig {
     None,
-    Language(Algorithm),
+    Arabic,
+    Danish,
+    Dutch,
+    English,
+    Finnish,
+    French,
+    German,
+    Greek,
+    Hungarian,
+    Italian,
+    Norwegian,
+    Portuguese,
+    Romanian,
+    Russian,
+    Spanish,
+    Swedish,
+    Tamil,
+    Turkish,
 }
 
 impl Default for StemmingConfig {
     fn default() -> Self {
-        StemmingConfig::Language(Algorithm::English)
-    }
-}
-
-impl TryFrom<&String> for StemmingConfig {
-    type Error = toml::de::Error;
-    fn try_from(value: &String) -> Result<Self, Self::Error> {
-        #[derive(Deserialize, Debug)]
-        struct TempAlgStructure {
-            lang: Algorithm,
-        }
-
-        if value == "none" || value == "None" {
-            return Ok(StemmingConfig::None);
-        }
-
-        toml::from_str(format!("lang = \"{}\"", value).as_str())
-            .map(|t: TempAlgStructure| StemmingConfig::Language(t.lang))
+        StemmingConfig::English
     }
 }
 
@@ -43,7 +45,7 @@ impl<'de> serde::Deserialize<'de> for StemmingConfig {
         use serde::de::Error;
 
         if let Ok(Value::String(string)) = Deserialize::deserialize(deserializer) {
-            StemmingConfig::try_from(&string).map_err(|_e| {
+            StemmingConfig::from_str(&string).map_err(|_e| {
                 serde::de::Error::custom(format!("Unexpected value `{}`, expected `none` or a language supported by https://snowballstem.org/, e.g. `Dutch`", string.clone()))
             })
         } else {
@@ -54,22 +56,28 @@ impl<'de> serde::Deserialize<'de> for StemmingConfig {
     }
 }
 
-impl From<StemmingConfig> for String {
-    fn from(stemming_config: StemmingConfig) -> Self {
-        let mut output = String::new();
-        let _result = match stemming_config {
-            StemmingConfig::Language(l) => write!(&mut output, "{:?}", l),
-            StemmingConfig::None => write!(&mut output, "none"),
-        };
-        output
-    }
-}
-
 impl StemmingConfig {
     pub(crate) fn to_optional(&self) -> Option<Algorithm> {
         match self {
             StemmingConfig::None => None,
-            StemmingConfig::Language(algo) => Some(*algo),
+            StemmingConfig::Arabic => Some(Algorithm::Arabic),
+            StemmingConfig::Danish => Some(Algorithm::Danish),
+            StemmingConfig::Dutch => Some(Algorithm::Dutch),
+            StemmingConfig::English => Some(Algorithm::English),
+            StemmingConfig::Finnish => Some(Algorithm::Finnish),
+            StemmingConfig::French => Some(Algorithm::French),
+            StemmingConfig::German => Some(Algorithm::German),
+            StemmingConfig::Greek => Some(Algorithm::Greek),
+            StemmingConfig::Hungarian => Some(Algorithm::Hungarian),
+            StemmingConfig::Italian => Some(Algorithm::Italian),
+            StemmingConfig::Norwegian => Some(Algorithm::Norwegian),
+            StemmingConfig::Portuguese => Some(Algorithm::Portuguese),
+            StemmingConfig::Romanian => Some(Algorithm::Romanian),
+            StemmingConfig::Russian => Some(Algorithm::Russian),
+            StemmingConfig::Spanish => Some(Algorithm::Spanish),
+            StemmingConfig::Swedish => Some(Algorithm::Swedish),
+            StemmingConfig::Tamil => Some(Algorithm::Tamil),
+            StemmingConfig::Turkish => Some(Algorithm::Turkish),
         }
     }
 }
@@ -78,11 +86,11 @@ impl StemmingConfig {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use std::convert::TryFrom;
+
     #[test]
     fn test_none_lowercase() {
         assert_eq!(
-            StemmingConfig::try_from(&"none".to_string()).unwrap(),
+            StemmingConfig::from_str("none").unwrap(),
             StemmingConfig::None
         );
     }
@@ -90,7 +98,7 @@ mod tests {
     #[test]
     fn test_none_capital() {
         assert_eq!(
-            StemmingConfig::try_from(&"None".to_string()).unwrap(),
+            StemmingConfig::from_str("None").unwrap(),
             StemmingConfig::None
         );
     }
@@ -98,33 +106,23 @@ mod tests {
     #[test]
     fn test_dutch() {
         assert_eq!(
-            StemmingConfig::try_from(&"Dutch".to_string()).unwrap(),
-            StemmingConfig::Language(Algorithm::Dutch)
+            StemmingConfig::from_str("Dutch").unwrap(),
+            StemmingConfig::Dutch
         );
     }
 
     #[test]
     fn test_error() {
-        assert!(StemmingConfig::try_from(&"Blorp".to_string()).is_err());
+        assert!(StemmingConfig::from_str("Blorp").is_err());
     }
 
     #[test]
     fn test_dutch_tostring() {
-        assert_eq!(
-            // StemmingConfig::try_from(&"Dutch".to_string()).unwrap(),
-            // StemmingConfig::Language(Algorithm::Dutch)
-            String::from(StemmingConfig::Language(Algorithm::Dutch)),
-            "Dutch".to_string()
-        );
+        assert_eq!(StemmingConfig::Dutch.to_string(), "Dutch".to_string());
     }
 
     #[test]
     fn test_none_tostring() {
-        assert_eq!(
-            // StemmingConfig::try_from(&"Dutch".to_string()).unwrap(),
-            // StemmingConfig::Language(Algorithm::Dutch)
-            String::from(StemmingConfig::None),
-            "none".to_string()
-        );
+        assert_eq!(StemmingConfig::None.to_string(), "none".to_string());
     }
 }

@@ -35,6 +35,9 @@ pub(crate) enum DocumentProblem {
 
     #[error("After parsing the document, there were no words found in the word list.")]
     EmptyWordList,
+
+    #[error("Document had contents from multiple sources. Please only use one of `contents`, `src_url`, or `path`.")]
+    MultipleContentSources,
 }
 
 /// Associates a `WordListGenerationError` with a `File`. A set of these might

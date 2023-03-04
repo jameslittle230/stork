@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, SmartDefault)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, SmartDefault, TS)]
 #[serde(deny_unknown_fields, default)]
+#[ts(export)]
 #[allow(non_snake_case)]
 pub struct OutputConfig {
     // #[default = 0]

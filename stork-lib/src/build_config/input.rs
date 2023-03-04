@@ -2,11 +2,13 @@
 
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+use ts_rs::TS;
 
 use super::{html::HTMLConfig, File, FrontmatterConfig, SRTConfig, StemmingConfig};
 
-#[derive(Serialize, Deserialize, Clone, Debug, SmartDefault, PartialEq, Eq, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, Debug, SmartDefault, PartialEq, Eq, PartialOrd, TS)]
 #[serde(deny_unknown_fields)]
+#[ts(export)]
 pub enum TitleBoost {
     Minimal,
     #[default]
@@ -15,9 +17,10 @@ pub enum TitleBoost {
     Ridiculous,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq, TS)]
 #[serde(deny_unknown_fields, default)]
 #[allow(non_snake_case)]
+#[ts(export)]
 pub struct InputConfig {
     // If Stork is indexing files on your filesystem, this is the base directory
     // that should be used to resolve relative paths. This path will be in
@@ -39,6 +42,7 @@ pub struct InputConfig {
     // Should be `None` or one of the languages supported by Snowball Stem,
     // e.g. `Dutch`.
     #[serde(default)]
+    #[ts(skip)]
     pub stemming: StemmingConfig,
 
     #[serde(default)]

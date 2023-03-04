@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use smart_default::SmartDefault;
+use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq, TS)]
+#[ts(export)]
 pub struct SRTConfig {
     #[default = true]
     pub timestamp_linking: bool,
@@ -11,7 +13,7 @@ pub struct SRTConfig {
     pub timestamp_format: SRTTimestampFormat,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, SmartDefault, PartialEq, Eq, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum SRTTimestampFormat {
     #[default]

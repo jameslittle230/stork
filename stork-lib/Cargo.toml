@@ -13,7 +13,9 @@ build = [
     'kuchiki',
     'pulldown-cmark',
     'rust-tfidf',
-    'strunc'
+    'strunc',
+    'strum',
+    'strum_macros',
 ]
 build-remote-fetch = ['build', 'mime', 'reqwest']
 
@@ -39,6 +41,8 @@ frontmatter = { version = "0.4.0", optional = true }
 kuchiki = { version = "0.8.1", optional = true }
 pulldown-cmark = { version = "0.9.1", optional = true }
 rust-tfidf = { version = "1.1.1", optional = true }
+strum = { version = "0.24", optional = true }
+strum_macros = { version = "0.24", optional = true }
 ### build-remote-fetch deps
 mime = { version = "0.3.16", optional = true }
 reqwest = { version = "0.11", optional = true, features = ["blocking", "json"] }

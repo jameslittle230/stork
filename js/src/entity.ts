@@ -1,8 +1,8 @@
 import { load_index, perform_search } from "stork-search";
 
-import { IndexStatistics } from "../stork-lib/bindings/IndexStatistics";
-import { SearchOutput } from "../stork-lib/bindings/SearchOutput";
-
+// TODO: Use a path alias with esbuild
+import { IndexStatistics } from "../../stork-lib/bindings/IndexStatistics";
+import { SearchOutput } from "../../stork-lib/bindings/SearchOutput";
 import { RegisterConfiguration, UIConfig } from "./config";
 import EntityDomManager from "./entityDomManager";
 import IndexLoader, { IndexLoadValue } from "./indexLoader";

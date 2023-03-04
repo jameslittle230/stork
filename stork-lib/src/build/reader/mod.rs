@@ -30,13 +30,14 @@ pub(crate) fn read(
 ) -> Result<FileReadValue, AttributedDocumentProblem> {
     let file_config = config.input.files.get(file_index).unwrap();
     let result: Result<(String, Option<Filetype>), DocumentProblem> = match file_config.source() {
-        DataSource::Contents(contents) => {
+        Ok(DataSource::Contents(contents)) => {
             let filetype = file_config.filetype.clone().or(Some(Filetype::PlainText));
             Ok((contents, filetype))
         }
 
-        DataSource::URL(url) => url::read(&url).map_err(DocumentProblem::from),
-        DataSource::FilePath(path) => file::read(&path, config).map_err(DocumentProblem::from),
+        Ok(DataSource::URL(url)) => url::read(&url).map_err(DocumentProblem::from),
+        Ok(DataSource::FilePath(path)) => file::read(&path, config).map_err(DocumentProblem::from),
+        Err(_) => Err(DocumentProblem::MultipleContentSources),
     };
 
     if let Err(problem) = result {

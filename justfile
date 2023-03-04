@@ -16,13 +16,16 @@ _default:
 # Build the project for release
 build-release: build-rust-release build-js-release
 
+build-ts-bindings:
+    cargo test --package stork-lib --quiet --all-features export_bindings_ # Build TS bindings
+
 # Build the Rust components of the project for release
-build-rust-release:
+build-rust-release: build-ts-bindings
     cargo build --release --quiet
     cargo clippy --quiet
 
 # Build and compress the WASM blob
-build-wasm-release:
+build-wasm-release: build-ts-bindings
     cd stork-wasm; wasm-pack --quiet build --target web --out-name stork --release
     mv stork-wasm/pkg/stork_bg.wasm stork-wasm/pkg/stork_bg_unopt.wasm
     wasm-opt -Os -o stork-wasm/pkg/stork_bg_uncomp.wasm stork-wasm/pkg/stork_bg_unopt.wasm

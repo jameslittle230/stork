@@ -59,7 +59,7 @@ impl Bar {
             .input
             .files
             .iter()
-            .any(|file_config| matches!(file_config.source(), DataSource::URL(_)));
+            .any(|file_config| matches!(file_config.source(), Ok(DataSource::URL(_))));
 
         Self {
             progress_bar,

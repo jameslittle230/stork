@@ -3,23 +3,29 @@
 use super::{html::HTMLConfig, FrontmatterConfig, SRTConfig, StemmingConfig};
 use core::fmt;
 use serde::{Deserialize, Serialize};
-use smart_default::SmartDefault;
 use std::collections::HashMap;
+use ts_rs::TS;
 
 type Fields = HashMap<String, String>;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq, TS)]
 #[serde(deny_unknown_fields)]
+#[ts(export)]
 pub struct File {
     pub title: String,
     pub url: String,
 
-    #[serde(flatten, default)]
+    #[serde(default)]
     pub fields: Fields,
 
-    /// If None, the file's source will be the specified URL.
-    #[serde(flatten)]
-    pub explicit_source: Option<DataSource>,
+    #[serde(default)]
+    pub contents: Option<String>,
+
+    #[serde(default)]
+    pub src_url: Option<String>,
+
+    #[serde(default)]
+    pub path: Option<String>,
 
     #[serde(default)]
     pub stemming: Option<StemmingConfig>,
@@ -38,10 +44,13 @@ pub struct File {
 }
 
 impl File {
-    pub fn source(&self) -> DataSource {
-        match &self.explicit_source {
-            Some(source) => source.clone(),
-            None => DataSource::URL(self.url.clone()),
+    pub fn source(&self) -> Result<DataSource, String> {
+        match (&self.contents, &self.src_url, &self.path) {
+            (Some(contents), None, None) => Ok(DataSource::Contents(contents.clone())),
+            (None, Some(src_url), None) => Ok(DataSource::URL(src_url.clone())),
+            (None, None, Some(path)) => Ok(DataSource::FilePath(path.clone())),
+            (None, None, None) => Ok(DataSource::URL(self.url.clone())),
+            _ => Err("Multiple content sources specified for file".to_string()),
         }
     }
 }
@@ -51,7 +60,7 @@ impl fmt::Display for File {
         write!(
             f,
             "{}",
-            match &self.source() {
+            match &self.source().unwrap() {
                 DataSource::FilePath(path) => path,
                 DataSource::URL(url) => url,
 
@@ -63,21 +72,15 @@ impl fmt::Display for File {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, SmartDefault)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DataSource {
-    #[serde(rename = "contents")]
-    #[default]
     Contents(String),
-
-    #[serde(rename = "src_url")]
-    #[allow(clippy::upper_case_acronyms)]
     URL(String),
-
-    #[serde(rename = "path")]
     FilePath(String),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, TS)]
+#[ts(export)]
 pub enum Filetype {
     PlainText,
     SRTSubtitle,
@@ -115,8 +118,7 @@ mod tests {
         let toml = r#"title = "Derp"
         url = "blorp""#;
         let file: File = toml::from_str(toml).unwrap();
-        assert_eq!(file.explicit_source, None);
-        assert_eq!(file.source(), DataSource::URL("blorp".into()));
+        assert_eq!(file.source(), Ok(DataSource::URL("blorp".into())));
         assert_eq!(file.url, "blorp");
     }
 
@@ -124,8 +126,7 @@ mod tests {
     fn json_file_with_title_and_url_assumes_url_is_source() {
         let json = r#"{"title": "Derp", "url": "blorp"}"#;
         let file: File = serde_json::from_str(json).unwrap();
-        assert_eq!(file.explicit_source, None);
-        assert_eq!(file.source(), DataSource::URL("blorp".into()));
+        assert_eq!(file.source(), Ok(DataSource::URL("blorp".into())));
         assert_eq!(file.url, "blorp");
     }
 
@@ -135,22 +136,15 @@ mod tests {
         url = "blorp"
         src_url = "google.com""#;
         let file: File = toml::from_str(toml).unwrap();
-        assert_eq!(
-            file.explicit_source,
-            Some(DataSource::URL("google.com".into()))
-        );
-        assert_eq!(file.source(), DataSource::URL("google.com".into()));
+        assert_eq!(file.source(), Ok(DataSource::URL("google.com".into())));
         assert_eq!(file.url, "blorp");
     }
     #[test]
     fn json_file_with_explicit_url_source() {
         let json = r#"{"title": "Derp", "url": "blorp", "src_url": "google.com"}"#;
         let file: File = serde_json::from_str(json).unwrap();
-        assert_eq!(
-            file.explicit_source,
-            Some(DataSource::URL("google.com".into()))
-        );
-        assert_eq!(file.source(), DataSource::URL("google.com".into()));
+
+        assert_eq!(file.source(), Ok(DataSource::URL("google.com".into())));
         assert_eq!(file.url, "blorp");
     }
 
@@ -158,8 +152,7 @@ mod tests {
     fn file_with_only_src_url_fails() {
         let toml = r#"title = "Derp"
         src_url = "google.com""#;
-        let error: Error = toml::from_str::<File>(toml).unwrap_err();
-        let computed = error.to_string();
+        let computed = toml::from_str::<File>(toml).unwrap_err().to_string();
         let expected = "missing field `url` at line 1 column 1";
         assert_eq!(computed, expected);
     }
@@ -167,8 +160,7 @@ mod tests {
     #[test]
     fn json_file_with_only_src_url_fails() {
         let json = r#"{"title": "Derp", "src_url": "google.com"}"#;
-        let error: JsonError = serde_json::from_str::<File>(json).unwrap_err();
-        let computed = error.to_string();
+        let computed = serde_json::from_str::<File>(json).unwrap_err().to_string();
         let expected = "missing field `url` at line 1 column 42";
         assert_eq!(computed, expected);
     }
@@ -179,8 +171,8 @@ mod tests {
         url = "apple.com"
         src_url = "google.com"
         contents = "According to all known laws of aviation...""#;
-        let error: Error = toml::from_str::<File>(toml).unwrap_err();
-        let computed = error.to_string();
+        let file: File = toml::from_str(toml).unwrap();
+        let computed = file.source().unwrap_err().to_string();
         let expected = "unknown field `contents` at line 1 column 1";
         assert_eq!(computed, expected);
     }
