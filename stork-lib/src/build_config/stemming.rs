@@ -8,6 +8,7 @@ use toml::Value;
 use ts_rs::TS;
 
 #[derive(Serialize, Debug, Clone, PartialEq, Eq, TS, EnumString, Display)]
+#[strum(ascii_case_insensitive)]
 #[ts(export)]
 pub enum StemmingConfig {
     None,
@@ -112,6 +113,14 @@ mod tests {
     }
 
     #[test]
+    fn test_dutch_lowercase() {
+        assert_eq!(
+            StemmingConfig::from_str("dutch").unwrap(),
+            StemmingConfig::Dutch
+        );
+    }
+
+    #[test]
     fn test_error() {
         assert!(StemmingConfig::from_str("Blorp").is_err());
     }
@@ -123,6 +132,6 @@ mod tests {
 
     #[test]
     fn test_none_tostring() {
-        assert_eq!(StemmingConfig::None.to_string(), "none".to_string());
+        assert_eq!(StemmingConfig::None.to_string(), "None".to_string());
     }
 }

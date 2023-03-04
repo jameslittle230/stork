@@ -171,17 +171,17 @@ mod tests {
         src_url = "google.com"
         contents = "According to all known laws of aviation...""#;
         let file: File = toml::from_str(toml).unwrap();
-        let computed = file.source().unwrap_err().to_string();
-        let expected = "unknown field `contents` at line 1 column 1";
+        let computed = file.source().unwrap_err();
+        let expected = "Multiple content sources specified for file";
         assert_eq!(computed, expected);
     }
 
     #[test]
     fn json_file_with_multiple_sources_fails() {
         let json = r#"{"title": "Derp", "url": "apple.com", "src_url": "google.com", "contents": "According to all known laws of aviation..."}"#;
-        let error: JsonError = serde_json::from_str::<File>(json).unwrap_err();
-        let computed = error.to_string();
-        let expected = "unknown field `contents` at line 1 column 120";
+        let file: File = serde_json::from_str(json).unwrap();
+        let computed = file.source().unwrap_err();
+        let expected = "Multiple content sources specified for file";
         assert_eq!(computed, expected);
     }
 
@@ -191,9 +191,9 @@ mod tests {
         url = "apple.com"
         contents = "According to all known laws of aviation..."
         src_url = "google.com""#;
-        let error: Error = toml::from_str::<File>(toml).unwrap_err();
-        let computed = error.to_string();
-        let expected = "unknown field `src_url` at line 1 column 1";
+        let file: File = toml::from_str(toml).unwrap();
+        let computed = file.source().unwrap_err();
+        let expected = "Multiple content sources specified for file";
         assert_eq!(computed, expected);
     }
 
@@ -202,9 +202,9 @@ mod tests {
         let json = r#"{"title": "Derp", "url": "apple.com",
         "contents": "According to all known laws of aviation...",
         "src_url": "google.com"}"#;
-        let error: JsonError = serde_json::from_str::<File>(json).unwrap_err();
-        let computed = error.to_string();
-        let expected = "unknown field `src_url` at line 3 column 32";
+        let file: File = serde_json::from_str(json).unwrap();
+        let computed = file.source().unwrap_err();
+        let expected = "Multiple content sources specified for file";
         assert_eq!(computed, expected);
     }
 }

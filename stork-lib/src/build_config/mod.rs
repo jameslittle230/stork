@@ -190,7 +190,7 @@ files = [{}]
         let config = Config {
             input: InputConfig {
                 files: vec![File {
-                    stemming: Some(StemmingConfig::Portuguese),
+                    stemming: Some(StemmingConfig::Danish),
                     ..Default::default()
                 }],
                 stemming: StemmingConfig::Portuguese,
