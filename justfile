@@ -174,6 +174,7 @@ submodules:
 
 # Build the development indexes
 rebuild-dev-indexes: && _build-dev-indexes
+    mkdir -p dev/indexes
     rm -rf dev/indexes/*.st
 
 
