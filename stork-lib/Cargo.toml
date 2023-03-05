@@ -2,6 +2,15 @@
 name = "stork-lib"
 version = "2.0.0-beta.2"
 edition = "2021"
+authors = ["James Little <littleguy23@gmail.com>"]
+documentation = "https://stork-search.net/docs"
+homepage = "https://stork-search.net"
+description = "Impossibly fast web search, made for static sites."
+repository = "https://github.com/jameslittle230/stork"
+license = "Apache-2.0"
+keywords = ["wasm", "webassembly", "search", "javascript"]
+categories = ["wasm"]
+exclude = ['/bindings/']
 
 [features]
 build = [
