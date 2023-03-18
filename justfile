@@ -243,3 +243,8 @@ set-versions version:
 tag-version version:
     git tag -a v{{version}} -m "Release version {{version}}"
     git push origin v{{version}}
+
+publish:
+    cd stork-lib; cargo publish
+    cd stork-cli; cargo publish --all-features
+    cd js; yarn publish

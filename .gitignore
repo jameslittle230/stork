@@ -8,8 +8,8 @@ pkg
 node_modules
 /dev/dist/
 /js/dist/
+/js/coverage
 yarn-error.log
-/coverage
 
 # Vim Swap
 [._]*.s[a-v][a-z]

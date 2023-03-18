@@ -1,10 +1,13 @@
 {
-  "name": "@stork-search/stork",
+  "name": "@stork-search/ui",
   "version": "2.0.0-beta.2",
   "description": "Impossibly fast web search, made for static sites.",
   "browser": "dist/stork.esm.js",
   "main": "dist/stork.esm.js",
   "types": "dist/stork.d.ts",
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/jameslittle230/stork.git"
@@ -19,9 +22,6 @@
   "bugs": {
     "url": "https://github.com/jameslittle230/stork/issues"
   },
-  "files": [
-    "dist"
-  ],
   "homepage": "https://stork-search.net",
   "dependencies": {
     "stork-search": "../stork-wasm/pkg"
