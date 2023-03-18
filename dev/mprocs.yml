@@ -1,0 +1,13 @@
+procs:
+  watch:
+    cmd: ["just", "_dev-watch-build"]
+    stop: "SIGKILL"
+  serve:
+    cmd: ["just", "_dev-serve"]
+    stop: "SIGKILL"
+  test:
+    cmd: ["just", "_dev-watch-test"]
+    stop: "SIGKILL"
+  # release-build:
+  #   cmd: ["just", "_dev-watch-build-release"]
+  #   stop: "SIGKILL"

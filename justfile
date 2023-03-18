@@ -34,6 +34,8 @@ build-wasm-release: build-ts-bindings
 build-js-release: _yarn
     cd js; yarn --silent run tsup --config build.js --silent
     cp stork-wasm/pkg/stork.wasm js/dist/stork.wasm
+    @ruby -e "puts \"stork.wasm: #{File.size(\"js/dist/stork.wasm\") / 1000} KB\""
+    @ruby -e "puts \"stork.js:   #{File.size(\"js/dist/stork.js\") / 1000} KB\""
 
 
 
@@ -189,7 +191,12 @@ rebuild-dev-indexes: && _build-dev-indexes
 
 # Start a live development session
 dev: build-dev _copy-dev-files
-    mprocs "just _dev-watch-build" "just _dev-serve" "just _dev-watch-test"
+    open http://127.0.0.1:8025
+    mprocs --config dev/mprocs.yml
+
+# Command to list all files that should be watched for changes
+_list_watched_files:
+    git ls-files js/src stork-*/src dev/site
 
 _build-dev-indexes:
     python3 scripts/build_dev_indexes.py
@@ -204,7 +211,7 @@ _copy-dev-files: _build-dev-indexes
     cp stork-wasm/pkg/stork_bg_uncomp.wasm  dev/dist/stork.wasm
 
 _dev-watch-build:
-    git ls-files js stork-* dev/site | entr -s "just build-dev && just _copy-dev-files"
+    just _list_watched_files | entr -s "just build-dev && just _copy-dev-files"
 
 _dev-serve:
     @echo "Open http://127.0.0.1:8025"
@@ -212,10 +219,10 @@ _dev-serve:
     python3 -m http.server --directory ./dev/dist 8025
 
 _dev-watch-test:
-    git ls-files js stork-* | entr -s "just test-all"
+    just _list_watched_files | entr -s "just test-all"
 
 _dev-watch-build-release:
-    git ls-files js stork-* | entr -s "just build-release"
+    just _list_watched_files | entr -s "just build-release"
 
 
 
