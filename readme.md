@@ -1,5 +1,16 @@
 # Stork
 
+<table><tr><td>
+
+**Project update**: [I'm winding down my work with Stork.](https://github.com/jameslittle230/stork/discussions/360)
+
+Thanks to everyone who enjoyed using Stork over the past few years!  
+-James
+  
+</td></tr></table>
+
+---
+
 Impossibly fast web search, made for static sites.
 
 [![Crates.io](https://img.shields.io/crates/v/stork-search)](https://crates.io/crates/stork-search)
